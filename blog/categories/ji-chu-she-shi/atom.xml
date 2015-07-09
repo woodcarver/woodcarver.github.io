@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[My Octopress Blog]]></title>
-  <link href="http://woodcarver.github.io/atom.xml" rel="self"/>
+  <title><![CDATA[Category: 基础设施 | My Octopress Blog]]></title>
+  <link href="http://woodcarver.github.io/blog/categories/ji-chu-she-shi/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
   <updated>2015-07-09T16:36:30+08:00</updated>
   <id>http://woodcarver.github.io/</id>
