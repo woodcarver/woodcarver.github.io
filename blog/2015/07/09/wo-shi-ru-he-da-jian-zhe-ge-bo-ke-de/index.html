@@ -5,13 +5,15 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>我是如何搭建这个博客的 - My Octopress Blog</title>
-  <meta name="author" content="Your Name">
+  <title>我是如何搭建这个博客的 - Wood Carver</title>
+  <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="参考文章 github pages
-Octopress 搭建流程
-使用github + Octopress 搭建免费博客 其中对下载源的修改是最重点的，中国的网络你懂得 ">
+  <meta name="description" content="参考文章 如何搭建github pages
+如何搭建Octopress
+如何搭建Octopress 2
+如何配置octopress
+如何编辑发布文章 ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -23,7 +25,7 @@ Octopress 搭建流程
   <link rel="canonical" href="http://woodcarver.github.io/blog/2015/07/09/wo-shi-ru-he-da-jian-zhe-ge-bo-ke-de/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <link href="/atom.xml" rel="alternate" title="My Octopress Blog" type="application/atom+xml">
+  <link href="/atom.xml" rel="alternate" title="Wood Carver" type="application/atom+xml">
   <script src="/javascripts/modernizr-2.0.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
@@ -38,9 +40,9 @@ Octopress 搭建流程
 
 <body   >
   <header role="banner"><hgroup>
-  <h1><a href="/">My Octopress Blog</a></h1>
+  <h1><a href="/">Wood Carver</a></h1>
   
-    <h2>A blogging framework for hackers.</h2>
+    <h2>Find another pool</h2>
   
 </hgroup>
 
@@ -60,6 +62,7 @@ Octopress 搭建流程
 <ul class="main-navigation">
   <li><a href="/">Blog</a></li>
   <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about">About Me</a></li>
 </ul>
 
 </nav>
@@ -89,11 +92,11 @@ Octopress 搭建流程
 <div class="entry-content"><h3>参考文章</h3>
 
 <ul>
-<li><a href="https://pages.github.com/">github pages</a></li>
-<li><a href="http://shengmingzhiqing.com/blog/setup-octopress-with-github-pages.html/#octopress">Octopress 搭建流程</a></li>
-<li><a href="http://cn.soulmachine.me/blog/20130401/">使用github + Octopress 搭建免费博客</a>
-
-<blockquote><p>其中对下载源的修改是最重点的，中国的网络你懂得</p></blockquote></li>
+<li><a href="https://pages.github.com/">如何搭建github pages</a></li>
+<li><a href="http://shengmingzhiqing.com/blog/setup-octopress-with-github-pages.html/#octopress">如何搭建Octopress</a></li>
+<li><a href="http://cn.soulmachine.me/blog/20130401/">如何搭建Octopress 2</a></li>
+<li><a href="http://octopress.org/docs/configuring/">如何配置octopress</a></li>
+<li><a href="http://octopress.org/docs/blogging/">如何编辑发布文章</a></li>
 </ul>
 
 </div>
@@ -104,7 +107,7 @@ Octopress 搭建流程
       
   
 
-<span class="byline author vcard">Posted by <span class="fn">Your Name</span></span>
+<span class="byline author vcard">Posted by <span class="fn">Wood Carver</span></span>
 
       
 
@@ -124,8 +127,6 @@ Octopress 搭建流程
     </p>
     
       <div class="sharing">
-  
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://woodcarver.github.io/blog/2015/07/09/wo-shi-ru-he-da-jian-zhe-ge-bo-ke-de/" data-via="" data-counturl="http://woodcarver.github.io/blog/2015/07/09/wo-shi-ru-he-da-jian-zhe-ge-bo-ke-de/" >Tweet</a>
   
   
   
@@ -154,6 +155,35 @@ Octopress 搭建流程
   </ul>
 </section>
 
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/woodcarver">@woodcarver</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'woodcarver',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
 
 
 
@@ -165,7 +195,7 @@ Octopress 搭建流程
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2015 - Your Name -
+  Copyright &copy; 2015 - Wood Carver -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
@@ -177,16 +207,6 @@ Octopress 搭建流程
 
 
 
-
-  <script type="text/javascript">
-    (function(){
-      var twitterWidgets = document.createElement('script');
-      twitterWidgets.type = 'text/javascript';
-      twitterWidgets.async = true;
-      twitterWidgets.src = '//platform.twitter.com/widgets.js';
-      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
-    })();
-  </script>
 
 
 

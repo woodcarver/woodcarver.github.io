@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: 基础设施 | My Octopress Blog]]></title>
+  <title><![CDATA[Category: 基础设施 | Wood Carver]]></title>
   <link href="http://woodcarver.github.io/blog/categories/ji-chu-she-shi/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2015-07-09T16:36:30+08:00</updated>
+  <updated>2015-07-10T17:06:03+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
-    <name><![CDATA[Your Name]]></name>
+    <name><![CDATA[Wood Carver]]></name>
     
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
@@ -21,11 +21,11 @@
     <content type="html"><![CDATA[<h3>参考文章</h3>
 
 <ul>
-<li><a href="https://pages.github.com/">github pages</a></li>
-<li><a href="http://shengmingzhiqing.com/blog/setup-octopress-with-github-pages.html/#octopress">Octopress 搭建流程</a></li>
-<li><a href="http://cn.soulmachine.me/blog/20130401/">使用github + Octopress 搭建免费博客</a>
-
-<blockquote><p>其中对下载源的修改是最重点的，中国的网络你懂得</p></blockquote></li>
+<li><a href="https://pages.github.com/">如何搭建github pages</a></li>
+<li><a href="http://shengmingzhiqing.com/blog/setup-octopress-with-github-pages.html/#octopress">如何搭建Octopress</a></li>
+<li><a href="http://cn.soulmachine.me/blog/20130401/">如何搭建Octopress 2</a></li>
+<li><a href="http://octopress.org/docs/configuring/">如何配置octopress</a></li>
+<li><a href="http://octopress.org/docs/blogging/">如何编辑发布文章</a></li>
 </ul>
 
 ]]></content>
