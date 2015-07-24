@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Code-style | Wood Carver]]></title>
+  <link href="http://woodcarver.github.io/blog/categories/code-style/atom.xml" rel="self"/>
+  <link href="http://woodcarver.github.io/"/>
+  <updated>2015-07-24T19:12:08+08:00</updated>
+  <id>http://woodcarver.github.io/</id>
+  <author>
+    <name><![CDATA[Wood Carver]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Style of Programming 1]]></title>
+    <link href="http://woodcarver.github.io/blog/2015/07/24/style-of-programming-1/"/>
+    <updated>2015-07-24T18:12:32+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2015/07/24/style-of-programming-1</id>
+    <content type="html"><![CDATA[<h1>side effect的疑惑</h1>
+
+<h2>例子</h2>
+
+<p>这个例子是用c++写的。</p>
+
+<pre><code>void sort_three_nums(int a,int b,int c){
+    if(c&lt;b){
+        swap(b,c);
+    }
+    //{b&lt;c}
+    if(b&lt;a){
+        swap(a,b);
+    }
+    //{a&lt;b &amp;&amp; a&lt;c}
+    //be careful!Swap a,b maybe destory the precondition {b&lt;c}, because the value of b maybe changed
+    //so you need to compare b and c again!!
+    //the confusion of side effect
+    if(c&lt;b){
+        swap(b,c);
+    }
+    //{a&lt;b &amp;&amp; b&lt;c &amp;&amp; a&lt;c}
+    //{a&lt;b&lt;c}
+    printf("%d %d %d\n",a,b,c);
+}
+</code></pre>
+
+<p>这是一个典型的对三个数进行排序的例子，中间需要两次判断b,c导致的原因是在第二次比较中，<code>swap(a,b)</code>可能已经改变了b的值，所以到指第一次的比较结果失效了。像这种在中间就悄悄地改变变量的值，让人防不胜防。而且在命令式编程中也是处处存在，进而导致一些莫名其妙的问题。渐渐地软件开发在人们眼里也变成了一门高不可测且bug百出的学科。</p>
+
+<h2>改进</h2>
+
+<p>上面的代码从表面看令人非常疑惑，特别是那两次表面上一模一样的比较（b&lt;c）。让人看着着实不爽。让我们交换一个比较规则看看。假设我先比较a,b；然后再比较a,c；确保a是最小的数，然后再比较b,c。这样是不是要语义清楚一些呢？</p>
+
+<pre><code>void sort_three_nums(int a,int b,int c){
+    if(b&lt;a){
+        swap(a,b);
+    }
+    //{a&lt;b}
+
+    if(c&lt;a){
+        //{a&lt;b &amp;&amp; c&lt;a}={c&lt;a&lt;b}
+        swap(a,c);
+        //{a&lt;c&lt;b}=&gt;{a&lt;b &amp;&amp; a&lt;c}
+    }
+    //{a&lt;b &amp;&amp; a&lt;c}
+
+    if(c&lt;b){
+        //{a&lt;b &amp;&amp; a&lt;c &amp;&amp; c&lt;b}={a&lt;c&lt;b}
+        swap(b,c);
+        //{a&lt;b&lt;b}
+    }
+    //{a&lt;b &amp;&amp; a&lt;c &amp;&amp; b&lt;c}={a&lt;b&lt;c}
+
+    printf("%d %d %d\n",a,b,c);
+}
+</code></pre>
+
+<h2>能不能使用一种中间不要产生side effect的方法？</h2>
+]]></content>
+  </entry>
+  
+</feed>
