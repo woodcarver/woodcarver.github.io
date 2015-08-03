@@ -4,7 +4,7 @@
   <title><![CDATA[Wood Carver]]></title>
   <link href="http://woodcarver.github.io/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2015-07-24T23:45:16+08:00</updated>
+  <updated>2015-08-03T10:35:26+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -12,6 +12,134 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Concurrent_and_status]]></title>
+    <link href="http://woodcarver.github.io/blog/2015/07/25/concurrent-and-status/"/>
+    <updated>2015-07-25T10:37:35+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2015/07/25/concurrent-and-status</id>
+    <content type="html"><![CDATA[<h1>并发与状态</h1>
+
+<p>并发也许计算机中最难处理的部分，而且它又无处不在。比如你多个连接同时操作一个数据库；多个进程修改和读取一个文件时；抢火车票时，票不会凭空多出来；同时进行多个取钱操作时，银行保证你不会凭空多取出钱来。(这里也许需要更多、更好的使用发生场景)。If you want your computer run faster, you need paralisment.
+所以我想就想着这里谈谈到底什么是并发，毕竟搞清楚了问题的本质，才能应变问题以及相关问题。</p>
+
+<h2>基础例子</h2>
+
+<p>我们就拿上面的抢火车票来说举例吧！这个例子只要是中国人都应该有经历，所以有共鸣。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>张三（看看还有多少票）---------------&gt;    -----------
+</span><span class='line'>李四（看看还有多少票）---------------&gt;    |北京-上海 |
+</span><span class='line'>。                                     |余票：2     |
+</span><span class='line'>。                                       |         |
+</span><span class='line'>。                                     |         |
+</span><span class='line'>Alice（看看还有多少票）-------------&gt;    -----------</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>张三（有票，赶紧买）---------------&gt;   -----------
+</span><span class='line'>李四（怎么只剩2张）---------------&gt;    |北京-上海 |
+</span><span class='line'>。                                  |余票：2   |
+</span><span class='line'>。                                  |         |
+</span><span class='line'>。                                  |         |
+</span><span class='line'>Alice（我也要买）-------------&gt;      -----------</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从上面看来，买票就的动作可以分成2个阶段，而我们用m来表是此时剩余的票数:</p>
+
+<ol>
+<li>读取当前余票：m &mdash;> read</li>
+<li>如果有，就买票：m-1  &mdash;-> write</li>
+</ol>
+
+
+<p>翻译成程序：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span> <span class="nf">bug_ticket</span><span class="p">(){</span>
+</span><span class='line'>  <span class="n">m</span><span class="o">=</span><span class="n">get_ticket_count</span><span class="p">();</span> <span class="c1">//read 操作</span>
+</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="n">m</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">){</span>
+</span><span class='line'>      <span class="n">buy</span><span class="p">();</span>
+</span><span class='line'>      <span class="n">rewrite_ticket_count</span><span class="p">(</span><span class="n">m</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="c1">//write 操作,票减一张</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了简单期间，我们假设只有两个人抢票：A和B。那么所以的动作就有4个：</p>
+
+<p><strong>{A1，A2，B1，B2}</strong>（注意这是集合，是无序。当然我们发现A2在A1前面发生其实是无意义，因为买票肯定会先读取一下现在还有没有余票。同理B1和B2的顺序）</p>
+
+<p>我们理想的买票状况是排队：
+A 操作完A1，然后操作A2。然后B 在操作B1，然后再操作B2。但是现实中你不可能要求A做读取操作，不允许B不能读取吧。抢票关键还是看第二步操作谁快，才公平。所以就会出现这种序列：</p>
+
+<p><strong>[A1，B1，A2，B2]</strong></p>
+
+<p>但是这种我们仔细想想就会出问题：
+A1：A执行get_ticket_count()，发现有m=1张
+B1：B同时执行get_ticket_count()，发现有m=1张
+A2：A抢先执行了buy()并且rewrite_ticket_count(0)
+B2：B已经在B1的时候拿到了余票数，虽然期间被A修改了，但是B并不知道，让然执行buy()并且rewrite_ticket_count(0)</p>
+
+<p>Ops！！发现一张票卖给了两个人。</p>
+
+<p>其实用另一个更简单的例子：计数
+A读取计数器发现现在到了100，同时B也读取计数器发现是100
+A现在对计数器操作，计数器现在是100，加上我自己应该是101，所以重写101到计数器中
+B可能就是慢了1纳秒，但是B还认为计数器才累积到100，所以加上自己应该是101，写入101到计数器中。
+可是计数机本应该是102的，少了1。</p>
+
+<p>发现并发控制不好，数要么莫名的多，要么莫名的少。</p>
+
+<h2>锁</h2>
+
+<p>有了问题，就应该想办法解决问题。<strong>并发问题解决本质就是限制其子原子操作的排列组合顺序,让不该发生的顺序排列不要发生</strong>。例如上面子原子操作的集合是<strong>{A1，A2，B1，B2}</strong>，其中有read操作必须先与write操作的限制条件，即A1先与A2,B1先与B2，其排列有：</p>
+
+<ul>
+<li>[A1，A2，B1，B2]</li>
+<li>[A1，B1，A2，B2]</li>
+<li>[B1，A1，A2，B2]</li>
+<li>[B1，B2，A2，A2]</li>
+<li>[B1，A1，B2，A2]</li>
+</ul>
+
+
+<p>加上读锁，即A或者B执行read的时候不允许其他人read和write直到本人write操作完成。这样做的结果就是:</p>
+
+<ul>
+<li>[A1，A2，B1，B2]</li>
+<li>[A1，B1，A2，B2] &mdash; 被排除</li>
+<li>[B1，A1，A2，B2] &mdash; 被排除</li>
+<li>[B1，B2，A2，A2]</li>
+<li>[B1，A1，B2，A2] &mdash; 被排除</li>
+</ul>
+
+
+<p>加read lock也许是最直接的方法，但是也是最暴力的。比如你在查看余票，就不允许别人同时查看余票，这个估计其他人是要砸桌子了。</p>
+
+<p>通过上面的子原子操作，我们看到并发的同时其实是个概念化的时间，和现实中的同时不是完全的一致。它其实是根据共享数据的状态划分的，状态改变一次算是一个时刻。这种比如你打开一个wikipedia的页面放置了一天没关，而期间也没人更改内容，那么一天后你再去查看内容，前后还是处于同一时刻。但是如果有人期间更改了内容，那么共享的内容的时刻已经前进了，而你一天后的内容就是过时的。</p>
+
+<p>第二种稍好办法就是，加上读取时间，来标识读取的哪个时刻（状态版本）。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Style of Programming 1]]></title>
