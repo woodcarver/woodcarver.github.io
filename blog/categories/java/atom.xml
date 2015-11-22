@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Java | Wood Carver]]></title>
+  <link href="http://woodcarver.github.io/blog/categories/java/atom.xml" rel="self"/>
+  <link href="http://woodcarver.github.io/"/>
+  <updated>2015-11-22T11:53:25+08:00</updated>
+  <id>http://woodcarver.github.io/</id>
+  <author>
+    <name><![CDATA[Wood Carver]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Java Proxy]]></title>
+    <link href="http://woodcarver.github.io/blog/2015/08/05/java-proxy/"/>
+    <updated>2015-08-05T17:20:04+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2015/08/05/java-proxy</id>
+    <content type="html"><![CDATA[<h1>java proxy</h1>
+
+<h2>代理的概念和作用</h2>
+
+<p>代理是一个很通用的解决问题的方法。其用处也是无所不在，不管是在网络部署，编程语言、火车票贩售还是澳洲签证办理中。</p>
+
+<p>这一点有篇文章讲的非常好，看详情直接<a href="http://www.importnew.com/11412.html">点这里，中文版</a>，或者<a href="http://www.javaworld.com/article/2076233/java-se/explore-the-dynamic-proxy-api.html">点这里，原文</a></p>
+
+<blockquote><p>代理强制对象方法的调用要间接的通过代理对象，代理对象就扮演了底层实际被代理对象的代理人的角色。代理对象跟普通对象的声明方式一样，因此，客户端对象根本觉察不到它们有代理对象实例。</p>
+
+<p>有一些常见的代理，比如：访问代理，门面(facade)，远程代理和虚拟代理。访问代理用来给服务或者数据对象的访问添加安全策略。门面是给底层的多个对象提供一个单一的上层接口。远程代理让客户端对象感觉不到底层数据实际是在远程。虚拟代理用来给实际对象做延迟或者是及时(just-in-time)初始化。</p>
+
+<p>在编程中，代理是一个很常用的基本的设计模式。但是，它的一个缺点是跟被代理对象之间是强耦合。看下图1中代理模式的UML，可以看出来为了让代理对象有用并且对被代理对象透明，代理对象通常要实现接口或者是继承已知的超类(facade情况除外)。
+<img src="../images/java_proxy.gif" alt="图1. 代理模式的UML图" /></p></blockquote>
+
+<h2>解决的问题</h2>
+
+<h2>具体使用</h2>
+
+<blockquote><p>动态代理（以下称代理），利用Java的反射技术(Java Reflection)，在运行时创建一个实现某些给定接口的新类（也称“动态代理类”）及其实例（对象）</p>
+
+<p>(Using Java Reflection to create dynamic implementations of interfaces at runtime)。</p>
+
+<p>代理的是接口(Interfaces)，不是类(Class)，更不是抽象类。</p></blockquote>
+
+<pre><code class="java">import java.lang.reflect.*;
+Proxy.newProxyInstance(ClassLoader loader,
+                      Class&lt;?&gt;[] interfaces,
+                      InvocationHandler h)
+</code></pre>
+
+<p>这个函数的名字直白的反映出了它时产生一个代理实例。它有三个参数：</p>
+
+<ul>
+<li><p>classLoader - the class loader to define the proxy class</p>
+
+<p>  顾名思义就是类的加载器。为什么要传递这个参数，我猜估计是因为jvm生产一个对象，需要专属的加载器。一般都是传递你要代理的接口的loader（ MyInterface.class.getClassLoader() ）。</p></li>
+<li><p>interfaces - the list of interfaces for the proxy class to implement</p>
+
+<p>  这是一个list，列的一组要被实现的接口。这个参数的元素的类型是Class</p></li>
+<li><p>h - the invocation handler to dispatch method invocations to</p>
+
+<p>  实际来组装实现代理接口的地方，其中的invoke是</p></li>
+</ul>
+
+
+<h2>举个例子</h2>
+
+<h2>reference</h2>
+
+<ul>
+<li><a href="http://docs.oracle.com/javase/7/docs/api/java/lang/reflect/Proxy.html">Class Proxy</a></li>
+<li><a href="http://www.javaworld.com/article/2076233/java-se/explore-the-dynamic-proxy-api.html">Explore the Dynamic Proxy API</a></li>
+<li><a href="http://www.importnew.com/11412.html">Explore the Dynamic Proxy API 中文版</a></li>
+<li><a href="http://www.cnblogs.com/techyc/p/3455950.html">Java的动态代理</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>

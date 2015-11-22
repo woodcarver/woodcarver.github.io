@@ -1,0 +1,255 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Java Proxy - Wood Carver</title>
+  <meta name="author" content="Wood Carver">
+
+  
+  <meta name="description" content="java proxy 代理的概念和作用 代理是一个很通用的解决问题的方法。其用处也是无所不在，不管是在网络部署，编程语言、火车票贩售还是澳洲签证办理中。 这一点有篇文章讲的非常好，看详情直接点这里，中文版，或者点这里，原文 代理强制对象方法的调用要间接的通过代理对象， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://woodcarver.github.io/blog/2015/08/05/java-proxy/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Wood Carver" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Wood Carver</a></h1>
+  
+    <h2>Find another pool</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="woodcarver.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Java Proxy</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-08-05T17:20:04+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>5:20 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h1>java proxy</h1>
+
+<h2>代理的概念和作用</h2>
+
+<p>代理是一个很通用的解决问题的方法。其用处也是无所不在，不管是在网络部署，编程语言、火车票贩售还是澳洲签证办理中。</p>
+
+<p>这一点有篇文章讲的非常好，看详情直接<a href="http://www.importnew.com/11412.html">点这里，中文版</a>，或者<a href="http://www.javaworld.com/article/2076233/java-se/explore-the-dynamic-proxy-api.html">点这里，原文</a></p>
+
+<blockquote><p>代理强制对象方法的调用要间接的通过代理对象，代理对象就扮演了底层实际被代理对象的代理人的角色。代理对象跟普通对象的声明方式一样，因此，客户端对象根本觉察不到它们有代理对象实例。</p>
+
+<p>有一些常见的代理，比如：访问代理，门面(facade)，远程代理和虚拟代理。访问代理用来给服务或者数据对象的访问添加安全策略。门面是给底层的多个对象提供一个单一的上层接口。远程代理让客户端对象感觉不到底层数据实际是在远程。虚拟代理用来给实际对象做延迟或者是及时(just-in-time)初始化。</p>
+
+<p>在编程中，代理是一个很常用的基本的设计模式。但是，它的一个缺点是跟被代理对象之间是强耦合。看下图1中代理模式的UML，可以看出来为了让代理对象有用并且对被代理对象透明，代理对象通常要实现接口或者是继承已知的超类(facade情况除外)。
+<img src="../images/java_proxy.gif" alt="图1. 代理模式的UML图" /></p></blockquote>
+
+<h2>解决的问题</h2>
+
+<h2>具体使用</h2>
+
+<blockquote><p>动态代理（以下称代理），利用Java的反射技术(Java Reflection)，在运行时创建一个实现某些给定接口的新类（也称“动态代理类”）及其实例（对象）</p>
+
+<p>(Using Java Reflection to create dynamic implementations of interfaces at runtime)。</p>
+
+<p>代理的是接口(Interfaces)，不是类(Class)，更不是抽象类。</p></blockquote>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.lang.reflect.*</span><span class="o">;</span>
+</span><span class='line'><span class="n">Proxy</span><span class="o">.</span><span class="na">newProxyInstance</span><span class="o">(</span><span class="n">ClassLoader</span> <span class="n">loader</span><span class="o">,</span>
+</span><span class='line'>                      <span class="n">Class</span><span class="o">&lt;?&gt;[]</span> <span class="n">interfaces</span><span class="o">,</span>
+</span><span class='line'>                      <span class="n">InvocationHandler</span> <span class="n">h</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个函数的名字直白的反映出了它时产生一个代理实例。它有三个参数：</p>
+
+<ul>
+<li><p>classLoader - the class loader to define the proxy class</p>
+
+<p>  顾名思义就是类的加载器。为什么要传递这个参数，我猜估计是因为jvm生产一个对象，需要专属的加载器。一般都是传递你要代理的接口的loader（ MyInterface.class.getClassLoader() ）。</p></li>
+<li><p>interfaces - the list of interfaces for the proxy class to implement</p>
+
+<p>  这是一个list，列的一组要被实现的接口。这个参数的元素的类型是Class</p></li>
+<li><p>h - the invocation handler to dispatch method invocations to</p>
+
+<p>  实际来组装实现代理接口的地方，其中的invoke是</p></li>
+</ul>
+
+
+<h2>举个例子</h2>
+
+<h2>reference</h2>
+
+<ul>
+<li><a href="http://docs.oracle.com/javase/7/docs/api/java/lang/reflect/Proxy.html">Class Proxy</a></li>
+<li><a href="http://www.javaworld.com/article/2076233/java-se/explore-the-dynamic-proxy-api.html">Explore the Dynamic Proxy API</a></li>
+<li><a href="http://www.importnew.com/11412.html">Explore the Dynamic Proxy API 中文版</a></li>
+<li><a href="http://www.cnblogs.com/techyc/p/3455950.html">Java的动态代理</a></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Wood Carver</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2015-08-05T17:20:04+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>5:20 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/java/'>java</a>, <a class='category' href='/blog/categories/language/'>language</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/08/03/introduction-to-olap/" title="Previous Post: Introduction to Olap">&laquo; Introduction to Olap</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2015/10/18/introduce-olap-model/" title="Next Post: Introduce OLAP Model">Introduce OLAP Model &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/11/11/what-is-model-of-data/">What Is Model of Data</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/10/24/aha-analysis-of-algorithms/">Aha! Analysis of Algorithms</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/10/19/mondrian-and-concurrent/">Mondrian vs Concurrent</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/10/19/mondrian-in-the-perspective-of-code-complete/">Mondrian in a Perspective of Code Complete</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/10/18/introduce-olap-model/">Introduce OLAP Model</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Wood Carver -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

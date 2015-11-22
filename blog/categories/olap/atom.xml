@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Olap | Wood Carver]]></title>
+  <link href="http://woodcarver.github.io/blog/categories/olap/atom.xml" rel="self"/>
+  <link href="http://woodcarver.github.io/"/>
+  <updated>2015-11-22T11:53:25+08:00</updated>
+  <id>http://woodcarver.github.io/</id>
+  <author>
+    <name><![CDATA[Wood Carver]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Introduction to Olap]]></title>
+    <link href="http://woodcarver.github.io/blog/2015/08/03/introduction-to-olap/"/>
+    <updated>2015-08-03T15:02:36+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2015/08/03/introduction-to-olap</id>
+    <content type="html"><![CDATA[<h1>Olap技术框架概况</h1>
+
+<h2>数据仓库</h2>
+
+<h2>多维度数据模型</h2>
+
+<h2>Olap是什么</h2>
+
+<h2>常用OLap技术框架</h2>
+
+<h3>数据存储引擎层</h3>
+
+<ul>
+<li>Hive</li>
+<li>Infrobright</li>
+</ul>
+
+
+<h3>多维度模型转化层</h3>
+
+<p>Mondrian</p>
+
+<h3>多维度模型到展现层的连接接口</h3>
+
+<p>Olap4j</p>
+
+<h3>数据展现层</h3>
+
+<p>Saiku</p>
+
+<h3>示例——Saiku + Mondrian + Infrobright</h3>
+
+<h3>数据分析查询示例——怎么正确的拖出正确的数据集合</h3>
+
+<h4>策略实验分析</h4>
+
+<h4>运营投放——效果对比</h4>
+
+<h4>商业分析——长时间短的查询（周，月，年）</h4>
+
+<h4>故障异常排查（小时，天）</h4>
+]]></content>
+  </entry>
+  
+</feed>
