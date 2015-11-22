@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Algorithms | Wood Carver]]></title>
   <link href="http://woodcarver.github.io/blog/categories/algorithms/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2015-11-22T11:53:25+08:00</updated>
+  <updated>2015-11-22T12:04:03+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -75,7 +75,7 @@ size_t binary_search(int *arr, int len, int target)
 T= 1+1+while里面的步骤。while里面的步骤怎么计算？
 假如我们的输入是：0 1 2 3 4 5。那么每个位置对应的运行次数如下图：</p>
 
-<p><img src="./img/binary_search_tree.jpg" alt="bianry_search_tree" /></p>
+<p><img src="../images/binary_search_tree.jpg" alt="bianry_search_tree" /></p>
 
 <p>上图给出的是n=6的情况。树的高hight=log(6)+1=3, t&lt;=hight(todo:能给出t＝f(k)的具体公式吗？参照平衡二叉树的性质)。</p>
 
