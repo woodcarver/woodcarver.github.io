@@ -5,12 +5,12 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Mondrian in a Perspective of Code Complete - Wood Carver</title>
+  <title>I Can't Help - Wood Carver</title>
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="
-">
+  <meta name="description" content="我实在是忍不住了，我要吐槽！
+为什么读java代码的这么费劲。一层一层的拨开后发现，他们使用的是接口，然后你就发现如果不向上追踪代码根本不可能知道到底是传递了那个具体类，从而更不知道具体的处理逻辑是什么。何谈修改其中逻辑？《代码大全》里说，如果你使用他们的接口，发现不懂应该要求其作者改动, &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -19,7 +19,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://woodcarver.github.io/blog/2015/10/19/mondrian-in-the-perspective-of-code-complete/">
+  <link rel="canonical" href="http://woodcarver.github.io/blog/2015/12/18/i-cant-help/">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Wood Carver" type="application/atom+xml">
@@ -70,7 +70,7 @@
   
   <header>
     
-      <h1 class="entry-title">Mondrian in a Perspective of Code Complete</h1>
+      <h1 class="entry-title">I Can't Help</h1>
     
     
       <p class="meta">
@@ -79,14 +79,23 @@
 
 
 
-<time class='entry-date' datetime='2015-10-19T14:42:12+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>2:42 pm</span></time>
+<time class='entry-date' datetime='2015-12-18T17:11:40+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>5:11 pm</span></time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content">
+<div class="entry-content"><p>我实在是忍不住了，我要吐槽！
+为什么读java代码的这么费劲。一层一层的拨开后发现，他们使用的是接口，然后你就发现如果不向上追踪代码根本不可能知道到底是传递了那个具体类，从而更不知道具体的处理逻辑是什么。何谈修改其中逻辑？《代码大全》里说，如果你使用他们的接口，发现不懂应该要求其作者改动,那是针对使用者来说。但是你是这个接口是新的接手人，要改变具体的逻辑，呵呵，那就等着哭吧！
+每次看代码都有种被骗，被忽悠的感觉。
+1. 老板今天要我给系统升级，增加一个显示用户闪亮亮的脑门大小
+2. 找到显示用户信息的function，它调用了一个人类,很简单，我点进去看看人类
+3. 点进去看，发现人类是个interface。好吧，这意味着我向上回滚看showUserProfile()的人类参数是什么时候实现。发现一个createPeople()
+4. 看了五六层，总算找到showUserProfile()里的人类是从那里开始产生的了。为了这个又走了一遍分支。不管怎么着，先看看createPeople()，发现人类又分了凡人，超人和坏人。然后点进凡人看看，发现又是一个接口扩展于人类。算了，那放放，不想再跑其他分支看createPeople()里的凡人到底是那个具体类。那我们再看看超人吧！发现超人和坏人是扩展于凡人的另一接口。。。。［摔桌子了！］</p>
+
+<p>看了这么多，又都好像啥都没看到。你以为了解人类，呵呵，其实你不了解任何一种人类。全是浮云。。。
+实在不明白，明明就一个实现类还要用接口干什么？</p>
 </div>
 
 
@@ -102,7 +111,7 @@
 
 
 
-<time class='entry-date' datetime='2015-10-19T14:42:12+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>2:42 pm</span></time>
+<time class='entry-date' datetime='2015-12-18T17:11:40+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>5:11 pm</span></time>
       
 
 
@@ -117,10 +126,8 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2015/10/18/introduce-olap-model/" title="Previous Post: Introduce OLAP Model">&laquo; Introduce OLAP Model</a>
+        <a class="basic-alignment left" href="/blog/2015/11/30/mondrian-design-dialect-design/" title="Previous Post: mondrian design:Dialect design">&laquo; mondrian design:Dialect design</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2015/10/19/mondrian-and-concurrent/" title="Next Post: mondrian vs concurrent">mondrian vs concurrent &raquo;</a>
       
     </p>
   </footer>

@@ -4,7 +4,7 @@
   <title><![CDATA[Wood Carver]]></title>
   <link href="http://woodcarver.github.io/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2015-11-22T12:05:06+08:00</updated>
+  <updated>2015-12-23T10:59:00+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -12,6 +12,323 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[I Can't Help]]></title>
+    <link href="http://woodcarver.github.io/blog/2015/12/18/i-cant-help/"/>
+    <updated>2015-12-18T17:11:40+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2015/12/18/i-cant-help</id>
+    <content type="html"><![CDATA[<p>我实在是忍不住了，我要吐槽！
+为什么读java代码的这么费劲。一层一层的拨开后发现，他们使用的是接口，然后你就发现如果不向上追踪代码根本不可能知道到底是传递了那个具体类，从而更不知道具体的处理逻辑是什么。何谈修改其中逻辑？《代码大全》里说，如果你使用他们的接口，发现不懂应该要求其作者改动,那是针对使用者来说。但是你是这个接口是新的接手人，要改变具体的逻辑，呵呵，那就等着哭吧！
+每次看代码都有种被骗，被忽悠的感觉。
+1. 老板今天要我给系统升级，增加一个显示用户闪亮亮的脑门大小
+2. 找到显示用户信息的function，它调用了一个人类,很简单，我点进去看看人类
+3. 点进去看，发现人类是个interface。好吧，这意味着我向上回滚看showUserProfile()的人类参数是什么时候实现。发现一个createPeople()
+4. 看了五六层，总算找到showUserProfile()里的人类是从那里开始产生的了。为了这个又走了一遍分支。不管怎么着，先看看createPeople()，发现人类又分了凡人，超人和坏人。然后点进凡人看看，发现又是一个接口扩展于人类。算了，那放放，不想再跑其他分支看createPeople()里的凡人到底是那个具体类。那我们再看看超人吧！发现超人和坏人是扩展于凡人的另一接口。。。。［摔桌子了！］</p>
+
+<p>看了这么多，又都好像啥都没看到。你以为了解人类，呵呵，其实你不了解任何一种人类。全是浮云。。。
+实在不明白，明明就一个实现类还要用接口干什么？</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Mondrian design:Dialect Design]]></title>
+    <link href="http://woodcarver.github.io/blog/2015/11/30/mondrian-design-dialect-design/"/>
+    <updated>2015-11-30T22:56:19+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2015/11/30/mondrian-design-dialect-design</id>
+    <content type="html"><![CDATA[<p>Dialect 模块是mondrian属于spi模块，主要作用用于支持跨平台支持各种关系性数据库。其基本设计理念使用了抽象工厂模型（abstract factory）。但是在上层有提供了一层抽象通过配置而不修改代码来实现自动根据加载的驱动来调用相应的Dialect，实现sql的兼容支持。</p>
+
+<p>我觉得如果要描述出来了解其中的机制，更需要回答下面3个问题，其实可以算2个，第一个问题拆开了就是后面那两个。
+为什么这么设计？有什么优点？有什么缺点？</p>
+
+<p>其中涉及到的类有：
+- mondrian.rolap.RolapConnection
+- mondrian.spi.DialectManager
+- mondrian.spi.DialectManager.DialectManagerImpl
+- mondrian.spi.DialectManager.ChainDialectFactory
+- mondrian.util.ServiceDiscovery<T>
+- mondrian.spi.Dialect
+- mondrian.spi.DialectFactory
+- mondrian.spi.impl.JdbcDialectFactory
+- mondrian.spi.impl.JdbcDialectImpl
+- mondrian.spi.impl.VerticaDialect</p>
+
+<p>现在辨别其中的参与者的角色：
+- client
+    - mondrian.rolap.RolapConnection
+- 抽象工厂
+    - mondrian.spi.DialectFactory
+- 具体工厂实现
+    - mondrian.spi.impl.JdbcDialectFactory
+- 产品抽象接口
+    - mondrian.spi.Dialect
+- 具体产品
+    - mondrian.spi.impl.JdbcDialectImpl
+    - mondrian.spi.impl.VerticaDialect</p>
+
+<p>这个模型的基本模型中还包括了管理者（mondrian.spi.DialectManager），除此之还有一个特殊支持是并没有给每个具体产品一个具体的工厂实现，而是所有的具体产品公用一个工厂——mondrian.spi.impl.JdbcDialectFactory。其中是通过传递给工厂参数来控制返回那个产品。</p>
+
+<p>公用一个工厂的好处是增大了代码的复用，显然写一大堆createDielact方法，而body中仅仅只是几行代码不同很烦人。而且每增加一个关系性数据库就需要增加一个具体工厂。
+具体步骤：
+- RolapConnection调用DialectManager.createDialect
+- DialectManager通过createDialect方法把任务传递给其私有内部类DialectManagerImpl。在这个类的构造函数中利用ServiceDiscovery类拿到所有的可能的数据库产品列表（读取的是"META-INF/services/mondrian.spi.Dialect文件的列表，注意的代码final List&lt;Class<Dialect>> dialectClasses=ServiceDiscovery.forClass(Dialect.class).getImplementor();）
+- 而且实际执行方法DialectManagerImpl.createDialect 根据传进来的dialectClassName来是实例化factory，如果dialectClassName为null，而默认是初始化一个CachingDialectFactory
+- ChainDialectFactory内部实际由ServiceDiscovery传递过来的factory列表，最终轮询数据库设备列表调用JdbcDialectFactory直到找到合适的Dialect
+- JdbcDialectFactory根据dataSource和connection的属性再透过JdbcDialectImpl来生层一个具体xxxDialect</p>
+
+<p>作为一个现在还没有“习惯Java编程”的初学者而言，mondrian源码中有许多我非常看不惯的设计。比如下面的循环调用：
+- mondrian.spi.impl.JdbcDialectFactory.createDialectHelper()
+- mondrian.spi.impl.JdbcDialectFactory.createDialect()</p>
+
+<h2>使用</h2>
+
+<p>通过上面的步骤很清楚的知道怎么去扩展一个数据库了。
+- 修改META-INF/services/mondrian.spi.Dialect，添加要支持的数据库的驱动
+- 在mondrian.spi包下添加同名的Dialect
+- 然后重新编译，部署就完成了</p>
+
+<h2>吐槽时间</h2>
+
+<p>这两个函数居然是互相引用的，一开始看源代码根部搞不清楚到底在到底谁是入口，谁是中间过程。我贴出这两个函数的源代码：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="n">Dialect</span> <span class="nf">createDialectHelper</span><span class="o">(</span>
+</span><span class='line'>        <span class="n">DialectFactory</span> <span class="n">factory</span><span class="o">,</span>
+</span><span class='line'>        <span class="n">DataSource</span> <span class="n">dataSource</span><span class="o">)</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">dataSource</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">throw</span> <span class="k">new</span> <span class="nf">IllegalArgumentException</span><span class="o">(</span>
+</span><span class='line'>                <span class="s">&quot;Must specify either dataSource or connection&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="n">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>    <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">connection</span> <span class="o">=</span> <span class="n">dataSource</span><span class="o">.</span><span class="na">getConnection</span><span class="o">();</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">// DataSource.getConnection does not return null. But</span>
+</span><span class='line'>            <span class="c1">// a null value here would cause infinite recursion, so</span>
+</span><span class='line'>            <span class="c1">// let&#39;s be cautious.</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="k">new</span> <span class="nf">IllegalArgumentException</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="kd">final</span> <span class="n">Dialect</span> <span class="n">dialect</span> <span class="o">=</span>
+</span><span class='line'>            <span class="n">factory</span><span class="o">.</span><span class="na">createDialect</span><span class="o">(</span><span class="n">dataSource</span><span class="o">,</span> <span class="n">connection</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Close the connection in such a way that if there is a</span>
+</span><span class='line'>        <span class="c1">// SQLException,</span>
+</span><span class='line'>        <span class="c1">// (a) we propagate the exception,</span>
+</span><span class='line'>        <span class="c1">// (b) we don&#39;t try to close the connection again.</span>
+</span><span class='line'>        <span class="n">Connection</span> <span class="n">connection2</span> <span class="o">=</span> <span class="n">connection</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">connection</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">connection2</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">dialect</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">SQLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">throw</span> <span class="n">Util</span><span class="o">.</span><span class="na">newError</span><span class="o">(</span>
+</span><span class='line'>                <span class="n">e</span><span class="o">,</span>
+</span><span class='line'>                <span class="s">&quot;Error while creating dialect&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">connection</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">SQLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="c1">// ignore</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">public</span> <span class="n">Dialect</span> <span class="nf">createDialect</span><span class="o">(</span><span class="n">DataSource</span> <span class="n">dataSource</span><span class="o">,</span> <span class="n">Connection</span> <span class="n">connection</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="c1">// If connection is null, create a temporary connection and</span>
+</span><span class='line'>    <span class="c1">// recursively call this method.</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nf">createDialectHelper</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">dataSource</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">assert</span> <span class="n">connection</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">acceptsConnection</span><span class="o">(</span><span class="n">connection</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">constructor</span><span class="o">.</span><span class="na">newInstance</span><span class="o">(</span><span class="n">connection</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">InstantiationException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="n">Util</span><span class="o">.</span><span class="na">newError</span><span class="o">(</span>
+</span><span class='line'>                    <span class="n">e</span><span class="o">,</span> <span class="s">&quot;Error while instantiating dialect&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IllegalAccessException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="n">Util</span><span class="o">.</span><span class="na">newError</span><span class="o">(</span>
+</span><span class='line'>                    <span class="n">e</span><span class="o">,</span> <span class="s">&quot;Error while instantiating dialect&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">InvocationTargetException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="n">Util</span><span class="o">.</span><span class="na">newError</span><span class="o">(</span>
+</span><span class='line'>                    <span class="n">e</span><span class="o">,</span> <span class="s">&quot;Error while instantiating dialect&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>去掉异常等处理，只看主干，变成下面的样子：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="n">Dialect</span> <span class="nf">createDialectHelper</span><span class="o">(</span>
+</span><span class='line'>        <span class="n">DialectFactory</span> <span class="n">factory</span><span class="o">,</span>
+</span><span class='line'>        <span class="n">DataSource</span> <span class="n">dataSource</span><span class="o">)</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>    <span class="n">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">connection</span> <span class="o">=</span> <span class="n">dataSource</span><span class="o">.</span><span class="na">getConnection</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">Dialect</span> <span class="n">dialect</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="na">createDialect</span><span class="o">(</span><span class="n">dataSource</span><span class="o">,</span> <span class="n">connection</span><span class="o">);</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">dialect</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">public</span> <span class="n">Dialect</span> <span class="nf">createDialect</span><span class="o">(</span><span class="n">DataSource</span> <span class="n">dataSource</span><span class="o">,</span> <span class="n">Connection</span> <span class="n">connection</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nf">createDialectHelper</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">dataSource</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">assert</span> <span class="n">connection</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">acceptsConnection</span><span class="o">(</span><span class="n">connection</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">constructor</span><span class="o">.</span><span class="na">newInstance</span><span class="o">(</span><span class="n">connection</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>先从createDialect（他的名字最像是入口）入手看，发现他先检查connection，如果是null，那么调用createDialectHelperi，并且返回其返回值。如果connection不为null，再检查其是不是系统可接受（acceptsConnection），然后构造一个具体Dialect类。so far,so good。 再细入看createDialectHelper，发现居然又调用了createDialect，这是坑人吧！createDialect刚把任务交给createDialectHelper没多久，又被扔回来了。这隐藏着深深恶意迂回的递归是怎么回事。能直接点吗？createDialectHelper其实不就是生成了connection递给createDialect，这用得着递归逻辑吗？直接改成下面这种逻辑不就行了嘛，还用递归？</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="n">Dialect</span> <span class="nf">createDialectHelper</span><span class="o">(</span>
+</span><span class='line'>        <span class="n">DialectFactory</span> <span class="n">factory</span><span class="o">,</span>
+</span><span class='line'>        <span class="n">DataSource</span> <span class="n">dataSource</span><span class="o">)</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>    <span class="n">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">connection</span> <span class="o">=</span> <span class="n">dataSource</span><span class="o">.</span><span class="na">getConnection</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">Dialect</span> <span class="n">dialect</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="na">createDialect</span><span class="o">(</span><span class="n">dataSource</span><span class="o">,</span> <span class="n">connection</span><span class="o">);</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">dialect</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">public</span> <span class="n">Dialect</span> <span class="nf">createDialect</span><span class="o">(</span><span class="n">DataSource</span> <span class="n">dataSource</span><span class="o">,</span> <span class="n">Connection</span> <span class="n">connection</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">connection</span> <span class="o">=</span> <span class="n">dataSource</span><span class="o">.</span><span class="na">getConnection</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">assert</span> <span class="n">connection</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">acceptsConnection</span><span class="o">(</span><span class="n">connection</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">constructor</span><span class="o">.</span><span class="na">newInstance</span><span class="o">(</span><span class="n">connection</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样的线性关系比循环调用好理解多了。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[What Is Model of Data]]></title>
