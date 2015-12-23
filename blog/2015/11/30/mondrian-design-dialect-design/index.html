@@ -90,51 +90,91 @@
 <p>我觉得如果要描述出来了解其中的机制，更需要回答下面3个问题，其实可以算2个，第一个问题拆开了就是后面那两个。
 为什么这么设计？有什么优点？有什么缺点？</p>
 
-<p>其中涉及到的类有：
-- mondrian.rolap.RolapConnection
-- mondrian.spi.DialectManager
-- mondrian.spi.DialectManager.DialectManagerImpl
-- mondrian.spi.DialectManager.ChainDialectFactory
-- mondrian.util.ServiceDiscovery<T>
-- mondrian.spi.Dialect
-- mondrian.spi.DialectFactory
-- mondrian.spi.impl.JdbcDialectFactory
-- mondrian.spi.impl.JdbcDialectImpl
-- mondrian.spi.impl.VerticaDialect</p>
+<p>其中涉及到的类有：</p>
 
-<p>现在辨别其中的参与者的角色：
-- client
-    - mondrian.rolap.RolapConnection
-- 抽象工厂
-    - mondrian.spi.DialectFactory
-- 具体工厂实现
-    - mondrian.spi.impl.JdbcDialectFactory
-- 产品抽象接口
-    - mondrian.spi.Dialect
-- 具体产品
-    - mondrian.spi.impl.JdbcDialectImpl
-    - mondrian.spi.impl.VerticaDialect</p>
+<ul>
+<li>mondrian.rolap.RolapConnection</li>
+<li>mondrian.spi.DialectManager</li>
+<li>mondrian.spi.DialectManager.DialectManagerImpl</li>
+<li>mondrian.spi.DialectManager.ChainDialectFactory</li>
+<li>mondrian.util.ServiceDiscovery<T></li>
+<li>mondrian.spi.Dialect</li>
+<li>mondrian.spi.DialectFactory</li>
+<li>mondrian.spi.impl.JdbcDialectFactory</li>
+<li>mondrian.spi.impl.JdbcDialectImpl</li>
+<li>mondrian.spi.impl.VerticaDialect</li>
+</ul>
+
+
+<p>现在辨别其中的参与者的角色：</p>
+
+<ul>
+<li>client
+
+<ul>
+<li>mondrian.rolap.RolapConnection</li>
+</ul>
+</li>
+<li>抽象工厂
+
+<ul>
+<li>mondrian.spi.DialectFactory</li>
+</ul>
+</li>
+<li>具体工厂实现
+
+<ul>
+<li>mondrian.spi.impl.JdbcDialectFactory</li>
+</ul>
+</li>
+<li>产品抽象接口
+
+<ul>
+<li>mondrian.spi.Dialect</li>
+</ul>
+</li>
+<li>具体产品
+
+<ul>
+<li>mondrian.spi.impl.JdbcDialectImpl</li>
+<li>mondrian.spi.impl.VerticaDialect</li>
+</ul>
+</li>
+</ul>
+
 
 <p>这个模型的基本模型中还包括了管理者（mondrian.spi.DialectManager），除此之还有一个特殊支持是并没有给每个具体产品一个具体的工厂实现，而是所有的具体产品公用一个工厂——mondrian.spi.impl.JdbcDialectFactory。其中是通过传递给工厂参数来控制返回那个产品。</p>
 
 <p>公用一个工厂的好处是增大了代码的复用，显然写一大堆createDielact方法，而body中仅仅只是几行代码不同很烦人。而且每增加一个关系性数据库就需要增加一个具体工厂。
-具体步骤：
-- RolapConnection调用DialectManager.createDialect
-- DialectManager通过createDialect方法把任务传递给其私有内部类DialectManagerImpl。在这个类的构造函数中利用ServiceDiscovery类拿到所有的可能的数据库产品列表（读取的是"META-INF/services/mondrian.spi.Dialect文件的列表，注意的代码final List&lt;Class<Dialect>> dialectClasses=ServiceDiscovery.forClass(Dialect.class).getImplementor();）
-- 而且实际执行方法DialectManagerImpl.createDialect 根据传进来的dialectClassName来是实例化factory，如果dialectClassName为null，而默认是初始化一个CachingDialectFactory
-- ChainDialectFactory内部实际由ServiceDiscovery传递过来的factory列表，最终轮询数据库设备列表调用JdbcDialectFactory直到找到合适的Dialect
-- JdbcDialectFactory根据dataSource和connection的属性再透过JdbcDialectImpl来生层一个具体xxxDialect</p>
+具体步骤：</p>
 
-<p>作为一个现在还没有“习惯Java编程”的初学者而言，mondrian源码中有许多我非常看不惯的设计。比如下面的循环调用：
-- mondrian.spi.impl.JdbcDialectFactory.createDialectHelper()
-- mondrian.spi.impl.JdbcDialectFactory.createDialect()</p>
+<ul>
+<li>RolapConnection调用DialectManager.createDialect</li>
+<li>DialectManager通过createDialect方法把任务传递给其私有内部类DialectManagerImpl。在这个类的构造函数中利用ServiceDiscovery类拿到所有的可能的数据库产品列表（读取的是"META-INF/services/mondrian.spi.Dialect文件的列表，注意的代码final List&lt;Class<Dialect>> dialectClasses=ServiceDiscovery.forClass(Dialect.class).getImplementor();）</li>
+<li>而且实际执行方法DialectManagerImpl.createDialect 根据传进来的dialectClassName来是实例化factory，如果dialectClassName为null，而默认是初始化一个CachingDialectFactory</li>
+<li>ChainDialectFactory内部实际由ServiceDiscovery传递过来的factory列表，最终轮询数据库设备列表调用JdbcDialectFactory直到找到合适的Dialect</li>
+<li>JdbcDialectFactory根据dataSource和connection的属性再透过JdbcDialectImpl来生层一个具体xxxDialect</li>
+</ul>
+
+
+<p>作为一个现在还没有“习惯Java编程”的初学者而言，mondrian源码中有许多我非常看不惯的设计。比如下面的循环调用：</p>
+
+<ul>
+<li>mondrian.spi.impl.JdbcDialectFactory.createDialectHelper()</li>
+<li>mondrian.spi.impl.JdbcDialectFactory.createDialect()</li>
+</ul>
+
 
 <h2>使用</h2>
 
-<p>通过上面的步骤很清楚的知道怎么去扩展一个数据库了。
-- 修改META-INF/services/mondrian.spi.Dialect，添加要支持的数据库的驱动
-- 在mondrian.spi包下添加同名的Dialect
-- 然后重新编译，部署就完成了</p>
+<p>通过上面的步骤很清楚的知道怎么去扩展一个数据库了。</p>
+
+<ul>
+<li>修改META-INF/services/mondrian.spi.Dialect，添加要支持的数据库的驱动</li>
+<li>在mondrian.spi包下添加同名的Dialect</li>
+<li>然后重新编译，部署就完成了</li>
+</ul>
+
 
 <h2>吐槽时间</h2>
 
