@@ -9,8 +9,7 @@
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="我实在是忍不住了，我要吐槽！
-为什么读java代码的这么费劲。一层一层的拨开后发现，他们使用的是接口，然后你就发现如果不向上追踪代码根本不可能知道到底是传递了那个具体类，从而更不知道具体的处理逻辑是什么。何谈修改其中逻辑？《代码大全》里说，如果你使用他们的接口，发现不懂应该要求其作者改动, &hellip;">
+  <meta name="description" content="网络编程中的服务器模型根据接受请求和处理请求的方法来分，大方向分为阻塞模型和非阻塞模型。像redis这种服务使用的是非阻塞模型。而根据服务器对请求派生的进程或者线程方式，模型又分为单进程或线程和多进程或线程。下面依次讲解这几种经典模型： 单进程的阻塞模型 这是服务器模型中最为简单的模型， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -73,7 +72,1100 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2015/12/18/i-cant-help/">I Can't Help</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/01/05/networking-server/">网络编程中的服务器模型</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-01-05T22:14:11+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:14 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>网络编程中的服务器模型根据接受请求和处理请求的方法来分，大方向分为阻塞模型和非阻塞模型。像redis这种服务使用的是非阻塞模型。而根据服务器对请求派生的进程或者线程方式，模型又分为单进程或线程和多进程或线程。下面依次讲解这几种经典模型：</p>
+
+<h2>单进程的阻塞模型</h2>
+
+<p>这是服务器模型中最为简单的模型，当然处理客户端请有的效率也是最低的。该模型是启动一个socket进程，每来一个请求就处理一个，如果同时有多个请求，只处理最先到达的请求，其他的请求处于阻塞状态直到前一个请求处理完成。尽管这个模型很简单，但是理解其他网络服务器模型的基石。其参考代码如下(代码下载：)：</p>
+
+<p>下面的例子的功能是把服务端的时间传送给客户端：</p>
+
+<pre><code>服务端程序：
+</code></pre>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span><span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">sockfd</span><span class="p">,</span><span class="n">bin</span><span class="p">,</span><span class="n">connfd</span><span class="p">,</span><span class="n">lisfd</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">char</span> <span class="n">buff</span><span class="p">[</span><span class="n">MAXLINE</span><span class="p">];</span>
+</span><span class='line'>  <span class="k">struct</span> <span class="n">sockaddr_in</span> <span class="n">sevr_addr</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">time_t</span> <span class="n">ticks</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">memset</span><span class="p">(</span><span class="o">&amp;</span><span class="n">sevr_addr</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="k">sizeof</span><span class="p">(</span><span class="n">sevr_addr</span><span class="p">));</span>
+</span><span class='line'>  <span class="n">sevr_addr</span><span class="p">.</span><span class="n">sin_family</span><span class="o">=</span><span class="n">AF_INET</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">sevr_addr</span><span class="p">.</span><span class="n">sin_addr</span><span class="p">.</span><span class="n">s_addr</span><span class="o">=</span><span class="n">htonl</span><span class="p">(</span><span class="n">INADDR_ANY</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">sevr_addr</span><span class="p">.</span><span class="n">sin_port</span><span class="o">=</span><span class="n">htons</span><span class="p">(</span><span class="n">SERVER_PORT</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">sockfd</span><span class="o">=</span><span class="n">socket</span><span class="p">(</span><span class="n">AF_INET</span><span class="p">,</span><span class="n">SOCK_STREAM</span><span class="p">,</span><span class="n">IPPROTO_TCP</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="n">sockfd</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>      <span class="n">fatal</span><span class="p">(</span><span class="s">&quot;socket failed&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">bin</span><span class="o">=</span><span class="n">bind</span><span class="p">(</span><span class="n">sockfd</span><span class="p">,(</span><span class="k">struct</span> <span class="n">sockaddr</span> <span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">sevr_addr</span><span class="p">,</span><span class="k">sizeof</span><span class="p">(</span><span class="n">sevr_addr</span><span class="p">));</span>
+</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="n">bin</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>      <span class="n">fatal</span><span class="p">(</span><span class="s">&quot;bind failed&quot;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">lisfd</span><span class="o">=</span><span class="n">listen</span><span class="p">(</span><span class="n">sockfd</span><span class="p">,</span><span class="n">QUEUE_SIZE</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="n">lisfd</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>      <span class="n">fatal</span><span class="p">(</span><span class="s">&quot;listen failed&quot;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">while</span><span class="p">(</span><span class="mi">1</span><span class="p">){</span>
+</span><span class='line'>      <span class="n">connfd</span><span class="o">=</span><span class="n">accept</span><span class="p">(</span><span class="n">sockfd</span><span class="p">,</span><span class="nb">NULL</span><span class="p">,</span><span class="nb">NULL</span><span class="p">);</span>
+</span><span class='line'>      <span class="n">ticks</span><span class="o">=</span><span class="n">time</span><span class="p">(</span><span class="nb">NULL</span><span class="p">);</span>
+</span><span class='line'>      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;send time:%d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">ticks</span><span class="p">);</span>
+</span><span class='line'>      <span class="n">snprintf</span><span class="p">(</span><span class="n">buff</span><span class="p">,</span><span class="k">sizeof</span><span class="p">(</span><span class="n">buff</span><span class="p">),</span><span class="s">&quot;%.24s</span><span class="se">\r\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">ctime</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ticks</span><span class="p">));</span>
+</span><span class='line'>      <span class="n">write</span><span class="p">(</span><span class="n">connfd</span><span class="p">,</span><span class="n">buff</span><span class="p">,</span><span class="n">strlen</span><span class="p">(</span><span class="n">buff</span><span class="p">));</span>
+</span><span class='line'>      <span class="n">close</span><span class="p">(</span><span class="n">connfd</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<pre><code>该例子中，只启用了一个accept来接受客户端的请求连接，每次只处理一个请求。其他的请求则按照FIFO的原则排入队列中，队列的大小是作为listen函数的第二个参数通知系统的。关于socket编程，参考《unix网络编程》。
+
+客户端程序：
+</code></pre>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span><span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>        <span class="kt">int</span> <span class="n">sockfd</span><span class="p">,</span><span class="n">n</span><span class="p">;</span>
+</span><span class='line'>        <span class="kt">char</span> <span class="n">buff</span><span class="p">[</span><span class="n">MAXLINE</span><span class="o">+</span><span class="mi">1</span><span class="p">];</span>
+</span><span class='line'>        <span class="k">struct</span> <span class="n">sockaddr_in</span> <span class="n">sevr_addr</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">if</span><span class="p">((</span><span class="n">sockfd</span><span class="o">=</span><span class="n">socket</span><span class="p">(</span><span class="n">AF_INET</span><span class="p">,</span><span class="n">SOCK_STREAM</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>                <span class="n">fatal</span><span class="p">(</span><span class="s">&quot;socket error&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">memset</span><span class="p">(</span><span class="o">&amp;</span><span class="n">sevr_addr</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="k">sizeof</span><span class="p">(</span><span class="n">sevr_addr</span><span class="p">));</span>
+</span><span class='line'>        <span class="n">sevr_addr</span><span class="p">.</span><span class="n">sin_family</span><span class="o">=</span><span class="n">AF_INET</span><span class="p">;</span>
+</span><span class='line'>        <span class="n">sevr_addr</span><span class="p">.</span><span class="n">sin_port</span><span class="o">=</span><span class="n">htons</span><span class="p">(</span><span class="n">SERVER_PORT</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">if</span><span class="p">(</span><span class="n">inet_pton</span><span class="p">(</span><span class="n">AF_INET</span><span class="p">,</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="o">&amp;</span><span class="n">sevr_addr</span><span class="p">.</span><span class="n">sin_addr</span><span class="p">)</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>                <span class="n">fatal</span><span class="p">(</span><span class="s">&quot;can not reach the address&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">if</span><span class="p">(</span><span class="n">connect</span><span class="p">(</span><span class="n">sockfd</span><span class="p">,(</span><span class="k">struct</span> <span class="n">sockaddr</span> <span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">sevr_addr</span><span class="p">,</span><span class="k">sizeof</span><span class="p">(</span><span class="n">sevr_addr</span><span class="p">))</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>                <span class="n">fatal</span><span class="p">(</span><span class="s">&quot;can not connect&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="k">while</span><span class="p">((</span><span class="n">n</span><span class="o">=</span><span class="n">read</span><span class="p">(</span><span class="n">sockfd</span><span class="p">,</span><span class="n">buff</span><span class="p">,</span><span class="n">MAXLINE</span><span class="p">))</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">){</span>
+</span><span class='line'>                <span class="n">buff</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>                <span class="k">if</span><span class="p">(</span><span class="n">fputs</span><span class="p">(</span><span class="n">buff</span><span class="p">,</span><span class="n">stdout</span><span class="p">)</span><span class="o">==</span><span class="n">EOF</span><span class="p">)</span>
+</span><span class='line'>                        <span class="n">fatal</span><span class="p">(</span><span class="s">&quot;fputs error&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="k">if</span><span class="p">(</span><span class="n">n</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>                <span class="n">fatal</span><span class="p">(</span><span class="s">&quot;read error&quot;</span><span class="p">);</span>
+</span><span class='line'>        <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p></p>
+
+<pre><code>下面的模型，变化的只是服务端程序，客户端的程序是不变得。
+</code></pre>
+
+<h2>一个进程或者线程一个请求模型</h2>
+
+<p>这种模型是在单进程模型的基础上，对每个请求派生一个专属的进程。由于是多进程或者线程，这种模型是可以同时处理多个请求。但是这种模型存在派生进程过多，导致服务器崩溃的危险情况。同时由于大量的进程或者线程的生成和销毁，会耗费大量的cpu资源。而其他高级模型就是解决这种情况而演变出来的。其编程的核心是在单进程模型上利用fork函数。</p>
+
+<pre><code>服务端代码示例：
+</code></pre>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include&lt;stdio.h&gt;</span>
+</span><span class='line'><span class="cp">#include&lt;stdlib.h&gt;</span>
+</span><span class='line'><span class="cp">#include&lt;string.h&gt;</span>
+</span><span class='line'><span class="cp">#include&lt;netinet/in.h&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="cp">#define MAXLINE 100</span>
+</span><span class='line'><span class="cp">#define SERVER_PORT 12345</span>
+</span><span class='line'><span class="cp">#define QUEUE_SIZE 1</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">void</span> <span class="nf">fatal</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">msg</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">msg</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span><span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">sockfd</span><span class="p">,</span><span class="n">bin</span><span class="p">,</span><span class="n">connfd</span><span class="p">,</span><span class="n">lisfd</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">char</span> <span class="n">buff</span><span class="p">[</span><span class="n">MAXLINE</span><span class="p">];</span>
+</span><span class='line'>  <span class="k">struct</span> <span class="n">sockaddr_in</span> <span class="n">sevr_addr</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">time_t</span> <span class="n">ticks</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">pid_t</span> <span class="n">pid</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">memset</span><span class="p">(</span><span class="o">&amp;</span><span class="n">sevr_addr</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="k">sizeof</span><span class="p">(</span><span class="n">sevr_addr</span><span class="p">));</span>
+</span><span class='line'>  <span class="n">sevr_addr</span><span class="p">.</span><span class="n">sin_family</span><span class="o">=</span><span class="n">AF_INET</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">sevr_addr</span><span class="p">.</span><span class="n">sin_addr</span><span class="p">.</span><span class="n">s_addr</span><span class="o">=</span><span class="n">htonl</span><span class="p">(</span><span class="n">INADDR_ANY</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">sevr_addr</span><span class="p">.</span><span class="n">sin_port</span><span class="o">=</span><span class="n">htons</span><span class="p">(</span><span class="n">SERVER_PORT</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">sockfd</span><span class="o">=</span><span class="n">socket</span><span class="p">(</span><span class="n">AF_INET</span><span class="p">,</span><span class="n">SOCK_STREAM</span><span class="p">,</span><span class="n">IPPROTO_TCP</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="n">sockfd</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>      <span class="n">fatal</span><span class="p">(</span><span class="s">&quot;socket failed&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">bin</span><span class="o">=</span><span class="n">bind</span><span class="p">(</span><span class="n">sockfd</span><span class="p">,(</span><span class="k">struct</span> <span class="n">sockaddr</span> <span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">sevr_addr</span><span class="p">,</span><span class="k">sizeof</span><span class="p">(</span><span class="n">sevr_addr</span><span class="p">));</span>
+</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="n">bin</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>      <span class="n">fatal</span><span class="p">(</span><span class="s">&quot;bind failed&quot;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">lisfd</span><span class="o">=</span><span class="n">listen</span><span class="p">(</span><span class="n">sockfd</span><span class="p">,</span><span class="n">QUEUE_SIZE</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="n">lisfd</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>      <span class="n">fatal</span><span class="p">(</span><span class="s">&quot;listen failed&quot;</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">while</span><span class="p">(</span><span class="mi">1</span><span class="p">){</span>
+</span><span class='line'>      <span class="n">connfd</span><span class="o">=</span><span class="n">accept</span><span class="p">(</span><span class="n">sockfd</span><span class="p">,</span><span class="nb">NULL</span><span class="p">,</span><span class="nb">NULL</span><span class="p">);</span>
+</span><span class='line'>      <span class="k">if</span><span class="p">((</span><span class="n">pid</span><span class="o">=</span><span class="n">fork</span><span class="p">())</span><span class="o">==</span><span class="mi">0</span><span class="p">){</span>
+</span><span class='line'>          <span class="n">close</span><span class="p">(</span><span class="n">lisfd</span><span class="p">);</span><span class="cm">/*why?*/</span>
+</span><span class='line'>
+</span><span class='line'>          <span class="n">ticks</span><span class="o">=</span><span class="n">time</span><span class="p">(</span><span class="nb">NULL</span><span class="p">);</span>
+</span><span class='line'>          <span class="n">printf</span><span class="p">(</span><span class="s">&quot;send time:%d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">ticks</span><span class="p">);</span>
+</span><span class='line'>          <span class="n">snprintf</span><span class="p">(</span><span class="n">buff</span><span class="p">,</span><span class="k">sizeof</span><span class="p">(</span><span class="n">buff</span><span class="p">),</span><span class="s">&quot;%.24s</span><span class="se">\r\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">ctime</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ticks</span><span class="p">));</span>
+</span><span class='line'>          <span class="n">write</span><span class="p">(</span><span class="n">connfd</span><span class="p">,</span><span class="n">buff</span><span class="p">,</span><span class="n">strlen</span><span class="p">(</span><span class="n">buff</span><span class="p">));</span>
+</span><span class='line'>
+</span><span class='line'>          <span class="n">printf</span><span class="p">(</span><span class="s">&quot;sleep for 10 seconds...</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span><span class='line'>          <span class="n">sleep</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+</span><span class='line'>          <span class="n">printf</span><span class="p">(</span><span class="s">&quot;the connect is over.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+</span><span class='line'>          
+</span><span class='line'>          <span class="n">close</span><span class="p">(</span><span class="n">connfd</span><span class="p">);</span>
+</span><span class='line'>          <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>      <span class="n">close</span><span class="p">(</span><span class="n">connfd</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/01/05/nginx-proxy/">Nginx反向代理配置</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-01-05T22:04:29+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:04 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>什么是代理</h2>
+
+<p>代理在普通生活中的意义就是本来应该你做的事情，你让别人代你做了，那么那个帮你做的人就是你的代理。而在计算机网络中代理的概念差不多，就是本来要客户端要做的网络访问，现在移交给另外一个机器做，那么那个机器就被称为代理服务器，代理服务器帮你来访问。过程如下：</p>
+
+<p>正常情况：
+client &mdash;(send request)&mdash;> server</p>
+
+<p>代理情况：
+client &mdash;(send request)&mdash;> clinet proxy &ndash;(send request)&mdash;> server</p>
+
+<h2>什么又是反向代理</h2>
+
+<p>那什么又是反向代理呢？反向代理可不是说本来代理你事务的人，反过来代理别人。反向代理在计算机网络中是指这么一个过程。一般来说正向代理是客户机找人来代理把自己的请求转发给服务端，但是如果反向代理，找代理的人不再是客户机，而是服务器这边把自己接受的请求转发给背后的其他机器。其主要区别：</p>
+
+<ul>
+<li>正向代理中代理的过程是客户端，代理机器是作为一个访问客户的身份的；而在反向代理中代理机器是作为服务身份。</li>
+<li>正向代理中代理的过程是服务端，服务端对代理的存在无感知；而在反向代理中客户机对代理的存在无感知。</li>
+</ul>
+
+
+<p>反向代理情况：
+clinet &ndash;(send request)&ndash;> server proxy &ndash;(send request)&ndash;>other
+server</p>
+
+<h2>先让我们看看一个示例</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#① part start
+</span><span class='line'>#运行nginx进程的账户
+</span><span class='line'>user www;
+</span><span class='line'>#
+</span><span class='line'>worker_process 1;
+</span><span class='line'>error_log /var/log/nginx/error.log
+</span><span class='line'>pid /var/run/nginx.pid;
+</span><span class='line'>
+</span><span class='line'>events{
+</span><span class='line'>  use epoll;
+</span><span class='line'>  worker_connections 1024;
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>http{
+</span><span class='line'>    include       /etc/nginx/mime.types;
+</span><span class='line'>    default_type  application/octet-stream;
+</span><span class='line'>    access_log  /var/log/nginx/access.log  main;
+</span><span class='line'>    #
+</span><span class='line'>    sendfile        on;
+</span><span class='line'>    #
+</span><span class='line'>    keepalive_timeout  65;
+</span><span class='line'>    gzip  on;
+</span><span class='line'>   
+</span><span class='line'>    index   index.html index.htm;
+</span><span class='line'>    include /etc/nginx/conf.d/*.conf;
+</span><span class='line'>    include /etc/nginx/sites-enabled/*;
+</span><span class='line'>    #② part start
+</span><span class='line'>      # 定义上游服务器列表组
+</span><span class='line'>    upstream web1 {
+</span><span class='line'>        server 127.0.0.1:111 weight=1;
+</span><span class='line'>        server 127.0.0.1:222 weight=1;
+</span><span class='line'>    }
+</span><span class='line'>    upstream web2 {
+</span><span class='line'>        server 127.0.0.2:111 weight=1;
+</span><span class='line'>        server 127.0.0.2:222 weight=6;
+</span><span class='line'>        server 127.0.0.2:333 weight=7;
+</span><span class='line'>    }
+</span><span class='line'>    #定义一个服务器，其监听80端口，配置的域名是www.company.com
+</span><span class='line'>    server{
+</span><span class='line'>      listen 80;
+</span><span class='line'>      # using www  domain to access the main website
+</span><span class='line'>      server_name www.company.com;
+</span><span class='line'>      access_log  /var/log/nginx/www.log
+</span><span class='line'>      
+</span><span class='line'>      location / {
+</span><span class='line'>          root /home/website_root;
+</span><span class='line'>          
+</span><span class='line'>      }
+</span><span class='line'>    }
+</span><span class='line'>    #③ part start
+</span><span class='line'>    #定义第二个服务器，其同样监听80端口，但是匹配域名是web.company.com
+</span><span class='line'>    server{
+</span><span class='line'>      listen 80;
+</span><span class='line'>      # using web sub domain to access
+</span><span class='line'>      server_name web.company.com;
+</span><span class='line'>      access_log  /var/log/nginx/web_access.log
+</span><span class='line'>      
+</span><span class='line'>      location / {
+</span><span class='line'>          root /home/web2_root;
+</span><span class='line'>          proxy_pass http://127.0.0.1:8080/web/;
+</span><span class='line'>          proxy_read_timeout 300;
+</span><span class='line'>          proxy_connect_timeout 300;
+</span><span class='line'>          proxy_redirect     off;
+</span><span class='line'>
+</span><span class='line'>          proxy_set_header   X-Forwarded-Proto $scheme;
+</span><span class='line'>          proxy_set_header   Host              $http_host;
+</span><span class='line'>          proxy_set_header   X-Real-IP         $remote_addr;
+</span><span class='line'>      }
+</span><span class='line'>    }
+</span><span class='line'>    #定义第三个服务器，其同样监听80端口，但是匹配域名是web1.company.com，并把请求转发到web1上游服务
+</span><span class='line'>    server{
+</span><span class='line'>      listen 80;
+</span><span class='line'>      # using web1 sub domain to access
+</span><span class='line'>      server_name web1.company.com;
+</span><span class='line'>      access_log  /var/log/nginx/web1_access.log
+</span><span class='line'>      
+</span><span class='line'>      location / {
+</span><span class='line'>          root /home/web1_root;
+</span><span class='line'>          proxy_pass http://web1;
+</span><span class='line'>          proxy_read_timeout 300;
+</span><span class='line'>          proxy_connect_timeout 300;
+</span><span class='line'>          proxy_redirect     off;
+</span><span class='line'>
+</span><span class='line'>          proxy_set_header   X-Forwarded-Proto $scheme;
+</span><span class='line'>          proxy_set_header   Host              $http_host;
+</span><span class='line'>          proxy_set_header   X-Real-IP         $remote_addr;
+</span><span class='line'>      }
+</span><span class='line'>    }
+</span><span class='line'>        #定义第三个服务器，其同样监听80端口，但是匹配域名是web2.company.com，并把请求转发到web2上游服务
+</span><span class='line'>    server{
+</span><span class='line'>      listen 80;
+</span><span class='line'>      # using web2 sub domain to access
+</span><span class='line'>      server_name web2.company.com;
+</span><span class='line'>      access_log  /var/log/nginx/web2_access.log
+</span><span class='line'>      
+</span><span class='line'>      location / {
+</span><span class='line'>          root /home/web2_root;
+</span><span class='line'>          proxy_pass http://web2;
+</span><span class='line'>          proxy_read_timeout 300;
+</span><span class='line'>          proxy_connect_timeout 300;
+</span><span class='line'>          proxy_redirect     off;
+</span><span class='line'>
+</span><span class='line'>          proxy_set_header   X-Forwarded-Proto $scheme;
+</span><span class='line'>          proxy_set_header   Host              $http_host;
+</span><span class='line'>          proxy_set_header   X-Real-IP         $remote_addr;
+</span><span class='line'>      }
+</span><span class='line'>    }
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>这个示例都做了什么</h3>
+
+<ol>
+<li>第①部分，定义nginx通用规则，包括运行账户，处理进程个数等</li>
+<li>第②部分，开始定义上游服务器组</li>
+<li>第③部分，定义server，并指定怎么使用第②部分定义的upstream</li>
+</ol>
+
+
+<p>总体来说就是这个提供了4个服务，www，web，web1，web2 4个网站。这个例子很适合只有一台机器，但是有想避免url中携带端口号，统一使用域名的方式访问。4个网站都监听80端口，但是分配不同的二级域名既可以。这就需要nginx的反向代理，把接到的请求转发给背后不同的服务。</p>
+
+<h2>为什么需要方向代理</h2>
+
+<p>为什么要反向代理？作用服务端的代理，自然就是一台服务器处理不过来了，需要转发、分散请求给其他服务器做。下面罗列些适用场景：</p>
+
+<ul>
+<li><p>负载均衡
+上面例子中的web1和web2使用了nginx的负载均衡技术，把请求转向一组服务器。具体转发到哪个服务器，nginx提供了多种负载策略，例子中使用的是加权重的方式，web1 upstream是2个请求中，1个请求给111服务器，1个给222服务器。关于跟多的负载均衡的策略，请参看<a href="http://nginx.org/en/docs/http/load_balancing.html">nginx官方文档-负载均衡</a></p></li>
+<li><p>一个域名，多个网站。在这里反向代理倒不是为了负责存在，而是为了域名和服务的统一部署。例如一个公司的内部网站需要搭建很多服务——代码管理服、wiki服务、oa……，但是只要一个域名。这时候就可以用反向代理把不同的子域名转发到不同的服务上。下面是一个例子：</p></li>
+<li><p>当然反向代理的另一大用处就是隐藏后面的实际服务，以此来达到一定的安全性。</p></li>
+</ul>
+
+
+<h2>仔细讲解每个模块</h2>
+
+<h3>user</h3>
+
+<p>user 设置nginx是以什么用户来运行的，这个非常重要，<strong>确保运行nginx的用户能有权限访问读写网站的文件</strong>,否则会报404 not found等错误。</p>
+
+<h3>events</h3>
+
+<h3><a href="http://nginx.org/cn/docs/http/ngx_http_upstream_module.html">nginx upstream</a></h3>
+
+<p>upstream 直接翻译就是上游，即上游服务，其封装一组服务器列表，这些服务器可以别proxy_pass,fastcgi_pass,uwsgi_pass,scgi_pass和 memcached_pass引用，把接到的请求转发给这些服务器组。
+引用方法就是加行<a href="http://">http://</a>[upstream module name]</p>
+
+<pre><code>&gt; The ngx_http_upstream_module module is used to define groups of servers that can be referenced by the proxy_pass, fastcgi_pass, uwsgi_pass, scgi_pass, and memcached_pass directives.
+</code></pre>
+
+<p>例子：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>upstream  backend {  #①
+</span><span class='line'>    server backend1.example.com       weight=5;
+</span><span class='line'>    server backend2.example.com:8080;
+</span><span class='line'>    server unix:/tmp/backend3;
+</span><span class='line'>
+</span><span class='line'>    server backup1.example.com:8080   backup;
+</span><span class='line'>    server backup2.example.com:8080   backup;
+</span><span class='line'>}
+</span><span class='line'>
+</span><span class='line'>server {
+</span><span class='line'>    location / {
+</span><span class='line'>        proxy_pass http://backend; #②
+</span><span class='line'>    }
+</span><span class='line'>}
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意有①，和②行的写法。要引用<strong>backend</strong>模块，只需把它制定成**<a href="http://backend**%E5%B0%B1%E8%A1%8C%E3%80%82">http://backend**%E5%B0%B1%E8%A1%8C%E3%80%82</a></p>
+
+<h3>http 意义和配置</h3>
+
+<p>http就是指配置关于http服务的地方，server等都是http的子模块</p>
+
+<h3>server 配置和匹配规则</h3>
+
+<p>一个http服务可以有多个server，而对server的路径匹配，反向代理都是在这里配置的。</p>
+
+<p>在server中最重要的一项配置：server_name的配置。server_name决定了来了一个url，到底是哪个server处理该请求。nginx会依次找和url配置的第一次出现的server。server_name可以使用通配符，也可以使用正则表达式。而且一个server的server_name可以多个，以空格分隔。更详细的关于server_name匹配规则，<a href="http://nginx.org/en/docs/http/server_names.html">参看这里</a></p>
+
+<h3>location 配置和匹配规则</h3>
+
+<p>server_name是定义域名级别的规则，而location则是url中文件部分的规则的。适应例如会对图片等静态资源做单独处理等需求。</p>
+
+<h2>参考资料</h2>
+
+<ul>
+<li><a href="http://nginx.org/cn/docs/http/ngx_http_upstream_module.html">nginx upstream模块介绍文档1</a></li>
+<li><a href="http://tengine.taobao.org/book/chapter_05.html">nginx upstream模块介绍文档2</a></li>
+<li><a href="http://www.cnblogs.com/xiaogangqq123/archive/2011/03/02/1969006.html">nginx配置例子</a></li>
+<li><a href="http://nginx.org/en/docs/http/load_balancing.html">nginx load balancer</a></li>
+<li><a href="http://nginx.com/blog/nginx-plus-r6-released/?_ga=1.99990941.241485225.1426074750">Enhanced Load Balancing,High Availability, and Monitoring Features</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/01/05/java-project-orangnism/">Java Project Orangnism</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-01-05T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>12:00 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>单个文件的编译</h2>
+
+<p>HelloWorld.java</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.util.*</span><span class="o">;</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">HelloWorld</span> <span class="c1">//the class name must the same as file name case sensitivly</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">print</span><span class="o">(</span><span class="s">&quot;hello world!\n&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">for</span><span class="o">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="mi">10</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span>
+</span><span class='line'>            <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">print</span><span class="o">(</span><span class="n">i</span><span class="o">+</span><span class="s">&quot;\n&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>shell>javac HelloWorld.java       产生HelloWorld.class文件
+shell>java HelloWorld             执行HelloWorld.class</p>
+
+<h2>多个文件的编译</h2>
+
+<p>不过实际中只有一个文件的项目几乎不会出现，现在我们衍生到2个文件的组织和编译。
+- 先看第一种情况：所有文件都放在同一个文件夹中，即所有java文件都是平级的。这种编译和一个文件编译方法是一样的，直接编译入口java文件（包含main函数）即可。编译器会自动在当前目录寻找引入类的定义。</p>
+
+<p>HelloWorld.java</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.util.*</span><span class="o">;</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">HelloWorld</span><span class="o">{</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">){</span>
+</span><span class='line'>        <span class="n">DogWorld</span> <span class="n">dg</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">DogWorld</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">dg</span><span class="o">.</span><span class="na">setname</span><span class="o">(</span><span class="s">&quot;Mr Steph&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">String</span> <span class="n">dgname</span><span class="o">=</span><span class="n">dg</span><span class="o">.</span><span class="na">getname</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">printf</span><span class="o">(</span><span class="s">&quot;hello %s!\n&quot;</span><span class="o">,</span><span class="n">dgname</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>DogWorld.java</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">DogWorld</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="n">String</span> <span class="n">dogname</span><span class="o">;</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setname</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="o">.</span><span class="na">dogname</span><span class="o">=</span><span class="n">name</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="n">String</span> <span class="nf">getname</span><span class="o">()</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">dogname</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>shell>javac HelloWorld.java     <code>产生HelloWorld.class文件</code>
+shell>java HelloWorld           <code>执行HelloWorld.class</code></p>
+
+<ul>
+<li>第二种：当工程的文件达到上千个，放在同一个文件有开始有损工程可读性了，这是开始使用子文件夹来对代码文件模块化组织。</li>
+</ul>
+
+
+<p>现在我们把DogWorld放入到一个animal文件夹中，工程文文件目录如下：
+- HelloWorld.java
+- animal
+- DogWorld.java</p>
+
+<p>HelloWorld.java</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.util.*</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">animal.*</span><span class="o">;</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">HelloWorld</span><span class="o">{</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">){</span>
+</span><span class='line'>        <span class="n">DogWorld</span> <span class="n">dg</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">DogWorld</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">dg</span><span class="o">.</span><span class="na">setname</span><span class="o">(</span><span class="s">&quot;Mr Steph&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">String</span> <span class="n">dgname</span><span class="o">=</span><span class="n">dg</span><span class="o">.</span><span class="na">getname</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">printf</span><span class="o">(</span><span class="s">&quot;hello %s!\n&quot;</span><span class="o">,</span><span class="n">dgname</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意HelloWorld.java多了一行import animal.*代码，用于指定要引入的package。</p>
+
+<p>animal/DogWorld.java</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">animal</span><span class="o">;</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">DogWorld</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="n">String</span> <span class="n">dogname</span><span class="o">;</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setname</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="o">.</span><span class="na">dogname</span><span class="o">=</span><span class="n">name</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="n">String</span> <span class="nf">getname</span><span class="o">()</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">dogname</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>DogWorld.java也多了一行package animal，指定把这个类打入到animal package中，否则DogWorld将被打入默认package中。</p>
+
+<p>一下子多出来package和import的概念，我们还是先来探索package，这个给文件指定路径的机制。</p>
+
+<p><strong>我们先规定一个概念：工程根目录——这个目录的定义是包含main函数的文件的package指定的目录，如果入口文件没有package那么默认就是文件当前所在目录。例如我们的HelloWorld.java没有指定package， 那么根目录就是./</strong></p>
+
+<p>  当java文件中没有使用package显示指定它属于那个包的时候，它默认是属于根目录的包的，而且不管这个java文件是放在哪里。而显示指定package的时候，它又一定规则，即报名必须和文件的放的位置匹配。如果package animal，那么这个java文件就必须放入到相对于根目录的animal目录下。这样做的一个用处——源文件和中间文件路径可以分离。
+  javac的寻找类级别是先寻找xxx.class文件，如果没有那么再寻找xxx.java文件现编译xxx.class。而package其实指定xxx.class文件的路径的，而不是xxx.java文件。</p>
+
+<p>例如上面的例子，你也可以这样编译：
+shell>cd animal; javac DogWorld.java  <code>用来生产DogWorld.class文件</code>
+shell>cd ../     <code>到工程根目录</code>
+shell>javac HelloWorld.java
+shell>java HelloWorld</p>
+
+<p>假如你把DogWorld.java的package去掉，那么相当于你是想表达把DogWorld.class放到根目录上去。执行步骤是这样的。
+shell>cd animal; javac DogWorld.java  <code>用来生产DogWorld.class文件</code>
+shell> mv DogWorld.class ../   <code>把DogWorld.class移动到工程根目录去</code>
+shell>cd ../
+shell>javac HelloWorld.java
+shell>java HelloWorld</p>
+
+<p>而import是用来引入class文件的。它很简单，import xxx，完全就按照xxx来寻找。xxx的写法规则是用.来表示文件的层次。如com.animal那么就再相对于工程根目录的com/animal文件夹。</p>
+
+<p>有趣的是package和import的都是相对于根目录的路径，和代码文件本身所在目录完全无关，只和工程根目录有关。</p>
+
+<p>这些引用规则和c中#include使用大为不同。</p>
+
+<h2>虚拟机是如何定位类</h2>
+
+<p>接下来我们来仔细探讨下虚拟机的定位规则。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/01/01/100-open-source-operating-system-papers-for-programmers/">100 Open Source Operating System Papers for Programmers.</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-01-01T18:32:21+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>6:32 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content">
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/01/01/2015-annual-report/">2015 Annual Report</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-01-01T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>12:00 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>还是先吐槽吧</h2>
+
+<p>为什么我这么讨厌写季度总结或者职称评定这些材料？为什么在夸自己成果的时候，反而觉得这些是麻烦？是因为写了太多次这种东西后，发现依然没有什么用处吗（确实，写了这么多次，绩效被评了C，职称升级也无望，对于这些过场的无用的东西，谁还有激情去写，想想一开始入职公司的时候多有动力去写这些东西啊）？还是因为发现自己并没有什么可称赞的工作成果？总之想想这些无聊的东西就痛苦。</p>
+
+<p>但不管怎么样，或者什么原因，我还是要写的。也许我该找一个动力去完成这项任务，让我摆脱或者减轻我的痛苦。</p>
+
+<p>就当是人生记录吧！人生的一个阶段记录。好好写，过3～5年(可能一点兴趣都没有，我现在就一点都不想看自己一年前的各种总结。包括那份很傻的职称评定。不管怎么样，还是先写吧！)再拿出来看，我自己一定会庆幸自己记录这些，就像我的日记一样。</p>
+
+<p>远离那些伤害我的人，一定要果断，一旦判断某人伤害过我，一定毫不犹豫的断绝任何和此人的关系，并且阻断任何联系方式。</p>
+
+<p>在不知道前进方向的时候如何继续前进？或者在巨大的心里抵触的情况下，怎么进入工作状态？</p>
+
+<p>怎么克服别人对自己的能力否定？</p>
+
+<h2>输入性知识总结</h2>
+
+<h3>对机器学习做了初步的了解</h3>
+
+<h3>《计算的解析与构造》和《计算的本质》</h3>
+
+<h3>《computer system: a prospective of a programmer》</h3>
+
+<h3>操作系统</h3>
+
+<h3>java语言学习和平行编程</h3>
+
+<h2>输出性项目</h2>
+
+<p>这方面太失败，计划要做的myCompiler，myZip都没有任何输出性成果。只是读了一本书的前面几章。
+- myZip
+- myCompiler</p>
+
+<h2>第二天性技能</h2>
+
+<ul>
+<li>写作演讲基本机构技能：批判性思考方式</li>
+<li>谈判技能</li>
+<li>决策技能</li>
+<li>基本沟通技能</li>
+</ul>
+
+
+<h2>创造散发性技能</h2>
+
+<h2>工作总结</h2>
+
+<p>在多盟的这两年内，非常遗憾的只有一项成就——saiku。</p>
+
+<h2>此阶段最重要的3个问题</h2>
+
+<h2>2016的书单</h2>
+
+<p>目标就是至少能设计实现一个自己的分布式数据储存软件——myDB。</p>
+
+<h3>数据库设计与实现</h3>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/12/30/my-career-decision-tree/">My Career Decision Tree</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-12-30T22:32:30+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>30</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:32 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content">
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/12/30/how-to-be-a-programmer/">成为程序员的点点滴滴?</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-12-30T22:11:07+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>30</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:11 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>技能是最基础的，绝对是第一位的，不管你的经理或者leader多么强调业务多么重要。也不能因此就可以认为暂停锻炼技术技能，专心业务技能。</h2>
+
+<p>要判断什么对自己重要，什么对自己不重要。这个问题不是别人告诉你的，特别是更你有利益关系的人。要从自己的目的和初衷出发。
+我为什么选择做为一个程序员？
+- 因为我喜欢技术，就像其他的数据和自然科学一样。喜欢创作能改变生活的东西（从小到大，各个方面），更喜欢沉浸在创作的感觉中。
+- 因为喜欢找到系统解决问题的方法，喜欢量化模型，喜欢逻辑推理，然后推广，批量复制。
+- 因为喜欢确定的感觉，或者一定是程度的确定，然后放心的睡觉，放心的吃饭。
+- 因为自己擅长技术过于其他的项目。</p>
+
+<h2>如何应对季度或者年度评优？</h2>
+
+<p>一年一度的评优活动又开始了，You know your trouble comes。如果你获奖，恭喜你，不是因为你的付出得到了回报，而是因为你的地位保住了。何谈此话，想想你的上学经历，或者在任何一个封闭的团队的经历，那就是地位从来都是分等级的。如果你因获奖而地位上升的，那么也意味着如果你没有获奖，地位是下降了的。请记住这还不是更遭，更糟糕的是你以为你没获奖紧紧是你一个人的事？错～这是关系到整个团队的事，因为他们都知道你没有获奖，从而改变对你的看法和态度(也许是潜意识的，也许连他们自己也无法意识到)。但是你在他们眼里确实变成了个一能力"稍差"的同事了。
+一定请记住这点，经理设置的一定比例的奖项真的能鼓励员工更努力的工作吗？一项固定比例份额的奖项，评价指标是相对按团队名次排名来的系统，真的能提高员工工作激情？开什么玩笑！也许得奖的人是提高了工作激情，但是那些没得奖的人呢？综合一下提高的部分和打击的部分，总体上到底是提升还是下降？这种不是一种赤裸裸的内部竞争体系吗？在我眼里这种封闭团体的按排名获奖的系统的作用只有一个，就是为了淘汰末尾，这是一种淘汰机制。
+既然认清了其本质，经历过几次评优，也大致到了解了自己在企业团队中的地位了。接下来该做什么？也很清楚吧，如果无法挽回，那就时刻准备跑路～</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/12/28/how-to-learn-a-programming-language/">How to Learn a Programming Language</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-12-28T10:20:32+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:20 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content">
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/12/18/i-cant-help/">吐槽时间</a></h1>
     
     
       <p class="meta">
@@ -91,11 +1183,15 @@
 
   <div class="entry-content"><p>我实在是忍不住了，我要吐槽！
 为什么读java代码的这么费劲。一层一层的拨开后发现，他们使用的是接口，然后你就发现如果不向上追踪代码根本不可能知道到底是传递了那个具体类，从而更不知道具体的处理逻辑是什么。何谈修改其中逻辑？《代码大全》里说，如果你使用他们的接口，发现不懂应该要求其作者改动,那是针对使用者来说。但是你是这个接口是新的接手人，要改变具体的逻辑，呵呵，那就等着哭吧！
-每次看代码都有种被骗，被忽悠的感觉。
-1. 老板今天要我给系统升级，增加一个显示用户闪亮亮的脑门大小
-2. 找到显示用户信息的function，它调用了一个人类,很简单，我点进去看看人类
-3. 点进去看，发现人类是个interface。好吧，这意味着我向上回滚看showUserProfile()的人类参数是什么时候实现。发现一个createPeople()
-4. 看了五六层，总算找到showUserProfile()里的人类是从那里开始产生的了。为了这个又走了一遍分支。不管怎么着，先看看createPeople()，发现人类又分了凡人，超人和坏人。然后点进凡人看看，发现又是一个接口扩展于人类。算了，那放放，不想再跑其他分支看createPeople()里的凡人到底是那个具体类。那我们再看看超人吧！发现超人和坏人是扩展于凡人的另一接口。。。。［摔桌子了！］</p>
+每次看代码都有种被骗，被忽悠的感觉。</p>
+
+<ol>
+<li>老板今天要我给系统升级，增加一个显示用户闪亮亮的脑门大小</li>
+<li>找到显示用户信息的function，它调用了一个人类,很简单，我点进去看看人类</li>
+<li>点进去看，发现人类是个interface。好吧，这意味着我向上回滚看showUserProfile()的人类参数是什么时候实现。发现一个createPeople()</li>
+<li>看了五六层，总算找到showUserProfile()里的人类是从那里开始产生的了。为了这个又走了一遍分支。不管怎么着，先看看createPeople()，发现人类又分了凡人，超人和坏人。然后点进凡人看看，发现又是一个接口扩展于人类。算了，那放放，不想再跑其他分支看createPeople()里的凡人到底是那个具体类。那我们再看看超人吧！发现超人和坏人是扩展于凡人的另一接口。。。。［摔桌子了！］</li>
+</ol>
+
 
 <p>看了这么多，又都好像啥都没看到。你以为了解人类，呵呵，其实你不了解任何一种人类。全是浮云。。。
 实在不明白，明明就一个实现类还要用接口干什么？</p>
@@ -465,633 +1561,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/11/11/what-is-model-of-data/">What Is Model of Data</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-11-11T22:08:08+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>11</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:08 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/10/24/aha-analysis-of-algorithms/">Aha! Analysis of Algorithms</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-10-24T15:15:46+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>3:15 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h1>[跨越性发明]算法复杂度分析技术</h1>
-
-<p>关于算法分析技术的介绍，我看到最精彩的文章出自于Robert Sadgewick的《算法》。本书在第一章的介绍性文章给了一些很精彩的算法案例和程序代码后提出让我很震惊的问题:“怎么判断一个算法跑的快不快？”,而且这个问题从头到尾不断重复。我很震惊的原因是我认为既然都知道算法过程，其他的类似与计算步骤这种“附属问题”难道还需要考虑？然后真被问到后，我发现我还真不会。不信，假装大家都事先不知道分析技术，我们来看下面的例子：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include &lt;stdio.h&gt;</span>
-</span><span class='line'><span class="cp">#include &lt;types.h&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">size_t</span> <span class="nf">binary_search</span><span class="p">(</span><span class="kt">int</span> <span class="o">*</span><span class="n">arr</span><span class="p">,</span> <span class="kt">int</span> <span class="n">len</span><span class="p">,</span> <span class="kt">int</span> <span class="n">target</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">left</span><span class="p">,</span><span class="n">right</span><span class="p">,</span><span class="n">middle</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">right</span><span class="o">=</span><span class="n">len</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">while</span><span class="p">(</span><span class="n">left</span><span class="o">&lt;=</span><span class="n">right</span><span class="p">){</span>
-</span><span class='line'>        <span class="n">middle</span><span class="o">=</span><span class="p">(</span><span class="n">left</span><span class="o">+</span><span class="n">right</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">;</span>
-</span><span class='line'>        <span class="k">if</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="n">target</span><span class="p">]</span><span class="o">==</span><span class="n">arr</span><span class="p">[</span><span class="n">middle</span><span class="p">]){</span>
-</span><span class='line'>            <span class="k">return</span> <span class="n">middle</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>        <span class="k">if</span> <span class="k">else</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="n">target</span><span class="p">]</span><span class="o">&lt;</span><span class="n">arr</span><span class="p">[</span><span class="n">middle</span><span class="p">]){</span>
-</span><span class='line'>            <span class="n">right</span><span class="o">=</span><span class="n">middle</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>        <span class="k">else</span><span class="p">{</span>
-</span><span class='line'>            <span class="n">left</span><span class="o">=</span><span class="n">middle</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>上面的二分查找法，让我们来分析运行时间。
-首先反应就是实际运行一下，统计时间不就出来了。好，就这么办。不过当开始动手的时候就发现自己要构建输入，而构建个什么样的输入呢？arr的包括数据长度可以从10个整数到100000整数到无穷大……。从这个问题我们就会强烈的意识到算法的运行时间和输入数据大小直接相关。我们下记下来这条：</p>
-
-<blockquote><p>运行时间和输入数据大小直接相关</p></blockquote>
-
-<p>用更简介的纪录方法：</p>
-
-<blockquote><p>运行时间 ~ 输入数据大小</p></blockquote>
-
-<p>还是不够方便，我们用一种数据方法来记录，这种思想来自于波利亚的<a href="http://www.amazon.cn/%E6%80%8E%E6%A0%B7%E8%A7%A3%E9%A2%98-%E6%95%B0%E5%AD%A6%E6%80%9D%E7%BB%B4%E7%9A%84%E6%96%B0%E6%96%B9%E6%B3%95-%E6%B3%A2%E5%88%A9%E4%BA%9A/dp/B0011F6OGM/ref=sr_1_1?ie=UTF8&amp;qid=1445674579&amp;sr=8-1&amp;keywords=%E6%80%8E%E4%B9%88%E8%A7%A3%E9%A2%98">怎么解题</a>或者数据建模，这种数学化一个实际问题是我发现找到结果的最强大的工具。T来表示运行时间,arr_len作为时间函数的一个自变量</p>
-
-<blockquote><p>T=f(arr_len)</p></blockquote>
-
-<p>构建完第一参数，我们来构建第二个参数，查那个数呢？Oh，my god!又发现target同样影响查询效率。因为查中间的位置，比查第一个和最后一个元素的时间长多了。这时我们再加一个自变量：tar_pos(target_pos)。</p>
-
-<blockquote><p>T=f(arr_len,tar_pos)</p></blockquote>
-
-<p>后来又因为我开启了一个耗资源的游戏，这个程序居然在同样的参数下跑的慢了。突然有想到了，原来机器的资源不同也是个大因素，这里包括机器拥有的cpu、内存、磁盘等。这时又需要加参数进入我们的函数了。我们叫machine envrionment，简称m_env.</p>
-
-<blockquote><p>T=f(arr_len,tar_pos,m_env)</p></blockquote>
-
-<p>看上面的问题，我们发现要精确进算运行速度，简直是不可能的事，因为有一个非常不容易控制而且我们也不关心的自变量那就是m_env。我们的算法要成功，必须在任何机器上都需要有良好的性能。所以我们开始<strong>简化模型</strong>,那就是开始构建理想机器，其资源全部资源都给我们关心的程序。<code>且假设一个statment所用的时间都是1（没有单位）</code>.这样我们算时间就转化成了算程序使用了多少statment。</p>
-
-<blockquote><p>T=f(arr_len,tar_pos), assumpte every statment takes one time</p></blockquote>
-
-<p>现在基本确定了自变量（怎么知道考虑的自变量够了呢？），我们来细化关系式。
-T= 1+1+while里面的步骤。while里面的步骤怎么计算？
-假如我们的输入是：0 1 2 3 4 5。那么每个位置对应的运行次数如下图：</p>
-
-<p><img src="../images/binary_search_tree.jpg" alt="bianry_search_tree" /></p>
-
-<p>上图给出的是n=6的情况。树的高hight=log(6)+1=3, t&lt;=hight(todo:能给出t＝f(k)的具体公式吗？参照平衡二叉树的性质)。</p>
-
-<p>给出了这个公式，我们就可以衡量任意参数的时间了。但是如果要对比算优良，就主要看在同样的参数下，谁更快了。现在我们拿出一个顺序查找来对比，我们都知道顺序查找的时间公式：T=tar_pos, 0&lt;=tar_pos&lt;6。 我们从第一个到k位置开始对比，下面列出个表格：</p>
-
-<table>
-<thead>
-<tr>
-<th>算法      </th>
-<th>0 </th>
-<th>1</th>
-<th>2</th>
-<th>3</th>
-<th>4</th>
-<th>5</th>
-<th>6</th>
-<th>avg</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>顺序查找法 </td>
-<td>0 </td>
-<td>1</td>
-<td>2</td>
-<td>3</td>
-<td>4</td>
-<td>5</td>
-<td>6</td>
-<td>3</td>
-</tr>
-<tr>
-<td>二分法    </td>
-<td>3 </td>
-<td>2</td>
-<td>3</td>
-<td>1</td>
-<td>3</td>
-<td>2</td>
-<td>3</td>
-<td>2.4</td>
-</tr>
-</tbody>
-</table>
-
-
-<p>对于上面的长度为6的数组查找我们还能一一列举出来，<code>但是当扩展到任意长度n后呢</code>？我们怎么比较呢？这里又是一个很跨越性的思想——概率统计：比较一组数时，我们使用</p>
-
-<blockquote><p>mean＝∑(k)*t,p(k)指被查找数在k位置的概率，t是该位置耗费的查找时间。</p></blockquote>
-
-<p>而且假定在没有任何前提下，所有位置的概率一样，即p(k)=1/n.</p>
-
-<p>然后具列出具体位置的式子：</p>
-
-<ul>
-<li>顺序查找法:t=k/n,mean=(1+n)/2</li>
-<li>二分法:t&lt;=log(n)+1,mean&lt;=log(n)+1 (太难精确计算了，所以用了不等式来表示)</li>
-</ul>
-
-
-<p>所以我们来比较t1=(1+n)/2 和 t2=ceil(log(n))+1,发现当n>=8后，t2开始超过t1,而且随着n的增大，他们的差距越来越大。（todo:需要张函数图才能直观说明啊）</p>
-
-<p>而8是个非常小的数，所以对于日常来说，我们大多数都是遇到大于8的情况，所以我们可以直觉判断二分法优于顺序查找法。</p>
-
-<p>从上面我们进步衍生出一个思想，<code>*不断扩充n的范围来观察时间效率的变化</code>。在这里我再插入一个故事：</p>
-
-<p>马上就到北邮的校庆了，北邮人很开心。但是一个北邮人想一个清华的吐槽，我们学校的年龄才是清华的一半。然后另一个北邮人又说了一句：“现在是北邮的年龄是清华的一半，100后是3/4，然后无限年后这两个学校的年龄就相等了。”
-这里有个故事蕴含着一个重要的思想就是极限。起始值和常数值会被快增长的部分迅速磨平。</p>
-
-<p>极限思想应用在算法分析中，一个天才的想法就诞生了。在这里产生了一个运算符O。就是一种抛弃增长慢部分的技术。</p>
-
-<blockquote><p>定义：如果存在常数c0和n0，对于所有n>n0,有g(n)&lt;c0f(n),则称函数g(n)是O(f(n))的。</p></blockquote>
-
-<p>即用g(n)来代替f(n)来比较衡量大小。</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/10/19/mondrian-and-concurrent/">Mondrian vs Concurrent</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-10-19T14:50:09+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>2:50 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/10/19/mondrian-in-the-perspective-of-code-complete/">Mondrian in a Perspective of Code Complete</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-10-19T14:42:12+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>2:42 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/10/18/introduce-olap-model/">Introduce OLAP Model</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-10-18T15:09:46+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>3:09 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h1>Introduce OLAP</h1>
-
-<p>OLAP（Online analytical processing）就是联系分析系统。它是商务智能或者数据挖掘的链条中一个环节。而它的上游是数据仓库，下游就是直接的用户。所以从这几一个环节开始提供了直接的人机互动服务。所以对它的定义就是一个人接互动的工具，主要服务是提供高效的、广泛的多维度数据分析。
-<a href="./img/data_mining_olap.png">!olap在数据挖掘中的位置</a></p>
-
-<p>由于OLAP对数据仓库的依赖性很强（公用一个数据模型），所以一般来说这两个一般都放在一起作为一个整体来讨论。</p>
-
-<p>对于一个系统来说，只提供基本通用的定义是不够的，必须明确其必须满足的条件，而且需要解释为什么要满足这些条件（即满足最小集合条件，如果不满足就不应该称它是属于这种系统）。所以到底什么是OLAP的具体明明确的定定义？一种定义：
-按照 W. H. Inmon,一位数据仓库系统构造方面的领头建筑师的说法,“数据仓库是一个面向 主题的、集成的、时变的、非易失的数据集合,支持管理决策制定”[Inm96]
-“A data warehouse is a subject-oriented, integrated, time-variant, and nonvolatile collection of data in support of management’s decision making process”
- - <strong>面向主题的</strong>:数据仓库围绕一些主题,如顾客、供应商、产品和销售组织。数据仓库关注决策 者的数据建模与分析,而不是构造组织机构的日常操作和事务处理。因此,数据仓库排除对于 决策无用的数据,提供特定主题的简明视图。
- - <strong>集成的</strong>:通常构造数据仓库是将多个异种数据源,如关系数据库、一般文件和联机事务处理 记录,集成在一起。使用数据清理和数据集成技术,确保命名约定、编码结构、属性度量的一 致性。
- - <strong>时变的</strong>:数据存储从历史的角度(例如,过去5-10年)提供信息。数据仓库中的关键结构, 隐式或显式地包含时间元素。
- - <strong>非易失的</strong>:数据仓库总是物理地分离存放数据;这些数据源于操作环境下的应用数据。由于这 种分离,数据仓库不需要事务处理、恢复和并行控制机制。通常,它只需要两种数据访问:数 据的初始化装入和数据访问。</p>
-
-<h2>发现历史</h2>
-
-<h2>概念层次</h2>
-
-<h2>实用技术（MDX）</h2>
-
-<h2>衍生产品</h2>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/08/05/java-proxy/">Java Proxy</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-08-05T17:20:04+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>5:20 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h1>java proxy</h1>
-
-<h2>代理的概念和作用</h2>
-
-<p>代理是一个很通用的解决问题的方法。其用处也是无所不在，不管是在网络部署，编程语言、火车票贩售还是澳洲签证办理中。</p>
-
-<p>这一点有篇文章讲的非常好，看详情直接<a href="http://www.importnew.com/11412.html">点这里，中文版</a>，或者<a href="http://www.javaworld.com/article/2076233/java-se/explore-the-dynamic-proxy-api.html">点这里，原文</a></p>
-
-<blockquote><p>代理强制对象方法的调用要间接的通过代理对象，代理对象就扮演了底层实际被代理对象的代理人的角色。代理对象跟普通对象的声明方式一样，因此，客户端对象根本觉察不到它们有代理对象实例。</p>
-
-<p>有一些常见的代理，比如：访问代理，门面(facade)，远程代理和虚拟代理。访问代理用来给服务或者数据对象的访问添加安全策略。门面是给底层的多个对象提供一个单一的上层接口。远程代理让客户端对象感觉不到底层数据实际是在远程。虚拟代理用来给实际对象做延迟或者是及时(just-in-time)初始化。</p>
-
-<p>在编程中，代理是一个很常用的基本的设计模式。但是，它的一个缺点是跟被代理对象之间是强耦合。看下图1中代理模式的UML，可以看出来为了让代理对象有用并且对被代理对象透明，代理对象通常要实现接口或者是继承已知的超类(facade情况除外)。
-<img src="../images/java_proxy.gif" alt="图1. 代理模式的UML图" /></p></blockquote>
-
-<h2>解决的问题</h2>
-
-<h2>具体使用</h2>
-
-<blockquote><p>动态代理（以下称代理），利用Java的反射技术(Java Reflection)，在运行时创建一个实现某些给定接口的新类（也称“动态代理类”）及其实例（对象）</p>
-
-<p>(Using Java Reflection to create dynamic implementations of interfaces at runtime)。</p>
-
-<p>代理的是接口(Interfaces)，不是类(Class)，更不是抽象类。</p></blockquote>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.lang.reflect.*</span><span class="o">;</span>
-</span><span class='line'><span class="n">Proxy</span><span class="o">.</span><span class="na">newProxyInstance</span><span class="o">(</span><span class="n">ClassLoader</span> <span class="n">loader</span><span class="o">,</span>
-</span><span class='line'>                      <span class="n">Class</span><span class="o">&lt;?&gt;[]</span> <span class="n">interfaces</span><span class="o">,</span>
-</span><span class='line'>                      <span class="n">InvocationHandler</span> <span class="n">h</span><span class="o">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这个函数的名字直白的反映出了它时产生一个代理实例。它有三个参数：</p>
-
-<ul>
-<li><p>classLoader - the class loader to define the proxy class</p>
-
-<p>  顾名思义就是类的加载器。为什么要传递这个参数，我猜估计是因为jvm生产一个对象，需要专属的加载器。一般都是传递你要代理的接口的loader（ MyInterface.class.getClassLoader() ）。</p></li>
-<li><p>interfaces - the list of interfaces for the proxy class to implement</p>
-
-<p>  这是一个list，列的一组要被实现的接口。这个参数的元素的类型是Class</p></li>
-<li><p>h - the invocation handler to dispatch method invocations to</p>
-
-<p>  实际来组装实现代理接口的地方，其中的invoke是</p></li>
-</ul>
-
-
-<h2>举个例子</h2>
-
-<h2>reference</h2>
-
-<ul>
-<li><a href="http://docs.oracle.com/javase/7/docs/api/java/lang/reflect/Proxy.html">Class Proxy</a></li>
-<li><a href="http://www.javaworld.com/article/2076233/java-se/explore-the-dynamic-proxy-api.html">Explore the Dynamic Proxy API</a></li>
-<li><a href="http://www.importnew.com/11412.html">Explore the Dynamic Proxy API 中文版</a></li>
-<li><a href="http://www.cnblogs.com/techyc/p/3455950.html">Java的动态代理</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/08/03/introduction-to-olap/">Introduction to Olap</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-08-03T15:02:36+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>3</span><span class='date-suffix'>rd</span>, <span class='date-year'>2015</span></span> <span class='time'>3:02 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h1>Olap技术框架概况</h1>
-
-<h2>数据仓库</h2>
-
-<h2>多维度数据模型</h2>
-
-<h2>Olap是什么</h2>
-
-<h2>常用OLap技术框架</h2>
-
-<h3>数据存储引擎层</h3>
-
-<ul>
-<li>Hive</li>
-<li>Infrobright</li>
-</ul>
-
-
-<h3>多维度模型转化层</h3>
-
-<p>Mondrian</p>
-
-<h3>多维度模型到展现层的连接接口</h3>
-
-<p>Olap4j</p>
-
-<h3>数据展现层</h3>
-
-<p>Saiku</p>
-
-<h3>示例——Saiku + Mondrian + Infrobright</h3>
-
-<h3>数据分析查询示例——怎么正确的拖出正确的数据集合</h3>
-
-<h4>策略实验分析</h4>
-
-<h4>运营投放——效果对比</h4>
-
-<h4>商业分析——长时间短的查询（周，月，年）</h4>
-
-<h4>故障异常排查（小时，天）</h4>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/07/25/concurrent-and-status/">Concurrent_and_status</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-07-25T10:37:35+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>25</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:37 am</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h1>并发与状态</h1>
-
-<p>并发也许计算机中最难处理的部分，而且它又无处不在。比如你多个连接同时操作一个数据库；多个进程修改和读取一个文件时；抢火车票时，票不会凭空多出来；同时进行多个取钱操作时，银行保证你不会凭空多取出钱来。(这里也许需要更多、更好的使用发生场景)。If you want your computer run faster, you need paralisment.
-所以我想就想着这里谈谈到底什么是并发，毕竟搞清楚了问题的本质，才能应变问题以及相关问题。</p>
-
-<h2>基础例子</h2>
-
-<p>我们就拿上面的抢火车票来说举例吧！这个例子只要是中国人都应该有经历，所以有共鸣。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>张三（看看还有多少票）---------------&gt;    -----------
-</span><span class='line'>李四（看看还有多少票）---------------&gt;    |北京-上海 |
-</span><span class='line'>。                                     |余票：2     |
-</span><span class='line'>。                                       |         |
-</span><span class='line'>。                                     |         |
-</span><span class='line'>Alice（看看还有多少票）-------------&gt;    -----------</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>张三（有票，赶紧买）---------------&gt;   -----------
-</span><span class='line'>李四（怎么只剩2张）---------------&gt;    |北京-上海 |
-</span><span class='line'>。                                  |余票：2   |
-</span><span class='line'>。                                  |         |
-</span><span class='line'>。                                  |         |
-</span><span class='line'>Alice（我也要买）-------------&gt;      -----------</span></code></pre></td></tr></table></div></figure>
-
-
-<p>从上面看来，买票就的动作可以分成2个阶段，而我们用m来表是此时剩余的票数:</p>
-
-<ol>
-<li>读取当前余票：m &mdash;> read</li>
-<li>如果有，就买票：m-1  &mdash;-> write</li>
-</ol>
-
-
-<p>翻译成程序：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span> <span class="nf">bug_ticket</span><span class="p">(){</span>
-</span><span class='line'>  <span class="n">m</span><span class="o">=</span><span class="n">get_ticket_count</span><span class="p">();</span> <span class="c1">//read 操作</span>
-</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="n">m</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">){</span>
-</span><span class='line'>      <span class="n">buy</span><span class="p">();</span>
-</span><span class='line'>      <span class="n">rewrite_ticket_count</span><span class="p">(</span><span class="n">m</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="c1">//write 操作,票减一张</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>为了简单期间，我们假设只有两个人抢票：A和B。那么所以的动作就有4个：</p>
-
-<p><strong>{A1，A2，B1，B2}</strong>（注意这是集合，是无序。当然我们发现A2在A1前面发生其实是无意义，因为买票肯定会先读取一下现在还有没有余票。同理B1和B2的顺序）</p>
-
-<p>我们理想的买票状况是排队：
-A 操作完A1，然后操作A2。然后B 在操作B1，然后再操作B2。但是现实中你不可能要求A做读取操作，不允许B不能读取吧。抢票关键还是看第二步操作谁快，才公平。所以就会出现这种序列：</p>
-
-<p><strong>[A1，B1，A2，B2]</strong></p>
-
-<p>但是这种我们仔细想想就会出问题：
-A1：A执行get_ticket_count()，发现有m=1张
-B1：B同时执行get_ticket_count()，发现有m=1张
-A2：A抢先执行了buy()并且rewrite_ticket_count(0)
-B2：B已经在B1的时候拿到了余票数，虽然期间被A修改了，但是B并不知道，让然执行buy()并且rewrite_ticket_count(0)</p>
-
-<p>Ops！！发现一张票卖给了两个人。</p>
-
-<p>其实用另一个更简单的例子：计数
-A读取计数器发现现在到了100，同时B也读取计数器发现是100
-A现在对计数器操作，计数器现在是100，加上我自己应该是101，所以重写101到计数器中
-B可能就是慢了1纳秒，但是B还认为计数器才累积到100，所以加上自己应该是101，写入101到计数器中。
-可是计数机本应该是102的，少了1。</p>
-
-<p>发现并发控制不好，数要么莫名的多，要么莫名的少。</p>
-
-<h2>锁</h2>
-
-<p>有了问题，就应该想办法解决问题。<strong>并发问题解决本质就是限制其子原子操作的排列组合顺序,让不该发生的顺序排列不要发生</strong>。例如上面子原子操作的集合是<strong>{A1，A2，B1，B2}</strong>，其中有read操作必须先与write操作的限制条件，即A1先与A2,B1先与B2，其排列有：</p>
-
-<ul>
-<li>[A1，A2，B1，B2]</li>
-<li>[A1，B1，A2，B2]</li>
-<li>[B1，A1，A2，B2]</li>
-<li>[B1，B2，A2，A2]</li>
-<li>[B1，A1，B2，A2]</li>
-</ul>
-
-
-<p>加上读锁，即A或者B执行read的时候不允许其他人read和write直到本人write操作完成。这样做的结果就是:</p>
-
-<ul>
-<li>[A1，A2，B1，B2]</li>
-<li>[A1，B1，A2，B2] &mdash; 被排除</li>
-<li>[B1，A1，A2，B2] &mdash; 被排除</li>
-<li>[B1，B2，A2，A2]</li>
-<li>[B1，A1，B2，A2] &mdash; 被排除</li>
-</ul>
-
-
-<p>加read lock也许是最直接的方法，但是也是最暴力的。比如你在查看余票，就不允许别人同时查看余票，这个估计其他人是要砸桌子了。</p>
-
-<p>通过上面的子原子操作，我们看到并发的同时其实是个概念化的时间，和现实中的同时不是完全的一致。它其实是根据共享数据的状态划分的，状态改变一次算是一个时刻。这种比如你打开一个wikipedia的页面放置了一天没关，而期间也没人更改内容，那么一天后你再去查看内容，前后还是处于同一时刻。但是如果有人期间更改了内容，那么共享的内容的时刻已经前进了，而你一天后的内容就是过时的。</p>
-
-<p>第二种稍好办法就是，加上读取时间，来标识读取的哪个时刻（状态版本）。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -1107,23 +1576,23 @@ B可能就是慢了1纳秒，但是B还认为计数器才累积到100，所以�
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2015/12/18/i-cant-help/">I Can't Help</a>
+        <a href="/blog/2016/01/05/networking-server/">网络编程中的服务器模型</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2015/11/30/mondrian-design-dialect-design/">Mondrian design:Dialect Design</a>
+        <a href="/blog/2016/01/05/nginx-proxy/">Nginx反向代理配置</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2015/11/11/what-is-model-of-data/">What Is Model of Data</a>
+        <a href="/blog/2016/01/05/java-project-orangnism/">Java Project Orangnism</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2015/10/24/aha-analysis-of-algorithms/">Aha! Analysis of Algorithms</a>
+        <a href="/blog/2016/01/01/100-open-source-operating-system-papers-for-programmers/">100 Open Source Operating System Papers for Programmers.</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2015/10/19/mondrian-and-concurrent/">Mondrian vs Concurrent</a>
+        <a href="/blog/2016/01/01/2015-annual-report/">2015 Annual Report</a>
       </li>
     
   </ul>
@@ -1139,7 +1608,7 @@ B可能就是慢了1纳秒，但是B还认为计数器才累积到100，所以�
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2015 - Wood Carver -
+  Copyright &copy; 2016 - Wood Carver -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

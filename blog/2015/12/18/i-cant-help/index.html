@@ -5,7 +5,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>I Can't Help - Wood Carver</title>
+  <title>吐槽时间 - Wood Carver</title>
   <meta name="author" content="Wood Carver">
 
   
@@ -70,7 +70,7 @@
   
   <header>
     
-      <h1 class="entry-title">I Can't Help</h1>
+      <h1 class="entry-title">吐槽时间</h1>
     
     
       <p class="meta">
@@ -88,11 +88,15 @@
 
 <div class="entry-content"><p>我实在是忍不住了，我要吐槽！
 为什么读java代码的这么费劲。一层一层的拨开后发现，他们使用的是接口，然后你就发现如果不向上追踪代码根本不可能知道到底是传递了那个具体类，从而更不知道具体的处理逻辑是什么。何谈修改其中逻辑？《代码大全》里说，如果你使用他们的接口，发现不懂应该要求其作者改动,那是针对使用者来说。但是你是这个接口是新的接手人，要改变具体的逻辑，呵呵，那就等着哭吧！
-每次看代码都有种被骗，被忽悠的感觉。
-1. 老板今天要我给系统升级，增加一个显示用户闪亮亮的脑门大小
-2. 找到显示用户信息的function，它调用了一个人类,很简单，我点进去看看人类
-3. 点进去看，发现人类是个interface。好吧，这意味着我向上回滚看showUserProfile()的人类参数是什么时候实现。发现一个createPeople()
-4. 看了五六层，总算找到showUserProfile()里的人类是从那里开始产生的了。为了这个又走了一遍分支。不管怎么着，先看看createPeople()，发现人类又分了凡人，超人和坏人。然后点进凡人看看，发现又是一个接口扩展于人类。算了，那放放，不想再跑其他分支看createPeople()里的凡人到底是那个具体类。那我们再看看超人吧！发现超人和坏人是扩展于凡人的另一接口。。。。［摔桌子了！］</p>
+每次看代码都有种被骗，被忽悠的感觉。</p>
+
+<ol>
+<li>老板今天要我给系统升级，增加一个显示用户闪亮亮的脑门大小</li>
+<li>找到显示用户信息的function，它调用了一个人类,很简单，我点进去看看人类</li>
+<li>点进去看，发现人类是个interface。好吧，这意味着我向上回滚看showUserProfile()的人类参数是什么时候实现。发现一个createPeople()</li>
+<li>看了五六层，总算找到showUserProfile()里的人类是从那里开始产生的了。为了这个又走了一遍分支。不管怎么着，先看看createPeople()，发现人类又分了凡人，超人和坏人。然后点进凡人看看，发现又是一个接口扩展于人类。算了，那放放，不想再跑其他分支看createPeople()里的凡人到底是那个具体类。那我们再看看超人吧！发现超人和坏人是扩展于凡人的另一接口。。。。［摔桌子了！］</li>
+</ol>
+
 
 <p>看了这么多，又都好像啥都没看到。你以为了解人类，呵呵，其实你不了解任何一种人类。全是浮云。。。
 实在不明白，明明就一个实现类还要用接口干什么？</p>
@@ -129,6 +133,8 @@
         <a class="basic-alignment left" href="/blog/2015/11/30/mondrian-design-dialect-design/" title="Previous Post: mondrian design:Dialect design">&laquo; mondrian design:Dialect design</a>
       
       
+        <a class="basic-alignment right" href="/blog/2015/12/28/how-to-learn-a-programming-language/" title="Next Post: How to learn a programming language">How to learn a programming language &raquo;</a>
+      
     </p>
   </footer>
 </article>
@@ -142,23 +148,23 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2015/12/18/i-cant-help/">I Can't Help</a>
+        <a href="/blog/2016/01/05/networking-server/">网络编程中的服务器模型</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2015/11/30/mondrian-design-dialect-design/">Mondrian design:Dialect Design</a>
+        <a href="/blog/2016/01/05/nginx-proxy/">Nginx反向代理配置</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2015/11/11/what-is-model-of-data/">What Is Model of Data</a>
+        <a href="/blog/2016/01/05/java-project-orangnism/">Java Project Orangnism</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2015/10/24/aha-analysis-of-algorithms/">Aha! Analysis of Algorithms</a>
+        <a href="/blog/2016/01/01/100-open-source-operating-system-papers-for-programmers/">100 Open Source Operating System Papers for Programmers.</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2015/10/19/mondrian-and-concurrent/">Mondrian vs Concurrent</a>
+        <a href="/blog/2016/01/01/2015-annual-report/">2015 Annual Report</a>
       </li>
     
   </ul>
@@ -175,7 +181,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2015 - Wood Carver -
+  Copyright &copy; 2016 - Wood Carver -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
