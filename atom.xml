@@ -4,7 +4,7 @@
   <title><![CDATA[Wood Carver]]></title>
   <link href="http://woodcarver.github.io/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2016-01-05T22:27:24+08:00</updated>
+  <updated>2016-01-06T11:42:28+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -12,6 +12,15 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Mondrian Design Guess Metadata Type]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/01/06/mondrian-design-guess-metadata-type/"/>
+    <updated>2016-01-06T10:37:50+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/01/06/mondrian-design-guess-metadata-type</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[网络编程中的服务器模型]]></title>
@@ -1880,24 +1889,6 @@ B可能就是慢了1纳秒，但是B还认为计数器才累积到100，所以�
 
 
 <h2>能不能使用一种中间不要产生side effect的方法？</h2>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[我是如何搭建这个博客的]]></title>
-    <link href="http://woodcarver.github.io/blog/2015/07/09/wo-shi-ru-he-da-jian-zhe-ge-bo-ke-de/"/>
-    <updated>2015-07-09T16:20:30+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2015/07/09/wo-shi-ru-he-da-jian-zhe-ge-bo-ke-de</id>
-    <content type="html"><![CDATA[<h3>参考文章</h3>
-
-<ul>
-<li><a href="https://pages.github.com/">如何搭建github pages</a></li>
-<li><a href="http://shengmingzhiqing.com/blog/setup-octopress-with-github-pages.html/#octopress">如何搭建Octopress</a></li>
-<li><a href="http://cn.soulmachine.me/blog/20130401/">如何搭建Octopress 2</a></li>
-<li><a href="http://octopress.org/docs/configuring/">如何配置octopress</a></li>
-<li><a href="http://octopress.org/docs/blogging/">如何编辑发布文章</a></li>
-</ul>
-
 ]]></content>
   </entry>
   
