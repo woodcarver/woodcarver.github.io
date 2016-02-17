@@ -1,20 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>http://woodcarver.github.io/blog/2016/01/06/mondrian-design-guess-metadata-type/</loc>
-    <lastmod>2016-01-06T10:37:50+08:00</lastmod>
+    <loc>http://woodcarver.github.io/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands/</loc>
+    <lastmod>2016-02-17T21:58:48+08:00</lastmod>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/2016/01/26/introduce-thrift/</loc>
+    <lastmod>2016-01-26T14:46:14+08:00</lastmod>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/2016/01/18/book-graph/</loc>
+    <lastmod>2016-01-18T22:23:16+08:00</lastmod>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/2016/01/17/business-dataming-ecosystem-investigation/</loc>
+    <lastmod>2016-01-17T13:55:01+08:00</lastmod>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/2016/01/13/read-note-how-google-works/</loc>
+    <lastmod>2016-01-13T23:39:15+08:00</lastmod>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/2016/01/13/introduce-vertica/</loc>
+    <lastmod>2016-01-13T18:55:49+08:00</lastmod>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/2016/01/09/think-about-the-popular-of-beijing/</loc>
+    <lastmod>2016-01-09T15:44:51+08:00</lastmod>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/2016/01/09/how-to-recognize-a-brilliant-slash-awful-company/</loc>
+    <lastmod>2016-01-09T13:43:35+08:00</lastmod>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/2016/01/07/purpose-of-jobs/</loc>
+    <lastmod>2016-01-07T22:56:42+08:00</lastmod>
   </url>
   <url>
     <loc>http://woodcarver.github.io/blog/2016/01/05/networking-server/</loc>
     <lastmod>2016-01-05T22:14:11+08:00</lastmod>
   </url>
   <url>
-    <loc>http://woodcarver.github.io/blog/2016/01/05/nginx-proxy/</loc>
-    <lastmod>2016-01-05T22:04:29+08:00</lastmod>
+    <loc>http://woodcarver.github.io/blog/2016/01/05/java-project-orangnism/</loc>
+    <lastmod>2016-01-05T22:11:30+08:00</lastmod>
   </url>
   <url>
-    <loc>http://woodcarver.github.io/blog/2016/01/05/java-project-orangnism/</loc>
-    <lastmod>2016-01-05T00:00:00+08:00</lastmod>
+    <loc>http://woodcarver.github.io/blog/2016/01/05/nginx-proxy/</loc>
+    <lastmod>2016-01-05T22:04:29+08:00</lastmod>
   </url>
   <url>
     <loc>http://woodcarver.github.io/blog/2016/01/01/100-open-source-operating-system-papers-for-programmers/</loc>
@@ -22,15 +54,11 @@
   </url>
   <url>
     <loc>http://woodcarver.github.io/blog/2016/01/01/2015-annual-report/</loc>
-    <lastmod>2016-01-01T00:00:00+08:00</lastmod>
+    <lastmod>2016-01-01T11:48:49+08:00</lastmod>
   </url>
   <url>
     <loc>http://woodcarver.github.io/blog/2015/12/30/my-career-decision-tree/</loc>
     <lastmod>2015-12-30T22:32:30+08:00</lastmod>
-  </url>
-  <url>
-    <loc>http://woodcarver.github.io/blog/2015/12/30/how-to-be-a-programmer/</loc>
-    <lastmod>2015-12-30T22:11:07+08:00</lastmod>
   </url>
   <url>
     <loc>http://woodcarver.github.io/blog/2015/12/28/how-to-learn-a-programming-language/</loc>
@@ -118,12 +146,45 @@
     <loc>http://woodcarver.github.io/blog/categories/math/</loc>
   </url>
   <url>
+    <loc>http://woodcarver.github.io/blog/categories/report/</loc>
+  </url>
+  <url>
     <loc>http://woodcarver.github.io/blog/categories/nginx/</loc>
   </url>
   <url>
-    <loc>http://woodcarver.github.io/posts/2/</loc>
+    <loc>http://woodcarver.github.io/blog/categories/society/</loc>
   </url>
   <url>
-    <loc>http://woodcarver.github.io/posts/3/</loc>
+    <loc>http://woodcarver.github.io/blog/categories/popular/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/database/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/vertica/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/note/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/google/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/data-ming/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/company/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/rpc/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/web-service/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/linux/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/system-command/</loc>
   </url>
 </urlset>

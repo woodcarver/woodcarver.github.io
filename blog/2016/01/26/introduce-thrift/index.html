@@ -1,0 +1,252 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Introduce Thrift - Wood Carver</title>
+  <meta name="author" content="Wood Carver">
+
+  
+  <meta name="description" content="History 诞生于facebook
+facebook开源出的RPC开源框架，现在已经成为Apache的顶级项目。 Why need thrift This question can also be instead of another one&ndash;Is RPC service &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://woodcarver.github.io/blog/2016/01/26/introduce-thrift/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Wood Carver" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Wood Carver</a></h1>
+  
+    <h2>Find another pool</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="woodcarver.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Introduce Thrift</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-01-26T14:46:14+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>2:46 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h2>History</h2>
+
+<ul>
+<li>诞生于facebook
+facebook开源出的RPC开源框架，现在已经成为Apache的顶级项目。</li>
+</ul>
+
+
+<h2>Why need thrift</h2>
+
+<p>This question can also be instead of another one&ndash;Is RPC service complicated?
+Before I try to know distributed system, I don&rsquo;t know that it need using a book to make PRC clearly and RPC is an absolutly important skill requirement on service developing posistion.
+If you want to know thrift, you must know RPC.</p>
+
+<h2>What is RPC</h2>
+
+<p>RPC的全称是Remote Procedure Call。这种类型的技术专注与格式化客户端和服务端传输，以实现更方便的远程交互，甚至能做到和本地调用无多大区别的程度。
+整个过程是客户端发送RPC请求到服务端，服务端处理后再发结果反馈过来。听这很简单，看着很容易，而且很熟悉。这不就是cs模型吗？但是其中涉及的难点就隐藏在老生常谈的信息通信中。比如消息体的打包，拆分，解读等等。
+目的就是保质保量的让消息正确抵达目的地。
+读过计算机网络的都知道，如果一切都正常的话是最简单的情况，但是旁枝的异常情况和各种因素的权益会让系统复杂n倍。
+涉及到通信就需要考虑到一下几个因素：
+1. 时间性
+2. 数据完整性</p>
+
+<p>让我们来仔细列出这个动态系统的主题：
+1. client： 动作——request，receive
+2. server：动作——process，send
+3. message</p>
+
+<h2>thrift的定义中的特性</h2>
+
+<p>thrift的官方定义如下：</p>
+
+<blockquote><p>The Apache Thrift software framework, for scalable cross-language services development, combines a software stack with a code generation engine to build services that work efficiently and seamlessly between C++, Java, Python, PHP, Ruby, Erlang, Perl, Haskell, C#, Cocoa, JavaScript, Node.js, Smalltalk, OCaml and Delphi and other languages.</p></blockquote>
+
+<p>先解释下这个定义都讲了什么。
+- software framework：本身是一个软件框架，意味这你自己需要补充其中的业务逻辑
+- services development：这个框架是为了辅助开发者开发出自己的一个网络服务c/s软件，而这个服务具备接下来的两个重要特点：
+    - <a href="http://www.infoq.com/cn/news/2007/10/whatisscalability">scalable 可伸缩性</a>：？？为啥说是可伸缩的？根据可伸缩的核心特征——处理能力能随这个扩展服务规模而提升。
+    - cross-language 跨语言：这个可能是thrift的最大特点了，为了实现这个特性，thrift直接为此定义了一套中间语言，并且配备了一个此语言到各种目标语言的编译器。不过说起来跨语言到底指什么呢？其实一句话概括就是服务短和客户端可以是不同语言开发的，比如官方的例子：客户端是python，服务端是java。而这个中间语言就是只定义一遍服务的逻辑语义一次，通过编译器转成各种目标语言多次。从而解决重复编写的问题。</p>
+
+<h2>需要的知识背景</h2>
+
+<p>thrift的所有技能都在操作系统和计算机网络里可以找到,
+推荐书籍：
+- 计算机网络
+- Unix网络编程
+- Unix系统内幕</p>
+
+<h2>一个简单的开发例子</h2>
+
+<h2>Reference</h2>
+
+<ul>
+<li><a href="http://blog.csdn.net/docong/article/details/6028428">thrift 白皮书</a></li>
+<li><a href="https://thrift.apache.org/static/files/thrift-20070401.pdf">thrift white paper</a></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Wood Carver</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-01-26T14:46:14+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>2:46 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/rpc/'>rpc</a>, <a class='category' href='/blog/categories/web-service/'>web service</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/01/18/book-graph/" title="Previous Post: book graph">&laquo; book graph</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands/" title="Next Post: Linux系统状态命令详解">Linux系统状态命令详解 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands/">Linux系统状态命令详解</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/01/26/introduce-thrift/">Introduce Thrift</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/01/18/book-graph/">Book Graph</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/01/17/business-dataming-ecosystem-investigation/">Pentaho和Pivotal</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/01/13/read-note-how-google-works/">Read-note: How Google Works</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Wood Carver -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

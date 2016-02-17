@@ -5,7 +5,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Mondrian design:Dialect Design - Wood Carver</title>
+  <title>Mondrian 设计于实现:Dialect 设计 - Wood Carver</title>
   <meta name="author" content="Wood Carver">
 
   
@@ -69,7 +69,7 @@
   
   <header>
     
-      <h1 class="entry-title">Mondrian design:Dialect Design</h1>
+      <h1 class="entry-title">Mondrian 设计于实现:Dialect 设计</h1>
     
     
       <p class="meta">
@@ -170,11 +170,16 @@
 <p>通过上面的步骤很清楚的知道怎么去扩展一个数据库了。</p>
 
 <ul>
-<li>修改META-INF/services/mondrian.spi.Dialect，添加要支持的数据库的驱动</li>
-<li>在mondrian.spi包下添加同名的Dialect</li>
+<li>修改META-INF/services/mondrian.spi.Dialect，添加要支持的数据库的驱动（注意打包的时候一定要把META_INF放进去）</li>
+<li>在mondrian.spi包下添加的Dialect</li>
+<li>JdbcDialectImpl.getProduct()增加对应关系（该产品的JDBC 的metaDate.getDatabaseProductName返回的名称和Dialect 的databaeProduct的对应关系必须在JdbcDialectImpl.getProduct(productName, productVersion)定义）</li>
 <li>然后重新编译，部署就完成了</li>
 </ul>
 
+
+<h2>子模块设计</h2>
+
+<h3>输出类型控制（guessType的实现）</h3>
 
 <h2>吐槽时间</h2>
 
@@ -464,23 +469,23 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/01/06/mondrian-design-guess-metadata-type/">Mondrian Design Guess Metadata Type</a>
+        <a href="/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands/">Linux系统状态命令详解</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/05/networking-server/">网络编程中的服务器模型</a>
+        <a href="/blog/2016/01/26/introduce-thrift/">Introduce Thrift</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/05/nginx-proxy/">Nginx反向代理配置</a>
+        <a href="/blog/2016/01/18/book-graph/">Book Graph</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/05/java-project-orangnism/">Java Project Orangnism</a>
+        <a href="/blog/2016/01/17/business-dataming-ecosystem-investigation/">Pentaho和Pivotal</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/01/100-open-source-operating-system-papers-for-programmers/">100 Open Source Operating System Papers for Programmers.</a>
+        <a href="/blog/2016/01/13/read-note-how-google-works/">Read-note: How Google Works</a>
       </li>
     
   </ul>

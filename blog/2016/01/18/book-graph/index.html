@@ -1,0 +1,289 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Book Graph - Wood Carver</title>
+  <meta name="author" content="Wood Carver">
+
+  
+  <meta name="description" content="知识点覆盖结构 面向对象编程——多继承，虚拟方法，对象构建与析构顺序，异常处理。
+前端——异步逻辑与终止，REST API，验证用户输入。
+算法与数据结构——动机，用法，平均及最差情况下的复杂度。
+后端与架构——内存模型，垃圾处理机制，多线程，线程锁机制，benchmarking， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://woodcarver.github.io/blog/2016/01/18/book-graph/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Wood Carver" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Wood Carver</a></h1>
+  
+    <h2>Find another pool</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="woodcarver.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about">About Me</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Book Graph</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-01-18T22:23:16+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:23 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h3>知识点覆盖结构</h3>
+
+<ul>
+<li>面向对象编程——多继承，虚拟方法，对象构建与析构顺序，异常处理。</li>
+<li>前端——异步逻辑与终止，REST API，验证用户输入。</li>
+<li>算法与数据结构——动机，用法，平均及最差情况下的复杂度。</li>
+<li>后端与架构——内存模型，垃圾处理机制，多线程，线程锁机制，benchmarking， profiling。</li>
+<li>函数式编程——Lambdas，curring，排序操作，一元。</li>
+<li>内核层次——文件系统，网络，POSIX，协议，标准的检验与分析工具。</li>
+</ul>
+
+
+<h3>studying tree</h3>
+
+<h5>程序设计</h5>
+
+<ul>
+<li>把基础的数据结构的c语言实现在纸上写三遍以上，用我能想到的最精简最优化的方法
+
+<ul>
+<li>算法：c语言实现</li>
+<li>Redis源码的实现版本 + Redis设计与实现</li>
+</ul>
+</li>
+<li>阅读CARM（A Reference Manual）和TCPL (The C programming language)，确保不会遗漏C语言的每个细节</li>
+<li>阅读Writing Solid Code、Elements of Programming <code>No 5</code></li>
+<li>阅读Science of Programming，做到可以证明自己的程序的正确性（前条件+后条件+不变式） <code>No.1</code>——<strong>有点读不下去啊,放置每天在公司小读一点</strong></li>
+<li>阅读《计算机程式构造于解析》</li>
+<li>阅读《计算机的本质》</li>
+<li>阅读《代码大全》，Practice of programming，了解代码构建过程的整个过程，特别注意其中的代码风格的约束 <code>No.4</code> &ndash; 这本书的关键是怎么吸收，讲的很仔细但是也很难全部转化</li>
+<li>Programming Language Pragmatics（程序设计语言）</li>
+<li>How to design programm <code>No.7</code></li>
+</ul>
+
+
+<h4>算法</h4>
+
+<ul>
+<li>阅读《算法导论》，最仔细的阅读，weight=50%</li>
+<li>leetcode，weight=40%
+
+<ul>
+<li>c + python</li>
+</ul>
+</li>
+<li>阅读《编程之美》</li>
+<li>CareerCup
+
+<ul>
+<li>book + website</li>
+</ul>
+</li>
+<li>Topcoder</li>
+</ul>
+
+
+<h4>操作系统</h4>
+
+<ul>
+<li>重读《Modren Operating System》<code>No.3</code> &ndash; 感觉写的很啰嗦，暂时不读了</li>
+<li>阅读《Computer System a Programmer&rsquo;s Perspective》 <code>No.2</code>——已经读完，书评不够详细，剩下最后的上机实验，need更多的并发和服务模型</li>
+<li>阅读《Computer Architectur:Approche of qulitity》 <code>No.6</code></li>
+<li>阅读《Unix环境编程》</li>
+</ul>
+
+
+<h4>计算机网络</h4>
+
+<ul>
+<li>阅读《计算机网络》</li>
+<li>阅读并实践《Unix网络编程》</li>
+</ul>
+
+
+<h4>数据处理、数据挖掘</h4>
+
+<ul>
+<li>阅读《数据挖掘》，了解数据挖掘的概念，并思考自己的工作所处的层次</li>
+<li>阅读《hadoop权威》，必须写一些应用工作的代码</li>
+<li>阅读《高性能mysql》</li>
+<li>阅读《数据库设计基础》</li>
+<li>阅读 实时流统计的代码</li>
+<li>弄清楚数据流上的各个基础设施的用法：hadoop，hive，kafka，spark，logtailer，strom，zookepper</li>
+<li>阅读《七周七并发》</li>
+<li>阅读《redis设计与实现》</li>
+<li>阅读一本分布式系统和计算的数据，弄懂其中的概念和基本实现，结合我的爬虫</li>
+<li>了解现今市场上所有的数据储存软件：Nosql：redis，memcached；Relation DB:Infobright,Mysql</li>
+</ul>
+
+
+<h4>编程语言</h4>
+
+<ul>
+<li>阅读《Effective Java》</li>
+<li>阅读《Java core》</li>
+<li>阅读《Java 并发编程设计》</li>
+<li>阅读《Python基础教程》</li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Wood Carver</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-01-18T22:23:16+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:23 pm</span></time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/01/17/business-dataming-ecosystem-investigation/" title="Previous Post: Pentaho和Pivotal">&laquo; Pentaho和Pivotal</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2016/01/26/introduce-thrift/" title="Next Post: introduce thrift">introduce thrift &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands/">Linux系统状态命令详解</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/01/26/introduce-thrift/">Introduce Thrift</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/01/18/book-graph/">Book Graph</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/01/17/business-dataming-ecosystem-investigation/">Pentaho和Pivotal</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/01/13/read-note-how-google-works/">Read-note: How Google Works</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Wood Carver -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

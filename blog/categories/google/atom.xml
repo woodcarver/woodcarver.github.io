@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Google | Wood Carver]]></title>
+  <link href="http://woodcarver.github.io/blog/categories/google/atom.xml" rel="self"/>
+  <link href="http://woodcarver.github.io/"/>
+  <updated>2016-02-18T00:33:28+08:00</updated>
+  <id>http://woodcarver.github.io/</id>
+  <author>
+    <name><![CDATA[Wood Carver]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Read-note: How Google Works]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/01/13/read-note-how-google-works/"/>
+    <updated>2016-01-13T23:39:15+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/01/13/read-note-how-google-works</id>
+    <content type="html"><![CDATA[<p>创意精英：
+- 过硬的专业知识，懂得如何使用专业工具，还需要具备充足的实践经验
+- 拥有分析头脑，可以利用数据做出决策，同时也懂得数据的误导性，从而不会沉迷其中
+- 有商业头脑，知道专业技术、优质产品和商业成功是环环相扣的、也对这三个要素的价值了然于胸
+- 有创造力
+- 有竞争头脑，干劲十足，即使在工作之余也不停止前进的脚步
+- 用户头脑，无论身处哪里行业，几乎没有人能比他们更懂得用户或消费者对产品的看法
+- 自动自发，不会坐等别人为他们指出方向，对于有悖于他们信念的知识，他们会选择充耳不闻
+- 心态开放，于他们自由合作，在评判构思和结论时，看重优点和而和价值而非出处</p>
+]]></content>
+  </entry>
+  
+</feed>

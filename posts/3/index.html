@@ -9,11 +9,8 @@
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="参考文章 如何搭建github pages
-如何搭建Octopress
-如何搭建Octopress 2
-如何配置octopress
-如何编辑发布文章 ">
+  <meta name="description" content="
+">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -76,6 +73,550 @@
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2015/10/19/mondrian-and-multithread/">Mondrian中的线程模型使用情况</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-10-19T14:50:09+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>2:50 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content">
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/10/19/mondrian-in-the-perspective-of-code-complete/">Mondrian in a Perspective of Code Complete</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-10-19T14:42:12+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>2:42 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content">
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/10/18/introduce-olap-model/">Introduce OLAP Model</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-10-18T15:09:46+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>3:09 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>Introduce OLAP</h1>
+
+<p>OLAP（Online analytical processing）就是联系分析系统。它是商务智能或者数据挖掘的链条中一个环节。而它的上游是数据仓库，下游就是直接的用户。所以从这几一个环节开始提供了直接的人机互动服务。所以对它的定义就是一个人接互动的工具，主要服务是提供高效的、广泛的多维度数据分析。
+<a href="../images/posts/data_mining_olap.png">!olap在数据挖掘中的位置</a></p>
+
+<p>由于OLAP对数据仓库的依赖性很强（公用一个数据模型），所以一般来说这两个一般都放在一起作为一个整体来讨论。</p>
+
+<p>对于一个系统来说，只提供基本通用的定义是不够的，必须明确其必须满足的条件，而且需要解释为什么要满足这些条件（即满足最小集合条件，如果不满足就不应该称它是属于这种系统）。所以到底什么是OLAP的具体明明确的定定义？一种定义：
+按照 W. H. Inmon,一位数据仓库系统构造方面的领头建筑师的说法,“数据仓库是一个面向 主题的、集成的、时变的、非易失的数据集合,支持管理决策制定”[Inm96]
+“A data warehouse is a subject-oriented, integrated, time-variant, and nonvolatile collection of data in support of management’s decision making process”
+ - <strong>面向主题的</strong>:数据仓库围绕一些主题,如顾客、供应商、产品和销售组织。数据仓库关注决策 者的数据建模与分析,而不是构造组织机构的日常操作和事务处理。因此,数据仓库排除对于 决策无用的数据,提供特定主题的简明视图。
+ - <strong>集成的</strong>:通常构造数据仓库是将多个异种数据源,如关系数据库、一般文件和联机事务处理 记录,集成在一起。使用数据清理和数据集成技术,确保命名约定、编码结构、属性度量的一 致性。
+ - <strong>时变的</strong>:数据存储从历史的角度(例如,过去5-10年)提供信息。数据仓库中的关键结构, 隐式或显式地包含时间元素。
+ - <strong>非易失的</strong>:数据仓库总是物理地分离存放数据;这些数据源于操作环境下的应用数据。由于这 种分离,数据仓库不需要事务处理、恢复和并行控制机制。通常,它只需要两种数据访问:数 据的初始化装入和数据访问。</p>
+
+<h2>发现历史</h2>
+
+<h2>概念层次</h2>
+
+<h2>实用技术（MDX）</h2>
+
+<h2>衍生产品</h2>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/08/05/java-proxy/">Java Proxy</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-08-05T17:20:04+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>5:20 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>java proxy</h1>
+
+<h2>代理的概念和作用</h2>
+
+<p>代理是一个很通用的解决问题的方法。其用处也是无所不在，不管是在网络部署，编程语言、火车票贩售还是澳洲签证办理中。</p>
+
+<p>这一点有篇文章讲的非常好，看详情直接<a href="http://www.importnew.com/11412.html">点这里，中文版</a>，或者<a href="http://www.javaworld.com/article/2076233/java-se/explore-the-dynamic-proxy-api.html">点这里，原文</a></p>
+
+<blockquote><p>代理强制对象方法的调用要间接的通过代理对象，代理对象就扮演了底层实际被代理对象的代理人的角色。代理对象跟普通对象的声明方式一样，因此，客户端对象根本觉察不到它们有代理对象实例。</p>
+
+<p>有一些常见的代理，比如：访问代理，门面(facade)，远程代理和虚拟代理。访问代理用来给服务或者数据对象的访问添加安全策略。门面是给底层的多个对象提供一个单一的上层接口。远程代理让客户端对象感觉不到底层数据实际是在远程。虚拟代理用来给实际对象做延迟或者是及时(just-in-time)初始化。</p>
+
+<p>在编程中，代理是一个很常用的基本的设计模式。但是，它的一个缺点是跟被代理对象之间是强耦合。看下图1中代理模式的UML，可以看出来为了让代理对象有用并且对被代理对象透明，代理对象通常要实现接口或者是继承已知的超类(facade情况除外)。
+<img src="../images/java_proxy.gif" alt="图1. 代理模式的UML图" /></p></blockquote>
+
+<h2>解决的问题</h2>
+
+<h2>具体使用</h2>
+
+<blockquote><p>动态代理（以下称代理），利用Java的反射技术(Java Reflection)，在运行时创建一个实现某些给定接口的新类（也称“动态代理类”）及其实例（对象）</p>
+
+<p>(Using Java Reflection to create dynamic implementations of interfaces at runtime)。</p>
+
+<p>代理的是接口(Interfaces)，不是类(Class)，更不是抽象类。</p></blockquote>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.lang.reflect.*</span><span class="o">;</span>
+</span><span class='line'><span class="n">Proxy</span><span class="o">.</span><span class="na">newProxyInstance</span><span class="o">(</span><span class="n">ClassLoader</span> <span class="n">loader</span><span class="o">,</span>
+</span><span class='line'>                      <span class="n">Class</span><span class="o">&lt;?&gt;[]</span> <span class="n">interfaces</span><span class="o">,</span>
+</span><span class='line'>                      <span class="n">InvocationHandler</span> <span class="n">h</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个函数的名字直白的反映出了它时产生一个代理实例。它有三个参数：</p>
+
+<ul>
+<li><p>classLoader - the class loader to define the proxy class</p>
+
+<p>  顾名思义就是类的加载器。为什么要传递这个参数，我猜估计是因为jvm生产一个对象，需要专属的加载器。一般都是传递你要代理的接口的loader（ MyInterface.class.getClassLoader() ）。</p></li>
+<li><p>interfaces - the list of interfaces for the proxy class to implement</p>
+
+<p>  这是一个list，列的一组要被实现的接口。这个参数的元素的类型是Class</p></li>
+<li><p>h - the invocation handler to dispatch method invocations to</p>
+
+<p>  实际来组装实现代理接口的地方，其中的invoke是</p></li>
+</ul>
+
+
+<h2>举个例子</h2>
+
+<h2>reference</h2>
+
+<ul>
+<li><a href="http://docs.oracle.com/javase/7/docs/api/java/lang/reflect/Proxy.html">Class Proxy</a></li>
+<li><a href="http://www.javaworld.com/article/2076233/java-se/explore-the-dynamic-proxy-api.html">Explore the Dynamic Proxy API</a></li>
+<li><a href="http://www.importnew.com/11412.html">Explore the Dynamic Proxy API 中文版</a></li>
+<li><a href="http://www.cnblogs.com/techyc/p/3455950.html">Java的动态代理</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/08/03/introduction-to-olap/">Introduction to Olap</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-08-03T15:02:36+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>3</span><span class='date-suffix'>rd</span>, <span class='date-year'>2015</span></span> <span class='time'>3:02 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>Olap技术框架概况</h1>
+
+<h2>数据仓库</h2>
+
+<h2>多维度数据模型</h2>
+
+<h2>Olap是什么</h2>
+
+<h2>常用OLap技术框架</h2>
+
+<h3>数据存储引擎层</h3>
+
+<ul>
+<li>Hive</li>
+<li>Infrobright</li>
+</ul>
+
+
+<h3>多维度模型转化层</h3>
+
+<p>Mondrian</p>
+
+<h3>多维度模型到展现层的连接接口</h3>
+
+<p>Olap4j</p>
+
+<h3>数据展现层</h3>
+
+<p>Saiku</p>
+
+<h3>示例——Saiku + Mondrian + Infrobright</h3>
+
+<h3>数据分析查询示例——怎么正确的拖出正确的数据集合</h3>
+
+<h4>策略实验分析</h4>
+
+<h4>运营投放——效果对比</h4>
+
+<h4>商业分析——长时间短的查询（周，月，年）</h4>
+
+<h4>故障异常排查（小时，天）</h4>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/07/25/concurrent-and-status/">Concurrent_and_status</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-07-25T10:37:35+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>25</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:37 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>并发与状态</h1>
+
+<p>并发也许计算机中最难处理的部分，而且它又无处不在。比如你多个连接同时操作一个数据库；多个进程修改和读取一个文件时；抢火车票时，票不会凭空多出来；同时进行多个取钱操作时，银行保证你不会凭空多取出钱来。(这里也许需要更多、更好的使用发生场景)。If you want your computer run faster, you need paralisment.
+所以我想就想着这里谈谈到底什么是并发，毕竟搞清楚了问题的本质，才能应变问题以及相关问题。</p>
+
+<h2>基础例子</h2>
+
+<p>我们就拿上面的抢火车票来说举例吧！这个例子只要是中国人都应该有经历，所以有共鸣。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>张三（看看还有多少票）---------------&gt;    -----------
+</span><span class='line'>李四（看看还有多少票）---------------&gt;    |北京-上海 |
+</span><span class='line'>。                                     |余票：2     |
+</span><span class='line'>。                                       |         |
+</span><span class='line'>。                                     |         |
+</span><span class='line'>Alice（看看还有多少票）-------------&gt;    -----------</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>张三（有票，赶紧买）---------------&gt;   -----------
+</span><span class='line'>李四（怎么只剩2张）---------------&gt;    |北京-上海 |
+</span><span class='line'>。                                  |余票：2   |
+</span><span class='line'>。                                  |         |
+</span><span class='line'>。                                  |         |
+</span><span class='line'>Alice（我也要买）-------------&gt;      -----------</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从上面看来，买票就的动作可以分成2个阶段，而我们用m来表是此时剩余的票数:</p>
+
+<ol>
+<li>读取当前余票：m &mdash;> read</li>
+<li>如果有，就买票：m-1  &mdash;-> write</li>
+</ol>
+
+
+<p>翻译成程序：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span> <span class="nf">bug_ticket</span><span class="p">(){</span>
+</span><span class='line'>  <span class="n">m</span><span class="o">=</span><span class="n">get_ticket_count</span><span class="p">();</span> <span class="c1">//read 操作</span>
+</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="n">m</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">){</span>
+</span><span class='line'>      <span class="n">buy</span><span class="p">();</span>
+</span><span class='line'>      <span class="n">rewrite_ticket_count</span><span class="p">(</span><span class="n">m</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="c1">//write 操作,票减一张</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了简单期间，我们假设只有两个人抢票：A和B。那么所以的动作就有4个：</p>
+
+<p><strong>{A1，A2，B1，B2}</strong>（注意这是集合，是无序。当然我们发现A2在A1前面发生其实是无意义，因为买票肯定会先读取一下现在还有没有余票。同理B1和B2的顺序）</p>
+
+<p>我们理想的买票状况是排队：
+A 操作完A1，然后操作A2。然后B 在操作B1，然后再操作B2。但是现实中你不可能要求A做读取操作，不允许B不能读取吧。抢票关键还是看第二步操作谁快，才公平。所以就会出现这种序列：</p>
+
+<p><strong>[A1，B1，A2，B2]</strong></p>
+
+<p>但是这种我们仔细想想就会出问题：
+A1：A执行get_ticket_count()，发现有m=1张
+B1：B同时执行get_ticket_count()，发现有m=1张
+A2：A抢先执行了buy()并且rewrite_ticket_count(0)
+B2：B已经在B1的时候拿到了余票数，虽然期间被A修改了，但是B并不知道，让然执行buy()并且rewrite_ticket_count(0)</p>
+
+<p>Ops！！发现一张票卖给了两个人。</p>
+
+<p>其实用另一个更简单的例子：计数
+A读取计数器发现现在到了100，同时B也读取计数器发现是100
+A现在对计数器操作，计数器现在是100，加上我自己应该是101，所以重写101到计数器中
+B可能就是慢了1纳秒，但是B还认为计数器才累积到100，所以加上自己应该是101，写入101到计数器中。
+可是计数机本应该是102的，少了1。</p>
+
+<p>发现并发控制不好，数要么莫名的多，要么莫名的少。</p>
+
+<h2>锁</h2>
+
+<p>有了问题，就应该想办法解决问题。<strong>并发问题解决本质就是限制其子原子操作的排列组合顺序,让不该发生的顺序排列不要发生</strong>。例如上面子原子操作的集合是<strong>{A1，A2，B1，B2}</strong>，其中有read操作必须先与write操作的限制条件，即A1先与A2,B1先与B2，其排列有：</p>
+
+<ul>
+<li>[A1，A2，B1，B2]</li>
+<li>[A1，B1，A2，B2]</li>
+<li>[B1，A1，A2，B2]</li>
+<li>[B1，B2，A2，A2]</li>
+<li>[B1，A1，B2，A2]</li>
+</ul>
+
+
+<p>加上读锁，即A或者B执行read的时候不允许其他人read和write直到本人write操作完成。这样做的结果就是:</p>
+
+<ul>
+<li>[A1，A2，B1，B2]</li>
+<li>[A1，B1，A2，B2] &mdash; 被排除</li>
+<li>[B1，A1，A2，B2] &mdash; 被排除</li>
+<li>[B1，B2，A2，A2]</li>
+<li>[B1，A1，B2，A2] &mdash; 被排除</li>
+</ul>
+
+
+<p>加read lock也许是最直接的方法，但是也是最暴力的。比如你在查看余票，就不允许别人同时查看余票，这个估计其他人是要砸桌子了。</p>
+
+<p>通过上面的子原子操作，我们看到并发的同时其实是个概念化的时间，和现实中的同时不是完全的一致。它其实是根据共享数据的状态划分的，状态改变一次算是一个时刻。这种比如你打开一个wikipedia的页面放置了一天没关，而期间也没人更改内容，那么一天后你再去查看内容，前后还是处于同一时刻。但是如果有人期间更改了内容，那么共享的内容的时刻已经前进了，而你一天后的内容就是过时的。</p>
+
+<p>第二种稍好办法就是，加上读取时间，来标识读取的哪个时刻（状态版本）。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/07/24/style-of-programming-1/">Style of Programming 1</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-07-24T18:12:32+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>6:12 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>side effect的疑惑</h1>
+
+<h2>例子</h2>
+
+<p>这个例子是用c++写的。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span> <span class="nf">sort_three_nums</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span><span class="kt">int</span> <span class="n">b</span><span class="p">,</span><span class="kt">int</span> <span class="n">c</span><span class="p">){</span>
+</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">c</span><span class="o">&lt;</span><span class="n">b</span><span class="p">){</span>
+</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="c1">//{b&lt;c}</span>
+</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">b</span><span class="o">&lt;</span><span class="n">a</span><span class="p">){</span>
+</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="c1">//{a&lt;b &amp;&amp; a&lt;c}</span>
+</span><span class='line'>    <span class="c1">//be careful!Swap a,b maybe destory the precondition {b&lt;c}, because the value of b maybe changed</span>
+</span><span class='line'>    <span class="c1">//so you need to compare b and c again!!</span>
+</span><span class='line'>    <span class="c1">//the confusion of side effect</span>
+</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">c</span><span class="o">&lt;</span><span class="n">b</span><span class="p">){</span>
+</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="c1">//{a&lt;b &amp;&amp; b&lt;c &amp;&amp; a&lt;c}</span>
+</span><span class='line'>    <span class="c1">//{a&lt;b&lt;c}</span>
+</span><span class='line'>    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d %d %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这是一个典型的对三个数进行排序的例子，中间需要两次判断b,c导致的原因是在第二次比较中，<code>swap(a,b)</code>可能已经改变了b的值，所以到指第一次的比较结果失效了。像这种在中间就悄悄地改变变量的值，让人防不胜防。而且在命令式编程中也是处处存在，进而导致一些莫名其妙的问题。渐渐地软件开发在人们眼里也变成了一门高不可测且bug百出的学科。</p>
+
+<h2>改进</h2>
+
+<p>上面的代码从表面看令人非常疑惑，特别是那两次表面上一模一样的比较（b&lt;c）。让人看着着实不爽。让我们交换一个比较规则看看。假设我先比较a,b；然后再比较a,c；确保a是最小的数，然后再比较b,c。这样是不是要语义清楚一些呢？</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span> <span class="nf">sort_three_nums</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span><span class="kt">int</span> <span class="n">b</span><span class="p">,</span><span class="kt">int</span> <span class="n">c</span><span class="p">){</span>
+</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">b</span><span class="o">&lt;</span><span class="n">a</span><span class="p">){</span>
+</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="c1">//{a&lt;b}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">c</span><span class="o">&lt;</span><span class="n">a</span><span class="p">){</span>
+</span><span class='line'>      <span class="c1">//{a&lt;b &amp;&amp; c&lt;a}={c&lt;a&lt;b}</span>
+</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
+</span><span class='line'>        <span class="c1">//{a&lt;c&lt;b}=&gt;{a&lt;b &amp;&amp; a&lt;c}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="c1">//{a&lt;b &amp;&amp; a&lt;c}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">c</span><span class="o">&lt;</span><span class="n">b</span><span class="p">){</span>
+</span><span class='line'>      <span class="c1">//{a&lt;b &amp;&amp; a&lt;c &amp;&amp; c&lt;b}={a&lt;c&lt;b}</span>
+</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
+</span><span class='line'>        <span class="c1">//{a&lt;b&lt;b}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="c1">//{a&lt;b &amp;&amp; a&lt;c &amp;&amp; b&lt;c}={a&lt;b&lt;c}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d %d %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>能不能使用一种中间不要产生side effect的方法？</h2>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2015/07/09/wo-shi-ru-he-da-jian-zhe-ge-bo-ke-de/">我是如何搭建这个博客的</a></h1>
     
     
@@ -124,23 +665,23 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/01/06/mondrian-design-guess-metadata-type/">Mondrian Design Guess Metadata Type</a>
+        <a href="/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands/">Linux系统状态命令详解</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/05/networking-server/">网络编程中的服务器模型</a>
+        <a href="/blog/2016/01/26/introduce-thrift/">Introduce Thrift</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/05/nginx-proxy/">Nginx反向代理配置</a>
+        <a href="/blog/2016/01/18/book-graph/">Book Graph</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/05/java-project-orangnism/">Java Project Orangnism</a>
+        <a href="/blog/2016/01/17/business-dataming-ecosystem-investigation/">Pentaho和Pivotal</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/01/100-open-source-operating-system-papers-for-programmers/">100 Open Source Operating System Papers for Programmers.</a>
+        <a href="/blog/2016/01/13/read-note-how-google-works/">Read-note: How Google Works</a>
       </li>
     
   </ul>

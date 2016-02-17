@@ -4,7 +4,7 @@
   <title><![CDATA[Wood Carver]]></title>
   <link href="http://woodcarver.github.io/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2016-01-06T11:42:28+08:00</updated>
+  <updated>2016-02-18T00:33:28+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -14,11 +14,422 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Mondrian Design Guess Metadata Type]]></title>
-    <link href="http://woodcarver.github.io/blog/2016/01/06/mondrian-design-guess-metadata-type/"/>
-    <updated>2016-01-06T10:37:50+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2016/01/06/mondrian-design-guess-metadata-type</id>
-    <content type="html"><![CDATA[
+    <title type="html"><![CDATA[Linux系统状态命令详解]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands/"/>
+    <updated>2016-02-17T21:58:48+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands</id>
+    <content type="html"><![CDATA[<h1>Commands about I/O</h1>
+
+<ul>
+<li><p>什么是I/O
+再让我们看一眼csapp的那幅经典图
+<img src="../images/posts/computer_organization.png" alt="computer organization" />
+看到所有的设备都是通过I/O bridge把数据移动到Main memory上，然后再主存再和CPU交互进行计算。当CPU有输出时，也是先输出到主存上，然后再输入到设备上。而再计算机中I/O设备就只除去CPU和主存的设备，也成外围设备。
+介绍完I/O设备，那什么是I/O呢？按照《Unix系统内幕》的定义：</p>
+
+<blockquote><p>The I/O subsystem haldes the movement of data between memory and peripheral devices such as disks, printers, and terminals.
+所以I/O就是指I/O设备和memory之间数据移动。</p></blockquote></li>
+<li><p>怎么才算是一次I/O</p>
+
+<h2>iostat</h2>
+
+<h2>top</h2>
+
+top对I/O的描述是用I/O wait这个指标，例如下图：
+<img src="../images/posts/top_command_short.png" alt="top command" />
+其中I/O wait 的定义是：
+
+<blockquote><p>I/O wait is the percentage of time your processors are waiting on the disk.
+I/O wait就是CPU在整个任务处理中等待闲置的时间，举个例子：一个任务一共使用了1s，但是其中从从磁盘中取数据花了700ms，而在磁盘读取数据时CPU是闲置的，所以CPU的等待I/O的时间占了70%，即I/O wait 是70%。</p></blockquote></li>
+</ul>
+
+
+<p><code>threshold：当I/O wait &gt; 1/CPU_cores 可以判断明显出现了I/O瓶颈(why?)。</code></p>
+
+<h2>sar</h2>
+
+<p>同样使用I/O wait这个指标，每10mini(默认时间间隔，可以调节)纪录一次系统状态值,保留一段时间的历史数据。</p>
+
+<h2>dstat</h2>
+
+<p>发现这个命令组合很有意思
+dstat -tdD total,sda,sdb,sdc,md1 60</p>
+
+<h2>Reference</h2>
+
+<ul>
+<li>[深入理解计算机系统（第二版）]</li>
+<li>[Unix系统内幕]</li>
+<li><a href="http://blog.scoutapp.com/articles/2011/02/10/understanding-disk-i-o-when-should-you-be-worried">understanding disk i/o - when should you be worried?</a></li>
+<li><a href="http://veithen.github.io/2013/11/18/iowait-linux.html">The precise meaning of I/O wait time in Linux</a></li>
+</ul>
+
+
+<h1>系统状态综合诊断</h1>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Introduce Thrift]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/01/26/introduce-thrift/"/>
+    <updated>2016-01-26T14:46:14+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/01/26/introduce-thrift</id>
+    <content type="html"><![CDATA[<h2>History</h2>
+
+<ul>
+<li>诞生于facebook
+facebook开源出的RPC开源框架，现在已经成为Apache的顶级项目。</li>
+</ul>
+
+
+<h2>Why need thrift</h2>
+
+<p>This question can also be instead of another one&ndash;Is RPC service complicated?
+Before I try to know distributed system, I don&rsquo;t know that it need using a book to make PRC clearly and RPC is an absolutly important skill requirement on service developing posistion.
+If you want to know thrift, you must know RPC.</p>
+
+<h2>What is RPC</h2>
+
+<p>RPC的全称是Remote Procedure Call。这种类型的技术专注与格式化客户端和服务端传输，以实现更方便的远程交互，甚至能做到和本地调用无多大区别的程度。
+整个过程是客户端发送RPC请求到服务端，服务端处理后再发结果反馈过来。听这很简单，看着很容易，而且很熟悉。这不就是cs模型吗？但是其中涉及的难点就隐藏在老生常谈的信息通信中。比如消息体的打包，拆分，解读等等。
+目的就是保质保量的让消息正确抵达目的地。
+读过计算机网络的都知道，如果一切都正常的话是最简单的情况，但是旁枝的异常情况和各种因素的权益会让系统复杂n倍。
+涉及到通信就需要考虑到一下几个因素：
+1. 时间性
+2. 数据完整性</p>
+
+<p>让我们来仔细列出这个动态系统的主题：
+1. client： 动作——request，receive
+2. server：动作——process，send
+3. message</p>
+
+<h2>thrift的定义中的特性</h2>
+
+<p>thrift的官方定义如下：</p>
+
+<blockquote><p>The Apache Thrift software framework, for scalable cross-language services development, combines a software stack with a code generation engine to build services that work efficiently and seamlessly between C++, Java, Python, PHP, Ruby, Erlang, Perl, Haskell, C#, Cocoa, JavaScript, Node.js, Smalltalk, OCaml and Delphi and other languages.</p></blockquote>
+
+<p>先解释下这个定义都讲了什么。
+- software framework：本身是一个软件框架，意味这你自己需要补充其中的业务逻辑
+- services development：这个框架是为了辅助开发者开发出自己的一个网络服务c/s软件，而这个服务具备接下来的两个重要特点：
+    - <a href="http://www.infoq.com/cn/news/2007/10/whatisscalability">scalable 可伸缩性</a>：？？为啥说是可伸缩的？根据可伸缩的核心特征——处理能力能随这个扩展服务规模而提升。
+    - cross-language 跨语言：这个可能是thrift的最大特点了，为了实现这个特性，thrift直接为此定义了一套中间语言，并且配备了一个此语言到各种目标语言的编译器。不过说起来跨语言到底指什么呢？其实一句话概括就是服务短和客户端可以是不同语言开发的，比如官方的例子：客户端是python，服务端是java。而这个中间语言就是只定义一遍服务的逻辑语义一次，通过编译器转成各种目标语言多次。从而解决重复编写的问题。</p>
+
+<h2>需要的知识背景</h2>
+
+<p>thrift的所有技能都在操作系统和计算机网络里可以找到,
+推荐书籍：
+- 计算机网络
+- Unix网络编程
+- Unix系统内幕</p>
+
+<h2>一个简单的开发例子</h2>
+
+<h2>Reference</h2>
+
+<ul>
+<li><a href="http://blog.csdn.net/docong/article/details/6028428">thrift 白皮书</a></li>
+<li><a href="https://thrift.apache.org/static/files/thrift-20070401.pdf">thrift white paper</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Book Graph]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/01/18/book-graph/"/>
+    <updated>2016-01-18T22:23:16+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/01/18/book-graph</id>
+    <content type="html"><![CDATA[<h3>知识点覆盖结构</h3>
+
+<ul>
+<li>面向对象编程——多继承，虚拟方法，对象构建与析构顺序，异常处理。</li>
+<li>前端——异步逻辑与终止，REST API，验证用户输入。</li>
+<li>算法与数据结构——动机，用法，平均及最差情况下的复杂度。</li>
+<li>后端与架构——内存模型，垃圾处理机制，多线程，线程锁机制，benchmarking， profiling。</li>
+<li>函数式编程——Lambdas，curring，排序操作，一元。</li>
+<li>内核层次——文件系统，网络，POSIX，协议，标准的检验与分析工具。</li>
+</ul>
+
+
+<h3>studying tree</h3>
+
+<h5>程序设计</h5>
+
+<ul>
+<li>把基础的数据结构的c语言实现在纸上写三遍以上，用我能想到的最精简最优化的方法
+
+<ul>
+<li>算法：c语言实现</li>
+<li>Redis源码的实现版本 + Redis设计与实现</li>
+</ul>
+</li>
+<li>阅读CARM（A Reference Manual）和TCPL (The C programming language)，确保不会遗漏C语言的每个细节</li>
+<li>阅读Writing Solid Code、Elements of Programming <code>No 5</code></li>
+<li>阅读Science of Programming，做到可以证明自己的程序的正确性（前条件+后条件+不变式） <code>No.1</code>——<strong>有点读不下去啊,放置每天在公司小读一点</strong></li>
+<li>阅读《计算机程式构造于解析》</li>
+<li>阅读《计算机的本质》</li>
+<li>阅读《代码大全》，Practice of programming，了解代码构建过程的整个过程，特别注意其中的代码风格的约束 <code>No.4</code> &ndash; 这本书的关键是怎么吸收，讲的很仔细但是也很难全部转化</li>
+<li>Programming Language Pragmatics（程序设计语言）</li>
+<li>How to design programm <code>No.7</code></li>
+</ul>
+
+
+<h4>算法</h4>
+
+<ul>
+<li>阅读《算法导论》，最仔细的阅读，weight=50%</li>
+<li>leetcode，weight=40%
+
+<ul>
+<li>c + python</li>
+</ul>
+</li>
+<li>阅读《编程之美》</li>
+<li>CareerCup
+
+<ul>
+<li>book + website</li>
+</ul>
+</li>
+<li>Topcoder</li>
+</ul>
+
+
+<h4>操作系统</h4>
+
+<ul>
+<li>重读《Modren Operating System》<code>No.3</code> &ndash; 感觉写的很啰嗦，暂时不读了</li>
+<li>阅读《Computer System a Programmer&rsquo;s Perspective》 <code>No.2</code>——已经读完，书评不够详细，剩下最后的上机实验，need更多的并发和服务模型</li>
+<li>阅读《Computer Architectur:Approche of qulitity》 <code>No.6</code></li>
+<li>阅读《Unix环境编程》</li>
+</ul>
+
+
+<h4>计算机网络</h4>
+
+<ul>
+<li>阅读《计算机网络》</li>
+<li>阅读并实践《Unix网络编程》</li>
+</ul>
+
+
+<h4>数据处理、数据挖掘</h4>
+
+<ul>
+<li>阅读《数据挖掘》，了解数据挖掘的概念，并思考自己的工作所处的层次</li>
+<li>阅读《hadoop权威》，必须写一些应用工作的代码</li>
+<li>阅读《高性能mysql》</li>
+<li>阅读《数据库设计基础》</li>
+<li>阅读 实时流统计的代码</li>
+<li>弄清楚数据流上的各个基础设施的用法：hadoop，hive，kafka，spark，logtailer，strom，zookepper</li>
+<li>阅读《七周七并发》</li>
+<li>阅读《redis设计与实现》</li>
+<li>阅读一本分布式系统和计算的数据，弄懂其中的概念和基本实现，结合我的爬虫</li>
+<li>了解现今市场上所有的数据储存软件：Nosql：redis，memcached；Relation DB:Infobright,Mysql</li>
+</ul>
+
+
+<h4>编程语言</h4>
+
+<ul>
+<li>阅读《Effective Java》</li>
+<li>阅读《Java core》</li>
+<li>阅读《Java 并发编程设计》</li>
+<li>阅读《Python基础教程》</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Pentaho和Pivotal]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/01/17/business-dataming-ecosystem-investigation/"/>
+    <updated>2016-01-17T13:55:01+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/01/17/business-dataming-ecosystem-investigation</id>
+    <content type="html"><![CDATA[<p>接触到的关于数据处理的商业软件基本都处于pentoha和pivotal，或者总是和这两家公司有关系，所以想做个调查，报告如下：</p>
+
+<h1><a href="http://www.pentaho.com/">Pentaho</a></h1>
+
+<h1><a href="https://pivotal.io/">pivotal</a></h1>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Read-note: How Google Works]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/01/13/read-note-how-google-works/"/>
+    <updated>2016-01-13T23:39:15+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/01/13/read-note-how-google-works</id>
+    <content type="html"><![CDATA[<p>创意精英：
+- 过硬的专业知识，懂得如何使用专业工具，还需要具备充足的实践经验
+- 拥有分析头脑，可以利用数据做出决策，同时也懂得数据的误导性，从而不会沉迷其中
+- 有商业头脑，知道专业技术、优质产品和商业成功是环环相扣的、也对这三个要素的价值了然于胸
+- 有创造力
+- 有竞争头脑，干劲十足，即使在工作之余也不停止前进的脚步
+- 用户头脑，无论身处哪里行业，几乎没有人能比他们更懂得用户或消费者对产品的看法
+- 自动自发，不会坐等别人为他们指出方向，对于有悖于他们信念的知识，他们会选择充耳不闻
+- 心态开放，于他们自由合作，在评判构思和结论时，看重优点和而和价值而非出处</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[介绍vertica]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/01/13/introduce-vertica/"/>
+    <updated>2016-01-13T18:55:49+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/01/13/introduce-vertica</id>
+    <content type="html"><![CDATA[<p>最近olap系统开始上线vertica。话说vertica的速度真实不是盖的，太快了，完全盖过infobright的所有风采，完全不留痕迹！</p>
+
+<h1>vertica的基本架构介绍</h1>
+
+<p>首先定型一下vertica在数据库领域里的分支：
+1. 面向批量分析数据(OLAP)
+2. 关系型数据库(RDBMS)
+3. 面向列式储存(column-store architechture)
+4. 分布式(distributed)
+按照vertica在官方文档中提到自己的特性：4 c's——<a href="https://my.vertica.com/docs/7.0.x/HTML/index.htm#Authoring/ConceptsGuide/Other/TheHPVerticaApproach.htm%3FTocPath%3DConcepts%2520Guide%7C_____1">Column Storage， Compression，Clustering，Continuous Performance</a>
+其中高压缩比这个特性一般是附属于面向列式储存的特性的，不是一个正交属性。</p>
+
+<p>当然类似于mysql，sql server等面向OLTP的数据库，其主要处理事务型数据。而vertica的设计目的已经进入到了另一个领域OLAP（OLTP和OLAP的对比，<a href="">参看这里</a>）。所以相对于OLTP大多数采用row-store的储存架构，OLAP一般会用column-store架构。<a href="">这里可以思考一下为什么会有这样的不同</a>。
+上面这些都是一个成型的数据库设计架构选择。需要先了解上面提到的概念，你才可以明白为什么市场上会有如此之多的数据产品，还有vertiac的价值到底在哪里。</p>
+
+<p>一些概念中vertica中也做了相应的变化，接下来我们来看看vertica中的一些重要概念。</p>
+
+<h2>储存设计</h2>
+
+<p>因为Vertica是面向列式储存的数据库，其读取也是按列为单位，其中读取实际单位是projections（作为vertica的FlexStore体系中的一个概念，假如说column-store是为了加快OLAP数据库查询速度的首选，那么FlexStore的存在就是进一步在这基础上从physical design, database storage, and query execution三个方面提升速度）。
+其中打破了按表储存的架构，表在vertica中只是一个逻辑概念，其本身还是一个特殊的projections，其物理储存全部用的是projections：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Projection
+</span><span class='line'>Optimized collections of table columns that provide physical storage for data. A projection can contain some or all of the columns of one or more tables. A projection that contains all of the columns of a table is called a super-projection. A projection that joins one or more tables is called a pre-join projection.</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>查看projection
+select node_name,wos_row_count,ros_row_count from projection_storage where anchor_table_name=&lsquo;dim_exp&rsquo;;</li>
+<li>wos vs ros
+<a href="http://vertica-forums.com/viewtopic.php?t=126">http://vertica-forums.com/viewtopic.php?t=126</a></li>
+</ul>
+
+
+<h2>如何hack</h2>
+
+<p>上面讲了很多原理，现在我们就开始动手操作吧，俗话说说的不如做的。</p>
+
+<h3>删除数据——分区的最大用处</h3>
+
+<p>到底使用分区比较好呢？还是用purage_table比较好呢？
+果断构建partition好，因为如果用purage对于已经转移好的ros数据块（到底会怎么样？解释不清楚了吧！）速度会很慢。<a href="https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/PURGE_TABLE.htm">https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/PURGE_TABLE.htm</a></p>
+
+<h3>索引到底是个什么鬼</h3>
+
+<h3>查看执行的任务，类似于mysql的show processlist</h3>
+
+<p>SELECT * FROM SESSIONS;</p>
+
+<h3>数据类型</h3>
+
+<p>在vertica中除了对int的定义不同，相比其他储存引擎，vertica的所有整形都是用64bit的，包括tinyint。
+在vertica主意使用char的问题，发现当定义char(200),不满200长度的字段，会自动补全空白，这样改变了数据的内容，对于精确搜索时，这是个坑。最好改成varchar，但现在还不明白这个的性能有什么差别。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[关于北京人口的一些想法]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/01/09/think-about-the-popular-of-beijing/"/>
+    <updated>2016-01-09T15:44:51+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/01/09/think-about-the-popular-of-beijing</id>
+    <content type="html"><![CDATA[<p>最近因为北京市出台《北京市居民积分制度》受到了在北京非户籍打拼的年轻人关注，自然这种政治、民生话题肯定能在知乎上找到话题，其中就有一个提问：<a href="">todo</a>。
+我作为一个名在北京默默无闻工作了2年半的IT工作者，开始对这个问题不包意见，对自己丝毫不了解的行业（中国zf），我没有依据和逻辑基础来判断。直到我在图书馆读了一本《北京市人口发展》的数据后，一个观点突然浮现在我脑海里。那就是：
+80、90后不要期待北京市政府能开放户籍政策，如果在毕业的时候没有难道户口，想定居又不想通过婚姻的方式的话需要离开北京。</p>
+
+<p>为什么我得出这个结论？看看下面的北京人口，户籍和非户籍人口曲线图。
+大约从2000开始非户籍人口的比例大幅度增加，而户籍人口的增加却区域平缓。总提老说户籍竞争越来越激烈。</p>
+
+<p>其次看全国出生人口曲线图：
+会发现出生人口在90年达到高峰，而现在90年左右出生的人现在正式年轻力壮的时候。
+再看第三张图，北京的历年出生人口曲线图：
+发现北京户籍出生人口从93年开始就严重下降。
+第三张图看出北京的本土人口增加市递减的加上超低的出生率，导致了严重的老龄化人口结构。所以为了维持北京的经济发展，北京需要不断吸收<code>年轻</code>的外来人口。
+为什么强调年轻呢？
+因为年轻的人口才能解决北京的人口结构失衡。当然这事废话。但是年轻一个属性其实意味深远。现在我们对中国的低生育率和越来越少的儿童习以为常，而且认为大城市为了竞争更过的人才来京，需要放宽人口政策。并且乐观的认为我们现在这些年轻人终于被奉献了人生的地方——北京所重视了。
+一定程度上这事实，北京必然会越来越重视人才，但是那是未来的人才。看看那张全国历年出生人口图，就会发现现在我们就是那批婴儿潮，也就是说我们就处于中国年轻人口最鼎盛的时候。此时北京最不缺的就是年轻人，他尽管把门槛和要求提的很高，也不怕年轻人口流失。
+所以说北京的户籍开放绝对轮不到我们这代人，并且我还处于北京人口控制的时期。这个时候期盼积分简直天方夜谭，不说分数线到底怎么定，就上面提到的入籍不得超过45岁，并且持有居住证连续7年的条件，就会让此时45-7=38岁以上（也就现在78后）的永远没有资格。这是无差别刷掉整整一个时代人的政策。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[How to Recognize a Brilliant/awful Company]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/01/09/how-to-recognize-a-brilliant-slash-awful-company/"/>
+    <updated>2016-01-09T13:43:35+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/01/09/how-to-recognize-a-brilliant-slash-awful-company</id>
+    <content type="html"><![CDATA[<p>How to define &ldquo;brilliant&rdquo; or &ldquo;awful&rdquo;?
+Can I say I am losing myself in an organisation, and then I define this organisation is awful? My answer is yes. What can be worse than something which is wasting you life? This is the biggest sin of organisztions, and this is also your biggest sin for not leaving it right now.
+Maybe someone say my opinion is too emotional,no one can define a company through one people&rsquo;s pointview. But think about it for few minutes, If a company cann&rsquo;t let you close your life meaning, what&rsquo;s the meaning of it to you? Although it let your colleagues rich or important, but they are not you, it is still meanless for you. We are all born as indenpendent human in the world, we want to use our power to let our own or others happer. And this is the only purpose of companise for us.</p>
+
+<h2>reference</h2>
+
+<ul>
+<li>《阿里巴巴》</li>
+<li>《How Goole Works》</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[What Are You Purchasing Now?]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/01/07/purpose-of-jobs/"/>
+    <updated>2016-01-07T22:56:42+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/01/07/purpose-of-jobs</id>
+    <content type="html"><![CDATA[<h1>rules</h1>
+
+<ol>
+<li>Total grade must be 100:sum(grade)&lt;=100</li>
+<li>Grade of evey item must less than or equal to 10 and bigger than 0: 0&lt;=grade&lt;=10</li>
+</ol>
+
+
+<table>
+<thead>
+<tr>
+<th> purpose </th>
+<th> 2016</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>position </td>
+<td>   10</td>
+</tr>
+<tr>
+<td>scale    </td>
+<td>   10</td>
+</tr>
+<tr>
+<td>team     </td>
+<td>   10</td>
+</tr>
+<tr>
+<td>industry </td>
+<td>   7</td>
+</tr>
+<tr>
+<td>salary   </td>
+<td>   9</td>
+</tr>
+<tr>
+<td>place    </td>
+<td>   6</td>
+</tr>
+<tr>
+<td>dailyTime</td>
+<td>    6</td>
+</tr>
+</tbody>
+</table>
+
 ]]></content>
   </entry>
   
@@ -293,6 +704,203 @@
 </span><span class='line'><span class="p">}</span>
 </span></code></pre></td></tr></table></div></figure>
 
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Java 项目构建过程]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/01/05/java-project-orangnism/"/>
+    <updated>2016-01-05T22:11:30+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/01/05/java-project-orangnism</id>
+    <content type="html"><![CDATA[<h2>单个文件的编译</h2>
+
+<p>HelloWorld.java</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.util.*</span><span class="o">;</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">HelloWorld</span> <span class="c1">//the class name must the same as file name case sensitivly</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">print</span><span class="o">(</span><span class="s">&quot;hello world!\n&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="k">for</span><span class="o">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="mi">10</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span>
+</span><span class='line'>            <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">print</span><span class="o">(</span><span class="n">i</span><span class="o">+</span><span class="s">&quot;\n&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>shell>javac HelloWorld.java       产生HelloWorld.class文件
+shell>java HelloWorld             执行HelloWorld.class</p>
+
+<h2>多个文件的编译</h2>
+
+<p>不过实际中只有一个文件的项目几乎不会出现，现在我们衍生到2个文件的组织和编译。
+- 先看第一种情况：所有文件都放在同一个文件夹中，即所有java文件都是平级的。这种编译和一个文件编译方法是一样的，直接编译入口java文件（包含main函数）即可。编译器会自动在当前目录寻找引入类的定义。</p>
+
+<p>HelloWorld.java</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.util.*</span><span class="o">;</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">HelloWorld</span><span class="o">{</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">){</span>
+</span><span class='line'>        <span class="n">DogWorld</span> <span class="n">dg</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">DogWorld</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">dg</span><span class="o">.</span><span class="na">setname</span><span class="o">(</span><span class="s">&quot;Mr Steph&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">String</span> <span class="n">dgname</span><span class="o">=</span><span class="n">dg</span><span class="o">.</span><span class="na">getname</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">printf</span><span class="o">(</span><span class="s">&quot;hello %s!\n&quot;</span><span class="o">,</span><span class="n">dgname</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>DogWorld.java</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">DogWorld</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="n">String</span> <span class="n">dogname</span><span class="o">;</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setname</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="o">.</span><span class="na">dogname</span><span class="o">=</span><span class="n">name</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="n">String</span> <span class="nf">getname</span><span class="o">()</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">dogname</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>shell>javac HelloWorld.java     <code>产生HelloWorld.class文件</code>
+shell>java HelloWorld           <code>执行HelloWorld.class</code></p>
+
+<ul>
+<li>第二种：当工程的文件达到上千个，放在同一个文件有开始有损工程可读性了，这是开始使用子文件夹来对代码文件模块化组织。</li>
+</ul>
+
+
+<p>现在我们把DogWorld放入到一个animal文件夹中，工程文文件目录如下：
+- HelloWorld.java
+- animal
+- DogWorld.java</p>
+
+<p>HelloWorld.java</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.util.*</span><span class="o">;</span>
+</span><span class='line'><span class="kn">import</span> <span class="nn">animal.*</span><span class="o">;</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">HelloWorld</span><span class="o">{</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">){</span>
+</span><span class='line'>        <span class="n">DogWorld</span> <span class="n">dg</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">DogWorld</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">dg</span><span class="o">.</span><span class="na">setname</span><span class="o">(</span><span class="s">&quot;Mr Steph&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="n">String</span> <span class="n">dgname</span><span class="o">=</span><span class="n">dg</span><span class="o">.</span><span class="na">getname</span><span class="o">();</span>
+</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">printf</span><span class="o">(</span><span class="s">&quot;hello %s!\n&quot;</span><span class="o">,</span><span class="n">dgname</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>注意HelloWorld.java多了一行import animal.*代码，用于指定要引入的package。</p>
+
+<p>animal/DogWorld.java</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">animal</span><span class="o">;</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">DogWorld</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>    <span class="kd">private</span> <span class="n">String</span> <span class="n">dogname</span><span class="o">;</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setname</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">)</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>        <span class="k">this</span><span class="o">.</span><span class="na">dogname</span><span class="o">=</span><span class="n">name</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="n">String</span> <span class="nf">getname</span><span class="o">()</span>
+</span><span class='line'>    <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">dogname</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>DogWorld.java也多了一行package animal，指定把这个类打入到animal package中，否则DogWorld将被打入默认package中。</p>
+
+<p>一下子多出来package和import的概念，我们还是先来探索package，这个给文件指定路径的机制。</p>
+
+<p><strong>我们先规定一个概念：工程根目录——这个目录的定义是包含main函数的文件的package指定的目录，如果入口文件没有package那么默认就是文件当前所在目录。例如我们的HelloWorld.java没有指定package， 那么根目录就是./</strong></p>
+
+<p>  当java文件中没有使用package显示指定它属于那个包的时候，它默认是属于根目录的包的，而且不管这个java文件是放在哪里。而显示指定package的时候，它又一定规则，即报名必须和文件的放的位置匹配。如果package animal，那么这个java文件就必须放入到相对于根目录的animal目录下。这样做的一个用处——源文件和中间文件路径可以分离。
+  javac的寻找类级别是先寻找xxx.class文件，如果没有那么再寻找xxx.java文件现编译xxx.class。而package其实指定xxx.class文件的路径的，而不是xxx.java文件。</p>
+
+<p>例如上面的例子，你也可以这样编译：
+shell>cd animal; javac DogWorld.java  <code>用来生产DogWorld.class文件</code>
+shell>cd ../     <code>到工程根目录</code>
+shell>javac HelloWorld.java
+shell>java HelloWorld</p>
+
+<p>假如你把DogWorld.java的package去掉，那么相当于你是想表达把DogWorld.class放到根目录上去。执行步骤是这样的。
+shell>cd animal; javac DogWorld.java  <code>用来生产DogWorld.class文件</code>
+shell> mv DogWorld.class ../   <code>把DogWorld.class移动到工程根目录去</code>
+shell>cd ../
+shell>javac HelloWorld.java
+shell>java HelloWorld</p>
+
+<p>而import是用来引入class文件的。它很简单，import xxx，完全就按照xxx来寻找。xxx的写法规则是用.来表示文件的层次。如com.animal那么就再相对于工程根目录的com/animal文件夹。</p>
+
+<p>有趣的是package和import的都是相对于根目录的路径，和代码文件本身所在目录完全无关，只和工程根目录有关。</p>
+
+<p>这些引用规则和c中#include使用大为不同。</p>
+
+<h2>虚拟机是如何定位类</h2>
+
+<p>接下来我们来仔细探讨下虚拟机的定位规则。</p>
 ]]></content>
   </entry>
   
@@ -647,203 +1255,6 @@ server</p>
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Java Project Orangnism]]></title>
-    <link href="http://woodcarver.github.io/blog/2016/01/05/java-project-orangnism/"/>
-    <updated>2016-01-05T00:00:00+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2016/01/05/java-project-orangnism</id>
-    <content type="html"><![CDATA[<h2>单个文件的编译</h2>
-
-<p>HelloWorld.java</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.util.*</span><span class="o">;</span>
-</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">HelloWorld</span> <span class="c1">//the class name must the same as file name case sensitivly</span>
-</span><span class='line'><span class="o">{</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span>
-</span><span class='line'>    <span class="o">{</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">print</span><span class="o">(</span><span class="s">&quot;hello world!\n&quot;</span><span class="o">);</span>
-</span><span class='line'>        <span class="k">for</span><span class="o">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="mi">10</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span>
-</span><span class='line'>            <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">print</span><span class="o">(</span><span class="n">i</span><span class="o">+</span><span class="s">&quot;\n&quot;</span><span class="o">);</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>shell>javac HelloWorld.java       产生HelloWorld.class文件
-shell>java HelloWorld             执行HelloWorld.class</p>
-
-<h2>多个文件的编译</h2>
-
-<p>不过实际中只有一个文件的项目几乎不会出现，现在我们衍生到2个文件的组织和编译。
-- 先看第一种情况：所有文件都放在同一个文件夹中，即所有java文件都是平级的。这种编译和一个文件编译方法是一样的，直接编译入口java文件（包含main函数）即可。编译器会自动在当前目录寻找引入类的定义。</p>
-
-<p>HelloWorld.java</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.util.*</span><span class="o">;</span>
-</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">HelloWorld</span><span class="o">{</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">){</span>
-</span><span class='line'>        <span class="n">DogWorld</span> <span class="n">dg</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">DogWorld</span><span class="o">();</span>
-</span><span class='line'>        <span class="n">dg</span><span class="o">.</span><span class="na">setname</span><span class="o">(</span><span class="s">&quot;Mr Steph&quot;</span><span class="o">);</span>
-</span><span class='line'>        <span class="n">String</span> <span class="n">dgname</span><span class="o">=</span><span class="n">dg</span><span class="o">.</span><span class="na">getname</span><span class="o">();</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">printf</span><span class="o">(</span><span class="s">&quot;hello %s!\n&quot;</span><span class="o">,</span><span class="n">dgname</span><span class="o">);</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>DogWorld.java</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">DogWorld</span>
-</span><span class='line'><span class="o">{</span>
-</span><span class='line'>    <span class="kd">private</span> <span class="n">String</span> <span class="n">dogname</span><span class="o">;</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setname</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">)</span>
-</span><span class='line'>    <span class="o">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="o">.</span><span class="na">dogname</span><span class="o">=</span><span class="n">name</span><span class="o">;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="n">String</span> <span class="nf">getname</span><span class="o">()</span>
-</span><span class='line'>    <span class="o">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">dogname</span><span class="o">;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>shell>javac HelloWorld.java     <code>产生HelloWorld.class文件</code>
-shell>java HelloWorld           <code>执行HelloWorld.class</code></p>
-
-<ul>
-<li>第二种：当工程的文件达到上千个，放在同一个文件有开始有损工程可读性了，这是开始使用子文件夹来对代码文件模块化组织。</li>
-</ul>
-
-
-<p>现在我们把DogWorld放入到一个animal文件夹中，工程文文件目录如下：
-- HelloWorld.java
-- animal
-- DogWorld.java</p>
-
-<p>HelloWorld.java</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.util.*</span><span class="o">;</span>
-</span><span class='line'><span class="kn">import</span> <span class="nn">animal.*</span><span class="o">;</span>
-</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">HelloWorld</span><span class="o">{</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">){</span>
-</span><span class='line'>        <span class="n">DogWorld</span> <span class="n">dg</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">DogWorld</span><span class="o">();</span>
-</span><span class='line'>        <span class="n">dg</span><span class="o">.</span><span class="na">setname</span><span class="o">(</span><span class="s">&quot;Mr Steph&quot;</span><span class="o">);</span>
-</span><span class='line'>        <span class="n">String</span> <span class="n">dgname</span><span class="o">=</span><span class="n">dg</span><span class="o">.</span><span class="na">getname</span><span class="o">();</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">printf</span><span class="o">(</span><span class="s">&quot;hello %s!\n&quot;</span><span class="o">,</span><span class="n">dgname</span><span class="o">);</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>注意HelloWorld.java多了一行import animal.*代码，用于指定要引入的package。</p>
-
-<p>animal/DogWorld.java</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">animal</span><span class="o">;</span>
-</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">DogWorld</span>
-</span><span class='line'><span class="o">{</span>
-</span><span class='line'>    <span class="kd">private</span> <span class="n">String</span> <span class="n">dogname</span><span class="o">;</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setname</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">)</span>
-</span><span class='line'>    <span class="o">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="o">.</span><span class="na">dogname</span><span class="o">=</span><span class="n">name</span><span class="o">;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="n">String</span> <span class="nf">getname</span><span class="o">()</span>
-</span><span class='line'>    <span class="o">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">dogname</span><span class="o">;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>DogWorld.java也多了一行package animal，指定把这个类打入到animal package中，否则DogWorld将被打入默认package中。</p>
-
-<p>一下子多出来package和import的概念，我们还是先来探索package，这个给文件指定路径的机制。</p>
-
-<p><strong>我们先规定一个概念：工程根目录——这个目录的定义是包含main函数的文件的package指定的目录，如果入口文件没有package那么默认就是文件当前所在目录。例如我们的HelloWorld.java没有指定package， 那么根目录就是./</strong></p>
-
-<p>  当java文件中没有使用package显示指定它属于那个包的时候，它默认是属于根目录的包的，而且不管这个java文件是放在哪里。而显示指定package的时候，它又一定规则，即报名必须和文件的放的位置匹配。如果package animal，那么这个java文件就必须放入到相对于根目录的animal目录下。这样做的一个用处——源文件和中间文件路径可以分离。
-  javac的寻找类级别是先寻找xxx.class文件，如果没有那么再寻找xxx.java文件现编译xxx.class。而package其实指定xxx.class文件的路径的，而不是xxx.java文件。</p>
-
-<p>例如上面的例子，你也可以这样编译：
-shell>cd animal; javac DogWorld.java  <code>用来生产DogWorld.class文件</code>
-shell>cd ../     <code>到工程根目录</code>
-shell>javac HelloWorld.java
-shell>java HelloWorld</p>
-
-<p>假如你把DogWorld.java的package去掉，那么相当于你是想表达把DogWorld.class放到根目录上去。执行步骤是这样的。
-shell>cd animal; javac DogWorld.java  <code>用来生产DogWorld.class文件</code>
-shell> mv DogWorld.class ../   <code>把DogWorld.class移动到工程根目录去</code>
-shell>cd ../
-shell>javac HelloWorld.java
-shell>java HelloWorld</p>
-
-<p>而import是用来引入class文件的。它很简单，import xxx，完全就按照xxx来寻找。xxx的写法规则是用.来表示文件的层次。如com.animal那么就再相对于工程根目录的com/animal文件夹。</p>
-
-<p>有趣的是package和import的都是相对于根目录的路径，和代码文件本身所在目录完全无关，只和工程根目录有关。</p>
-
-<p>这些引用规则和c中#include使用大为不同。</p>
-
-<h2>虚拟机是如何定位类</h2>
-
-<p>接下来我们来仔细探讨下虚拟机的定位规则。</p>
-]]></content>
-  </entry>
-  
-  <entry>
     <title type="html"><![CDATA[100 Open Source Operating System Papers for Programmers.]]></title>
     <link href="http://woodcarver.github.io/blog/2016/01/01/100-open-source-operating-system-papers-for-programmers/"/>
     <updated>2016-01-01T18:32:21+08:00</updated>
@@ -853,9 +1264,9 @@ shell>java HelloWorld</p>
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[2015 Annual Report]]></title>
+    <title type="html"><![CDATA[2015非正式总结报告]]></title>
     <link href="http://woodcarver.github.io/blog/2016/01/01/2015-annual-report/"/>
-    <updated>2016-01-01T00:00:00+08:00</updated>
+    <updated>2016-01-01T11:48:49+08:00</updated>
     <id>http://woodcarver.github.io/blog/2016/01/01/2015-annual-report</id>
     <content type="html"><![CDATA[<h2>还是先吐槽吧</h2>
 
@@ -925,28 +1336,6 @@ shell>java HelloWorld</p>
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[成为程序员的点点滴滴?]]></title>
-    <link href="http://woodcarver.github.io/blog/2015/12/30/how-to-be-a-programmer/"/>
-    <updated>2015-12-30T22:11:07+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2015/12/30/how-to-be-a-programmer</id>
-    <content type="html"><![CDATA[<h2>技能是最基础的，绝对是第一位的，不管你的经理或者leader多么强调业务多么重要。也不能因此就可以认为暂停锻炼技术技能，专心业务技能。</h2>
-
-<p>要判断什么对自己重要，什么对自己不重要。这个问题不是别人告诉你的，特别是更你有利益关系的人。要从自己的目的和初衷出发。
-我为什么选择做为一个程序员？
-- 因为我喜欢技术，就像其他的数据和自然科学一样。喜欢创作能改变生活的东西（从小到大，各个方面），更喜欢沉浸在创作的感觉中。
-- 因为喜欢找到系统解决问题的方法，喜欢量化模型，喜欢逻辑推理，然后推广，批量复制。
-- 因为喜欢确定的感觉，或者一定是程度的确定，然后放心的睡觉，放心的吃饭。
-- 因为自己擅长技术过于其他的项目。</p>
-
-<h2>如何应对季度或者年度评优？</h2>
-
-<p>一年一度的评优活动又开始了，You know your trouble comes。如果你获奖，恭喜你，不是因为你的付出得到了回报，而是因为你的地位保住了。何谈此话，想想你的上学经历，或者在任何一个封闭的团队的经历，那就是地位从来都是分等级的。如果你因获奖而地位上升的，那么也意味着如果你没有获奖，地位是下降了的。请记住这还不是更遭，更糟糕的是你以为你没获奖紧紧是你一个人的事？错～这是关系到整个团队的事，因为他们都知道你没有获奖，从而改变对你的看法和态度(也许是潜意识的，也许连他们自己也无法意识到)。但是你在他们眼里确实变成了个一能力"稍差"的同事了。
-一定请记住这点，经理设置的一定比例的奖项真的能鼓励员工更努力的工作吗？一项固定比例份额的奖项，评价指标是相对按团队名次排名来的系统，真的能提高员工工作激情？开什么玩笑！也许得奖的人是提高了工作激情，但是那些没得奖的人呢？综合一下提高的部分和打击的部分，总体上到底是提升还是下降？这种不是一种赤裸裸的内部竞争体系吗？在我眼里这种封闭团体的按排名获奖的系统的作用只有一个，就是为了淘汰末尾，这是一种淘汰机制。
-既然认清了其本质，经历过几次评优，也大致到了解了自己在企业团队中的地位了。接下来该做什么？也很清楚吧，如果无法挽回，那就时刻准备跑路～</p>
-]]></content>
-  </entry>
-  
-  <entry>
     <title type="html"><![CDATA[How to Learn a Programming Language]]></title>
     <link href="http://woodcarver.github.io/blog/2015/12/28/how-to-learn-a-programming-language/"/>
     <updated>2015-12-28T10:20:32+08:00</updated>
@@ -978,7 +1367,7 @@ shell>java HelloWorld</p>
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Mondrian design:Dialect Design]]></title>
+    <title type="html"><![CDATA[Mondrian 设计于实现:Dialect 设计]]></title>
     <link href="http://woodcarver.github.io/blog/2015/11/30/mondrian-design-dialect-design/"/>
     <updated>2015-11-30T22:56:19+08:00</updated>
     <id>http://woodcarver.github.io/blog/2015/11/30/mondrian-design-dialect-design</id>
@@ -1067,11 +1456,16 @@ shell>java HelloWorld</p>
 <p>通过上面的步骤很清楚的知道怎么去扩展一个数据库了。</p>
 
 <ul>
-<li>修改META-INF/services/mondrian.spi.Dialect，添加要支持的数据库的驱动</li>
-<li>在mondrian.spi包下添加同名的Dialect</li>
+<li>修改META-INF/services/mondrian.spi.Dialect，添加要支持的数据库的驱动（注意打包的时候一定要把META_INF放进去）</li>
+<li>在mondrian.spi包下添加的Dialect</li>
+<li>JdbcDialectImpl.getProduct()增加对应关系（该产品的JDBC 的metaDate.getDatabaseProductName返回的名称和Dialect 的databaeProduct的对应关系必须在JdbcDialectImpl.getProduct(productName, productVersion)定义）</li>
 <li>然后重新编译，部署就完成了</li>
 </ul>
 
+
+<h2>子模块设计</h2>
+
+<h3>输出类型控制（guessType的实现）</h3>
 
 <h2>吐槽时间</h2>
 
@@ -1410,7 +1804,7 @@ shell>java HelloWorld</p>
 T= 1+1+while里面的步骤。while里面的步骤怎么计算？
 假如我们的输入是：0 1 2 3 4 5。那么每个位置对应的运行次数如下图：</p>
 
-<p><img src="../images/binary_search_tree.jpg" alt="bianry_search_tree" /></p>
+<p><img src="../images/posts/binary_search_tree.jpg" alt="bianry_search_tree" /></p>
 
 <p>上图给出的是n=6的情况。树的高hight=log(6)+1=3, t&lt;=hight(todo:能给出t＝f(k)的具体公式吗？参照平衡二叉树的性质)。</p>
 
@@ -1485,410 +1879,6 @@ T= 1+1+while里面的步骤。while里面的步骤怎么计算？
 <blockquote><p>定义：如果存在常数c0和n0，对于所有n>n0,有g(n)&lt;c0f(n),则称函数g(n)是O(f(n))的。</p></blockquote>
 
 <p>即用g(n)来代替f(n)来比较衡量大小。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Mondrian中的线程模型使用情况]]></title>
-    <link href="http://woodcarver.github.io/blog/2015/10/19/mondrian-and-multithread/"/>
-    <updated>2015-10-19T14:50:09+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2015/10/19/mondrian-and-multithread</id>
-    <content type="html"><![CDATA[
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Mondrian in a Perspective of Code Complete]]></title>
-    <link href="http://woodcarver.github.io/blog/2015/10/19/mondrian-in-the-perspective-of-code-complete/"/>
-    <updated>2015-10-19T14:42:12+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2015/10/19/mondrian-in-the-perspective-of-code-complete</id>
-    <content type="html"><![CDATA[
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Introduce OLAP Model]]></title>
-    <link href="http://woodcarver.github.io/blog/2015/10/18/introduce-olap-model/"/>
-    <updated>2015-10-18T15:09:46+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2015/10/18/introduce-olap-model</id>
-    <content type="html"><![CDATA[<h1>Introduce OLAP</h1>
-
-<p>OLAP（Online analytical processing）就是联系分析系统。它是商务智能或者数据挖掘的链条中一个环节。而它的上游是数据仓库，下游就是直接的用户。所以从这几一个环节开始提供了直接的人机互动服务。所以对它的定义就是一个人接互动的工具，主要服务是提供高效的、广泛的多维度数据分析。
-<a href="./img/data_mining_olap.png">!olap在数据挖掘中的位置</a></p>
-
-<p>由于OLAP对数据仓库的依赖性很强（公用一个数据模型），所以一般来说这两个一般都放在一起作为一个整体来讨论。</p>
-
-<p>对于一个系统来说，只提供基本通用的定义是不够的，必须明确其必须满足的条件，而且需要解释为什么要满足这些条件（即满足最小集合条件，如果不满足就不应该称它是属于这种系统）。所以到底什么是OLAP的具体明明确的定定义？一种定义：
-按照 W. H. Inmon,一位数据仓库系统构造方面的领头建筑师的说法,“数据仓库是一个面向 主题的、集成的、时变的、非易失的数据集合,支持管理决策制定”[Inm96]
-“A data warehouse is a subject-oriented, integrated, time-variant, and nonvolatile collection of data in support of management’s decision making process”
- - <strong>面向主题的</strong>:数据仓库围绕一些主题,如顾客、供应商、产品和销售组织。数据仓库关注决策 者的数据建模与分析,而不是构造组织机构的日常操作和事务处理。因此,数据仓库排除对于 决策无用的数据,提供特定主题的简明视图。
- - <strong>集成的</strong>:通常构造数据仓库是将多个异种数据源,如关系数据库、一般文件和联机事务处理 记录,集成在一起。使用数据清理和数据集成技术,确保命名约定、编码结构、属性度量的一 致性。
- - <strong>时变的</strong>:数据存储从历史的角度(例如,过去5-10年)提供信息。数据仓库中的关键结构, 隐式或显式地包含时间元素。
- - <strong>非易失的</strong>:数据仓库总是物理地分离存放数据;这些数据源于操作环境下的应用数据。由于这 种分离,数据仓库不需要事务处理、恢复和并行控制机制。通常,它只需要两种数据访问:数 据的初始化装入和数据访问。</p>
-
-<h2>发现历史</h2>
-
-<h2>概念层次</h2>
-
-<h2>实用技术（MDX）</h2>
-
-<h2>衍生产品</h2>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Java Proxy]]></title>
-    <link href="http://woodcarver.github.io/blog/2015/08/05/java-proxy/"/>
-    <updated>2015-08-05T17:20:04+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2015/08/05/java-proxy</id>
-    <content type="html"><![CDATA[<h1>java proxy</h1>
-
-<h2>代理的概念和作用</h2>
-
-<p>代理是一个很通用的解决问题的方法。其用处也是无所不在，不管是在网络部署，编程语言、火车票贩售还是澳洲签证办理中。</p>
-
-<p>这一点有篇文章讲的非常好，看详情直接<a href="http://www.importnew.com/11412.html">点这里，中文版</a>，或者<a href="http://www.javaworld.com/article/2076233/java-se/explore-the-dynamic-proxy-api.html">点这里，原文</a></p>
-
-<blockquote><p>代理强制对象方法的调用要间接的通过代理对象，代理对象就扮演了底层实际被代理对象的代理人的角色。代理对象跟普通对象的声明方式一样，因此，客户端对象根本觉察不到它们有代理对象实例。</p>
-
-<p>有一些常见的代理，比如：访问代理，门面(facade)，远程代理和虚拟代理。访问代理用来给服务或者数据对象的访问添加安全策略。门面是给底层的多个对象提供一个单一的上层接口。远程代理让客户端对象感觉不到底层数据实际是在远程。虚拟代理用来给实际对象做延迟或者是及时(just-in-time)初始化。</p>
-
-<p>在编程中，代理是一个很常用的基本的设计模式。但是，它的一个缺点是跟被代理对象之间是强耦合。看下图1中代理模式的UML，可以看出来为了让代理对象有用并且对被代理对象透明，代理对象通常要实现接口或者是继承已知的超类(facade情况除外)。
-<img src="../images/java_proxy.gif" alt="图1. 代理模式的UML图" /></p></blockquote>
-
-<h2>解决的问题</h2>
-
-<h2>具体使用</h2>
-
-<blockquote><p>动态代理（以下称代理），利用Java的反射技术(Java Reflection)，在运行时创建一个实现某些给定接口的新类（也称“动态代理类”）及其实例（对象）</p>
-
-<p>(Using Java Reflection to create dynamic implementations of interfaces at runtime)。</p>
-
-<p>代理的是接口(Interfaces)，不是类(Class)，更不是抽象类。</p></blockquote>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.lang.reflect.*</span><span class="o">;</span>
-</span><span class='line'><span class="n">Proxy</span><span class="o">.</span><span class="na">newProxyInstance</span><span class="o">(</span><span class="n">ClassLoader</span> <span class="n">loader</span><span class="o">,</span>
-</span><span class='line'>                      <span class="n">Class</span><span class="o">&lt;?&gt;[]</span> <span class="n">interfaces</span><span class="o">,</span>
-</span><span class='line'>                      <span class="n">InvocationHandler</span> <span class="n">h</span><span class="o">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这个函数的名字直白的反映出了它时产生一个代理实例。它有三个参数：</p>
-
-<ul>
-<li><p>classLoader - the class loader to define the proxy class</p>
-
-<p>  顾名思义就是类的加载器。为什么要传递这个参数，我猜估计是因为jvm生产一个对象，需要专属的加载器。一般都是传递你要代理的接口的loader（ MyInterface.class.getClassLoader() ）。</p></li>
-<li><p>interfaces - the list of interfaces for the proxy class to implement</p>
-
-<p>  这是一个list，列的一组要被实现的接口。这个参数的元素的类型是Class</p></li>
-<li><p>h - the invocation handler to dispatch method invocations to</p>
-
-<p>  实际来组装实现代理接口的地方，其中的invoke是</p></li>
-</ul>
-
-
-<h2>举个例子</h2>
-
-<h2>reference</h2>
-
-<ul>
-<li><a href="http://docs.oracle.com/javase/7/docs/api/java/lang/reflect/Proxy.html">Class Proxy</a></li>
-<li><a href="http://www.javaworld.com/article/2076233/java-se/explore-the-dynamic-proxy-api.html">Explore the Dynamic Proxy API</a></li>
-<li><a href="http://www.importnew.com/11412.html">Explore the Dynamic Proxy API 中文版</a></li>
-<li><a href="http://www.cnblogs.com/techyc/p/3455950.html">Java的动态代理</a></li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Introduction to Olap]]></title>
-    <link href="http://woodcarver.github.io/blog/2015/08/03/introduction-to-olap/"/>
-    <updated>2015-08-03T15:02:36+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2015/08/03/introduction-to-olap</id>
-    <content type="html"><![CDATA[<h1>Olap技术框架概况</h1>
-
-<h2>数据仓库</h2>
-
-<h2>多维度数据模型</h2>
-
-<h2>Olap是什么</h2>
-
-<h2>常用OLap技术框架</h2>
-
-<h3>数据存储引擎层</h3>
-
-<ul>
-<li>Hive</li>
-<li>Infrobright</li>
-</ul>
-
-
-<h3>多维度模型转化层</h3>
-
-<p>Mondrian</p>
-
-<h3>多维度模型到展现层的连接接口</h3>
-
-<p>Olap4j</p>
-
-<h3>数据展现层</h3>
-
-<p>Saiku</p>
-
-<h3>示例——Saiku + Mondrian + Infrobright</h3>
-
-<h3>数据分析查询示例——怎么正确的拖出正确的数据集合</h3>
-
-<h4>策略实验分析</h4>
-
-<h4>运营投放——效果对比</h4>
-
-<h4>商业分析——长时间短的查询（周，月，年）</h4>
-
-<h4>故障异常排查（小时，天）</h4>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Concurrent_and_status]]></title>
-    <link href="http://woodcarver.github.io/blog/2015/07/25/concurrent-and-status/"/>
-    <updated>2015-07-25T10:37:35+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2015/07/25/concurrent-and-status</id>
-    <content type="html"><![CDATA[<h1>并发与状态</h1>
-
-<p>并发也许计算机中最难处理的部分，而且它又无处不在。比如你多个连接同时操作一个数据库；多个进程修改和读取一个文件时；抢火车票时，票不会凭空多出来；同时进行多个取钱操作时，银行保证你不会凭空多取出钱来。(这里也许需要更多、更好的使用发生场景)。If you want your computer run faster, you need paralisment.
-所以我想就想着这里谈谈到底什么是并发，毕竟搞清楚了问题的本质，才能应变问题以及相关问题。</p>
-
-<h2>基础例子</h2>
-
-<p>我们就拿上面的抢火车票来说举例吧！这个例子只要是中国人都应该有经历，所以有共鸣。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>张三（看看还有多少票）---------------&gt;    -----------
-</span><span class='line'>李四（看看还有多少票）---------------&gt;    |北京-上海 |
-</span><span class='line'>。                                     |余票：2     |
-</span><span class='line'>。                                       |         |
-</span><span class='line'>。                                     |         |
-</span><span class='line'>Alice（看看还有多少票）-------------&gt;    -----------</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>张三（有票，赶紧买）---------------&gt;   -----------
-</span><span class='line'>李四（怎么只剩2张）---------------&gt;    |北京-上海 |
-</span><span class='line'>。                                  |余票：2   |
-</span><span class='line'>。                                  |         |
-</span><span class='line'>。                                  |         |
-</span><span class='line'>Alice（我也要买）-------------&gt;      -----------</span></code></pre></td></tr></table></div></figure>
-
-
-<p>从上面看来，买票就的动作可以分成2个阶段，而我们用m来表是此时剩余的票数:</p>
-
-<ol>
-<li>读取当前余票：m &mdash;> read</li>
-<li>如果有，就买票：m-1  &mdash;-> write</li>
-</ol>
-
-
-<p>翻译成程序：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span> <span class="nf">bug_ticket</span><span class="p">(){</span>
-</span><span class='line'>  <span class="n">m</span><span class="o">=</span><span class="n">get_ticket_count</span><span class="p">();</span> <span class="c1">//read 操作</span>
-</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="n">m</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">){</span>
-</span><span class='line'>      <span class="n">buy</span><span class="p">();</span>
-</span><span class='line'>      <span class="n">rewrite_ticket_count</span><span class="p">(</span><span class="n">m</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="c1">//write 操作,票减一张</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>为了简单期间，我们假设只有两个人抢票：A和B。那么所以的动作就有4个：</p>
-
-<p><strong>{A1，A2，B1，B2}</strong>（注意这是集合，是无序。当然我们发现A2在A1前面发生其实是无意义，因为买票肯定会先读取一下现在还有没有余票。同理B1和B2的顺序）</p>
-
-<p>我们理想的买票状况是排队：
-A 操作完A1，然后操作A2。然后B 在操作B1，然后再操作B2。但是现实中你不可能要求A做读取操作，不允许B不能读取吧。抢票关键还是看第二步操作谁快，才公平。所以就会出现这种序列：</p>
-
-<p><strong>[A1，B1，A2，B2]</strong></p>
-
-<p>但是这种我们仔细想想就会出问题：
-A1：A执行get_ticket_count()，发现有m=1张
-B1：B同时执行get_ticket_count()，发现有m=1张
-A2：A抢先执行了buy()并且rewrite_ticket_count(0)
-B2：B已经在B1的时候拿到了余票数，虽然期间被A修改了，但是B并不知道，让然执行buy()并且rewrite_ticket_count(0)</p>
-
-<p>Ops！！发现一张票卖给了两个人。</p>
-
-<p>其实用另一个更简单的例子：计数
-A读取计数器发现现在到了100，同时B也读取计数器发现是100
-A现在对计数器操作，计数器现在是100，加上我自己应该是101，所以重写101到计数器中
-B可能就是慢了1纳秒，但是B还认为计数器才累积到100，所以加上自己应该是101，写入101到计数器中。
-可是计数机本应该是102的，少了1。</p>
-
-<p>发现并发控制不好，数要么莫名的多，要么莫名的少。</p>
-
-<h2>锁</h2>
-
-<p>有了问题，就应该想办法解决问题。<strong>并发问题解决本质就是限制其子原子操作的排列组合顺序,让不该发生的顺序排列不要发生</strong>。例如上面子原子操作的集合是<strong>{A1，A2，B1，B2}</strong>，其中有read操作必须先与write操作的限制条件，即A1先与A2,B1先与B2，其排列有：</p>
-
-<ul>
-<li>[A1，A2，B1，B2]</li>
-<li>[A1，B1，A2，B2]</li>
-<li>[B1，A1，A2，B2]</li>
-<li>[B1，B2，A2，A2]</li>
-<li>[B1，A1，B2，A2]</li>
-</ul>
-
-
-<p>加上读锁，即A或者B执行read的时候不允许其他人read和write直到本人write操作完成。这样做的结果就是:</p>
-
-<ul>
-<li>[A1，A2，B1，B2]</li>
-<li>[A1，B1，A2，B2] &mdash; 被排除</li>
-<li>[B1，A1，A2，B2] &mdash; 被排除</li>
-<li>[B1，B2，A2，A2]</li>
-<li>[B1，A1，B2，A2] &mdash; 被排除</li>
-</ul>
-
-
-<p>加read lock也许是最直接的方法，但是也是最暴力的。比如你在查看余票，就不允许别人同时查看余票，这个估计其他人是要砸桌子了。</p>
-
-<p>通过上面的子原子操作，我们看到并发的同时其实是个概念化的时间，和现实中的同时不是完全的一致。它其实是根据共享数据的状态划分的，状态改变一次算是一个时刻。这种比如你打开一个wikipedia的页面放置了一天没关，而期间也没人更改内容，那么一天后你再去查看内容，前后还是处于同一时刻。但是如果有人期间更改了内容，那么共享的内容的时刻已经前进了，而你一天后的内容就是过时的。</p>
-
-<p>第二种稍好办法就是，加上读取时间，来标识读取的哪个时刻（状态版本）。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Style of Programming 1]]></title>
-    <link href="http://woodcarver.github.io/blog/2015/07/24/style-of-programming-1/"/>
-    <updated>2015-07-24T18:12:32+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2015/07/24/style-of-programming-1</id>
-    <content type="html"><![CDATA[<h1>side effect的疑惑</h1>
-
-<h2>例子</h2>
-
-<p>这个例子是用c++写的。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span> <span class="nf">sort_three_nums</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span><span class="kt">int</span> <span class="n">b</span><span class="p">,</span><span class="kt">int</span> <span class="n">c</span><span class="p">){</span>
-</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">c</span><span class="o">&lt;</span><span class="n">b</span><span class="p">){</span>
-</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="c1">//{b&lt;c}</span>
-</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">b</span><span class="o">&lt;</span><span class="n">a</span><span class="p">){</span>
-</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="c1">//{a&lt;b &amp;&amp; a&lt;c}</span>
-</span><span class='line'>    <span class="c1">//be careful!Swap a,b maybe destory the precondition {b&lt;c}, because the value of b maybe changed</span>
-</span><span class='line'>    <span class="c1">//so you need to compare b and c again!!</span>
-</span><span class='line'>    <span class="c1">//the confusion of side effect</span>
-</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">c</span><span class="o">&lt;</span><span class="n">b</span><span class="p">){</span>
-</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="c1">//{a&lt;b &amp;&amp; b&lt;c &amp;&amp; a&lt;c}</span>
-</span><span class='line'>    <span class="c1">//{a&lt;b&lt;c}</span>
-</span><span class='line'>    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d %d %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这是一个典型的对三个数进行排序的例子，中间需要两次判断b,c导致的原因是在第二次比较中，<code>swap(a,b)</code>可能已经改变了b的值，所以到指第一次的比较结果失效了。像这种在中间就悄悄地改变变量的值，让人防不胜防。而且在命令式编程中也是处处存在，进而导致一些莫名其妙的问题。渐渐地软件开发在人们眼里也变成了一门高不可测且bug百出的学科。</p>
-
-<h2>改进</h2>
-
-<p>上面的代码从表面看令人非常疑惑，特别是那两次表面上一模一样的比较（b&lt;c）。让人看着着实不爽。让我们交换一个比较规则看看。假设我先比较a,b；然后再比较a,c；确保a是最小的数，然后再比较b,c。这样是不是要语义清楚一些呢？</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span> <span class="nf">sort_three_nums</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span><span class="kt">int</span> <span class="n">b</span><span class="p">,</span><span class="kt">int</span> <span class="n">c</span><span class="p">){</span>
-</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">b</span><span class="o">&lt;</span><span class="n">a</span><span class="p">){</span>
-</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="c1">//{a&lt;b}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">c</span><span class="o">&lt;</span><span class="n">a</span><span class="p">){</span>
-</span><span class='line'>      <span class="c1">//{a&lt;b &amp;&amp; c&lt;a}={c&lt;a&lt;b}</span>
-</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
-</span><span class='line'>        <span class="c1">//{a&lt;c&lt;b}=&gt;{a&lt;b &amp;&amp; a&lt;c}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="c1">//{a&lt;b &amp;&amp; a&lt;c}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">c</span><span class="o">&lt;</span><span class="n">b</span><span class="p">){</span>
-</span><span class='line'>      <span class="c1">//{a&lt;b &amp;&amp; a&lt;c &amp;&amp; c&lt;b}={a&lt;c&lt;b}</span>
-</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
-</span><span class='line'>        <span class="c1">//{a&lt;b&lt;b}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="c1">//{a&lt;b &amp;&amp; a&lt;c &amp;&amp; b&lt;c}={a&lt;b&lt;c}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d %d %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>能不能使用一种中间不要产生side effect的方法？</h2>
 ]]></content>
   </entry>
   

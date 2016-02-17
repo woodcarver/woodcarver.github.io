@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Company | Wood Carver]]></title>
+  <link href="http://woodcarver.github.io/blog/categories/company/atom.xml" rel="self"/>
+  <link href="http://woodcarver.github.io/"/>
+  <updated>2016-02-18T00:33:28+08:00</updated>
+  <id>http://woodcarver.github.io/</id>
+  <author>
+    <name><![CDATA[Wood Carver]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Pentaho和Pivotal]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/01/17/business-dataming-ecosystem-investigation/"/>
+    <updated>2016-01-17T13:55:01+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/01/17/business-dataming-ecosystem-investigation</id>
+    <content type="html"><![CDATA[<p>接触到的关于数据处理的商业软件基本都处于pentoha和pivotal，或者总是和这两家公司有关系，所以想做个调查，报告如下：</p>
+
+<h1><a href="http://www.pentaho.com/">Pentaho</a></h1>
+
+<h1><a href="https://pivotal.io/">pivotal</a></h1>
+]]></content>
+  </entry>
+  
+</feed>

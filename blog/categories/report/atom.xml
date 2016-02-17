@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Report | Wood Carver]]></title>
+  <link href="http://woodcarver.github.io/blog/categories/report/atom.xml" rel="self"/>
+  <link href="http://woodcarver.github.io/"/>
+  <updated>2016-02-18T00:33:28+08:00</updated>
+  <id>http://woodcarver.github.io/</id>
+  <author>
+    <name><![CDATA[Wood Carver]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[2015非正式总结报告]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/01/01/2015-annual-report/"/>
+    <updated>2016-01-01T11:48:49+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/01/01/2015-annual-report</id>
+    <content type="html"><![CDATA[<h2>还是先吐槽吧</h2>
+
+<p>为什么我这么讨厌写季度总结或者职称评定这些材料？为什么在夸自己成果的时候，反而觉得这些是麻烦？是因为写了太多次这种东西后，发现依然没有什么用处吗（确实，写了这么多次，绩效被评了C，职称升级也无望，对于这些过场的无用的东西，谁还有激情去写，想想一开始入职公司的时候多有动力去写这些东西啊）？还是因为发现自己并没有什么可称赞的工作成果？总之想想这些无聊的东西就痛苦。</p>
+
+<p>但不管怎么样，或者什么原因，我还是要写的。也许我该找一个动力去完成这项任务，让我摆脱或者减轻我的痛苦。</p>
+
+<p>就当是人生记录吧！人生的一个阶段记录。好好写，过3～5年(可能一点兴趣都没有，我现在就一点都不想看自己一年前的各种总结。包括那份很傻的职称评定。不管怎么样，还是先写吧！)再拿出来看，我自己一定会庆幸自己记录这些，就像我的日记一样。</p>
+
+<p>远离那些伤害我的人，一定要果断，一旦判断某人伤害过我，一定毫不犹豫的断绝任何和此人的关系，并且阻断任何联系方式。</p>
+
+<p>在不知道前进方向的时候如何继续前进？或者在巨大的心里抵触的情况下，怎么进入工作状态？</p>
+
+<p>怎么克服别人对自己的能力否定？</p>
+
+<h2>输入性知识总结</h2>
+
+<h3>对机器学习做了初步的了解</h3>
+
+<h3>《计算的解析与构造》和《计算的本质》</h3>
+
+<h3>《computer system: a prospective of a programmer》</h3>
+
+<h3>操作系统</h3>
+
+<h3>java语言学习和平行编程</h3>
+
+<h2>输出性项目</h2>
+
+<p>这方面太失败，计划要做的myCompiler，myZip都没有任何输出性成果。只是读了一本书的前面几章。
+- myZip
+- myCompiler</p>
+
+<h2>第二天性技能</h2>
+
+<ul>
+<li>写作演讲基本机构技能：批判性思考方式</li>
+<li>谈判技能</li>
+<li>决策技能</li>
+<li>基本沟通技能</li>
+</ul>
+
+
+<h2>创造散发性技能</h2>
+
+<h2>工作总结</h2>
+
+<p>在多盟的这两年内，非常遗憾的只有一项成就——saiku。</p>
+
+<h2>此阶段最重要的3个问题</h2>
+
+<h2>2016的书单</h2>
+
+<p>目标就是至少能设计实现一个自己的分布式数据储存软件——myDB。</p>
+
+<h3>数据库设计与实现</h3>
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Linux | Wood Carver]]></title>
+  <link href="http://woodcarver.github.io/blog/categories/linux/atom.xml" rel="self"/>
+  <link href="http://woodcarver.github.io/"/>
+  <updated>2016-02-18T00:33:28+08:00</updated>
+  <id>http://woodcarver.github.io/</id>
+  <author>
+    <name><![CDATA[Wood Carver]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Linux系统状态命令详解]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands/"/>
+    <updated>2016-02-17T21:58:48+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands</id>
+    <content type="html"><![CDATA[<h1>Commands about I/O</h1>
+
+<ul>
+<li><p>什么是I/O
+再让我们看一眼csapp的那幅经典图
+<img src="../images/posts/computer_organization.png" alt="computer organization" />
+看到所有的设备都是通过I/O bridge把数据移动到Main memory上，然后再主存再和CPU交互进行计算。当CPU有输出时，也是先输出到主存上，然后再输入到设备上。而再计算机中I/O设备就只除去CPU和主存的设备，也成外围设备。
+介绍完I/O设备，那什么是I/O呢？按照《Unix系统内幕》的定义：</p>
+
+<blockquote><p>The I/O subsystem haldes the movement of data between memory and peripheral devices such as disks, printers, and terminals.
+所以I/O就是指I/O设备和memory之间数据移动。</p></blockquote></li>
+<li><p>怎么才算是一次I/O</p>
+
+<h2>iostat</h2>
+
+<h2>top</h2>
+
+top对I/O的描述是用I/O wait这个指标，例如下图：
+<img src="../images/posts/top_command_short.png" alt="top command" />
+其中I/O wait 的定义是：
+
+<blockquote><p>I/O wait is the percentage of time your processors are waiting on the disk.
+I/O wait就是CPU在整个任务处理中等待闲置的时间，举个例子：一个任务一共使用了1s，但是其中从从磁盘中取数据花了700ms，而在磁盘读取数据时CPU是闲置的，所以CPU的等待I/O的时间占了70%，即I/O wait 是70%。</p></blockquote></li>
+</ul>
+
+
+<p><code>threshold：当I/O wait &gt; 1/CPU_cores 可以判断明显出现了I/O瓶颈(why?)。</code></p>
+
+<h2>sar</h2>
+
+<p>同样使用I/O wait这个指标，每10mini(默认时间间隔，可以调节)纪录一次系统状态值,保留一段时间的历史数据。</p>
+
+<h2>dstat</h2>
+
+<p>发现这个命令组合很有意思
+dstat -tdD total,sda,sdb,sdc,md1 60</p>
+
+<h2>Reference</h2>
+
+<ul>
+<li>[深入理解计算机系统（第二版）]</li>
+<li>[Unix系统内幕]</li>
+<li><a href="http://blog.scoutapp.com/articles/2011/02/10/understanding-disk-i-o-when-should-you-be-worried">understanding disk i/o - when should you be worried?</a></li>
+<li><a href="http://veithen.github.io/2013/11/18/iowait-linux.html">The precise meaning of I/O wait time in Linux</a></li>
+</ul>
+
+
+<h1>系统状态综合诊断</h1>
+]]></content>
+  </entry>
+  
+</feed>

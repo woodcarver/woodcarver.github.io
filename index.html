@@ -9,8 +9,8 @@
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="
-">
+  <meta name="description" content="Commands about I/O 什么是I/O
+再让我们看一眼csapp的那幅经典图 看到所有的设备都是通过I/O bridge把数据移动到Main memory上，然后再主存再和CPU交互进行计算。当CPU有输出时，也是先输出到主存上，然后再输入到设备上。而再计算机中I/ &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -73,7 +73,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2016/01/06/mondrian-design-guess-metadata-type/">Mondrian Design Guess Metadata Type</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands/">Linux系统状态命令详解</a></h1>
     
     
       <p class="meta">
@@ -82,14 +82,585 @@
 
 
 
-<time class='entry-date' datetime='2016-01-06T10:37:50+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>6</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:37 am</span></time>
+<time class='entry-date' datetime='2016-02-17T21:58:48+08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>17</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:58 pm</span></time>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content">
+  <div class="entry-content"><h1>Commands about I/O</h1>
+
+<ul>
+<li><p>什么是I/O
+再让我们看一眼csapp的那幅经典图
+<img src="../images/posts/computer_organization.png" alt="computer organization" />
+看到所有的设备都是通过I/O bridge把数据移动到Main memory上，然后再主存再和CPU交互进行计算。当CPU有输出时，也是先输出到主存上，然后再输入到设备上。而再计算机中I/O设备就只除去CPU和主存的设备，也成外围设备。
+介绍完I/O设备，那什么是I/O呢？按照《Unix系统内幕》的定义：</p>
+
+<blockquote><p>The I/O subsystem haldes the movement of data between memory and peripheral devices such as disks, printers, and terminals.
+所以I/O就是指I/O设备和memory之间数据移动。</p></blockquote></li>
+<li><p>怎么才算是一次I/O</p>
+
+<h2>iostat</h2>
+
+<h2>top</h2>
+
+top对I/O的描述是用I/O wait这个指标，例如下图：
+<img src="../images/posts/top_command_short.png" alt="top command" />
+其中I/O wait 的定义是：
+
+<blockquote><p>I/O wait is the percentage of time your processors are waiting on the disk.
+I/O wait就是CPU在整个任务处理中等待闲置的时间，举个例子：一个任务一共使用了1s，但是其中从从磁盘中取数据花了700ms，而在磁盘读取数据时CPU是闲置的，所以CPU的等待I/O的时间占了70%，即I/O wait 是70%。</p></blockquote></li>
+</ul>
+
+
+<p><code>threshold：当I/O wait &gt; 1/CPU_cores 可以判断明显出现了I/O瓶颈(why?)。</code></p>
+
+<h2>sar</h2>
+
+<p>同样使用I/O wait这个指标，每10mini(默认时间间隔，可以调节)纪录一次系统状态值,保留一段时间的历史数据。</p>
+
+<h2>dstat</h2>
+
+<p>发现这个命令组合很有意思
+dstat -tdD total,sda,sdb,sdc,md1 60</p>
+
+<h2>Reference</h2>
+
+<ul>
+<li>[深入理解计算机系统（第二版）]</li>
+<li>[Unix系统内幕]</li>
+<li><a href="http://blog.scoutapp.com/articles/2011/02/10/understanding-disk-i-o-when-should-you-be-worried">understanding disk i/o - when should you be worried?</a></li>
+<li><a href="http://veithen.github.io/2013/11/18/iowait-linux.html">The precise meaning of I/O wait time in Linux</a></li>
+</ul>
+
+
+<h1>系统状态综合诊断</h1>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/01/26/introduce-thrift/">Introduce Thrift</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-01-26T14:46:14+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>2:46 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>History</h2>
+
+<ul>
+<li>诞生于facebook
+facebook开源出的RPC开源框架，现在已经成为Apache的顶级项目。</li>
+</ul>
+
+
+<h2>Why need thrift</h2>
+
+<p>This question can also be instead of another one&ndash;Is RPC service complicated?
+Before I try to know distributed system, I don&rsquo;t know that it need using a book to make PRC clearly and RPC is an absolutly important skill requirement on service developing posistion.
+If you want to know thrift, you must know RPC.</p>
+
+<h2>What is RPC</h2>
+
+<p>RPC的全称是Remote Procedure Call。这种类型的技术专注与格式化客户端和服务端传输，以实现更方便的远程交互，甚至能做到和本地调用无多大区别的程度。
+整个过程是客户端发送RPC请求到服务端，服务端处理后再发结果反馈过来。听这很简单，看着很容易，而且很熟悉。这不就是cs模型吗？但是其中涉及的难点就隐藏在老生常谈的信息通信中。比如消息体的打包，拆分，解读等等。
+目的就是保质保量的让消息正确抵达目的地。
+读过计算机网络的都知道，如果一切都正常的话是最简单的情况，但是旁枝的异常情况和各种因素的权益会让系统复杂n倍。
+涉及到通信就需要考虑到一下几个因素：
+1. 时间性
+2. 数据完整性</p>
+
+<p>让我们来仔细列出这个动态系统的主题：
+1. client： 动作——request，receive
+2. server：动作——process，send
+3. message</p>
+
+<h2>thrift的定义中的特性</h2>
+
+<p>thrift的官方定义如下：</p>
+
+<blockquote><p>The Apache Thrift software framework, for scalable cross-language services development, combines a software stack with a code generation engine to build services that work efficiently and seamlessly between C++, Java, Python, PHP, Ruby, Erlang, Perl, Haskell, C#, Cocoa, JavaScript, Node.js, Smalltalk, OCaml and Delphi and other languages.</p></blockquote>
+
+<p>先解释下这个定义都讲了什么。
+- software framework：本身是一个软件框架，意味这你自己需要补充其中的业务逻辑
+- services development：这个框架是为了辅助开发者开发出自己的一个网络服务c/s软件，而这个服务具备接下来的两个重要特点：
+    - <a href="http://www.infoq.com/cn/news/2007/10/whatisscalability">scalable 可伸缩性</a>：？？为啥说是可伸缩的？根据可伸缩的核心特征——处理能力能随这个扩展服务规模而提升。
+    - cross-language 跨语言：这个可能是thrift的最大特点了，为了实现这个特性，thrift直接为此定义了一套中间语言，并且配备了一个此语言到各种目标语言的编译器。不过说起来跨语言到底指什么呢？其实一句话概括就是服务短和客户端可以是不同语言开发的，比如官方的例子：客户端是python，服务端是java。而这个中间语言就是只定义一遍服务的逻辑语义一次，通过编译器转成各种目标语言多次。从而解决重复编写的问题。</p>
+
+<h2>需要的知识背景</h2>
+
+<p>thrift的所有技能都在操作系统和计算机网络里可以找到,
+推荐书籍：
+- 计算机网络
+- Unix网络编程
+- Unix系统内幕</p>
+
+<h2>一个简单的开发例子</h2>
+
+<h2>Reference</h2>
+
+<ul>
+<li><a href="http://blog.csdn.net/docong/article/details/6028428">thrift 白皮书</a></li>
+<li><a href="https://thrift.apache.org/static/files/thrift-20070401.pdf">thrift white paper</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/01/18/book-graph/">Book Graph</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-01-18T22:23:16+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:23 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>知识点覆盖结构</h3>
+
+<ul>
+<li>面向对象编程——多继承，虚拟方法，对象构建与析构顺序，异常处理。</li>
+<li>前端——异步逻辑与终止，REST API，验证用户输入。</li>
+<li>算法与数据结构——动机，用法，平均及最差情况下的复杂度。</li>
+<li>后端与架构——内存模型，垃圾处理机制，多线程，线程锁机制，benchmarking， profiling。</li>
+<li>函数式编程——Lambdas，curring，排序操作，一元。</li>
+<li>内核层次——文件系统，网络，POSIX，协议，标准的检验与分析工具。</li>
+</ul>
+
+
+<h3>studying tree</h3>
+
+<h5>程序设计</h5>
+
+<ul>
+<li>把基础的数据结构的c语言实现在纸上写三遍以上，用我能想到的最精简最优化的方法
+
+<ul>
+<li>算法：c语言实现</li>
+<li>Redis源码的实现版本 + Redis设计与实现</li>
+</ul>
+</li>
+<li>阅读CARM（A Reference Manual）和TCPL (The C programming language)，确保不会遗漏C语言的每个细节</li>
+<li>阅读Writing Solid Code、Elements of Programming <code>No 5</code></li>
+<li>阅读Science of Programming，做到可以证明自己的程序的正确性（前条件+后条件+不变式） <code>No.1</code>——<strong>有点读不下去啊,放置每天在公司小读一点</strong></li>
+<li>阅读《计算机程式构造于解析》</li>
+<li>阅读《计算机的本质》</li>
+<li>阅读《代码大全》，Practice of programming，了解代码构建过程的整个过程，特别注意其中的代码风格的约束 <code>No.4</code> &ndash; 这本书的关键是怎么吸收，讲的很仔细但是也很难全部转化</li>
+<li>Programming Language Pragmatics（程序设计语言）</li>
+<li>How to design programm <code>No.7</code></li>
+</ul>
+
+
+<h4>算法</h4>
+
+<ul>
+<li>阅读《算法导论》，最仔细的阅读，weight=50%</li>
+<li>leetcode，weight=40%
+
+<ul>
+<li>c + python</li>
+</ul>
+</li>
+<li>阅读《编程之美》</li>
+<li>CareerCup
+
+<ul>
+<li>book + website</li>
+</ul>
+</li>
+<li>Topcoder</li>
+</ul>
+
+
+<h4>操作系统</h4>
+
+<ul>
+<li>重读《Modren Operating System》<code>No.3</code> &ndash; 感觉写的很啰嗦，暂时不读了</li>
+<li>阅读《Computer System a Programmer&rsquo;s Perspective》 <code>No.2</code>——已经读完，书评不够详细，剩下最后的上机实验，need更多的并发和服务模型</li>
+<li>阅读《Computer Architectur:Approche of qulitity》 <code>No.6</code></li>
+<li>阅读《Unix环境编程》</li>
+</ul>
+
+
+<h4>计算机网络</h4>
+
+<ul>
+<li>阅读《计算机网络》</li>
+<li>阅读并实践《Unix网络编程》</li>
+</ul>
+
+
+<h4>数据处理、数据挖掘</h4>
+
+<ul>
+<li>阅读《数据挖掘》，了解数据挖掘的概念，并思考自己的工作所处的层次</li>
+<li>阅读《hadoop权威》，必须写一些应用工作的代码</li>
+<li>阅读《高性能mysql》</li>
+<li>阅读《数据库设计基础》</li>
+<li>阅读 实时流统计的代码</li>
+<li>弄清楚数据流上的各个基础设施的用法：hadoop，hive，kafka，spark，logtailer，strom，zookepper</li>
+<li>阅读《七周七并发》</li>
+<li>阅读《redis设计与实现》</li>
+<li>阅读一本分布式系统和计算的数据，弄懂其中的概念和基本实现，结合我的爬虫</li>
+<li>了解现今市场上所有的数据储存软件：Nosql：redis，memcached；Relation DB:Infobright,Mysql</li>
+</ul>
+
+
+<h4>编程语言</h4>
+
+<ul>
+<li>阅读《Effective Java》</li>
+<li>阅读《Java core》</li>
+<li>阅读《Java 并发编程设计》</li>
+<li>阅读《Python基础教程》</li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/01/17/business-dataming-ecosystem-investigation/">Pentaho和Pivotal</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-01-17T13:55:01+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>17</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>1:55 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>接触到的关于数据处理的商业软件基本都处于pentoha和pivotal，或者总是和这两家公司有关系，所以想做个调查，报告如下：</p>
+
+<h1><a href="http://www.pentaho.com/">Pentaho</a></h1>
+
+<h1><a href="https://pivotal.io/">pivotal</a></h1>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/01/13/read-note-how-google-works/">Read-note: How Google Works</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-01-13T23:39:15+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>13</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>11:39 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>创意精英：
+- 过硬的专业知识，懂得如何使用专业工具，还需要具备充足的实践经验
+- 拥有分析头脑，可以利用数据做出决策，同时也懂得数据的误导性，从而不会沉迷其中
+- 有商业头脑，知道专业技术、优质产品和商业成功是环环相扣的、也对这三个要素的价值了然于胸
+- 有创造力
+- 有竞争头脑，干劲十足，即使在工作之余也不停止前进的脚步
+- 用户头脑，无论身处哪里行业，几乎没有人能比他们更懂得用户或消费者对产品的看法
+- 自动自发，不会坐等别人为他们指出方向，对于有悖于他们信念的知识，他们会选择充耳不闻
+- 心态开放，于他们自由合作，在评判构思和结论时，看重优点和而和价值而非出处</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/01/13/introduce-vertica/">介绍vertica</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-01-13T18:55:49+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>13</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>6:55 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近olap系统开始上线vertica。话说vertica的速度真实不是盖的，太快了，完全盖过infobright的所有风采，完全不留痕迹！</p>
+
+<h1>vertica的基本架构介绍</h1>
+
+<p>首先定型一下vertica在数据库领域里的分支：
+1. 面向批量分析数据(OLAP)
+2. 关系型数据库(RDBMS)
+3. 面向列式储存(column-store architechture)
+4. 分布式(distributed)
+按照vertica在官方文档中提到自己的特性：4 c's——<a href="https://my.vertica.com/docs/7.0.x/HTML/index.htm#Authoring/ConceptsGuide/Other/TheHPVerticaApproach.htm%3FTocPath%3DConcepts%2520Guide%7C_____1">Column Storage， Compression，Clustering，Continuous Performance</a>
+其中高压缩比这个特性一般是附属于面向列式储存的特性的，不是一个正交属性。</p>
+
+<p>当然类似于mysql，sql server等面向OLTP的数据库，其主要处理事务型数据。而vertica的设计目的已经进入到了另一个领域OLAP（OLTP和OLAP的对比，<a href="">参看这里</a>）。所以相对于OLTP大多数采用row-store的储存架构，OLAP一般会用column-store架构。<a href="">这里可以思考一下为什么会有这样的不同</a>。
+上面这些都是一个成型的数据库设计架构选择。需要先了解上面提到的概念，你才可以明白为什么市场上会有如此之多的数据产品，还有vertiac的价值到底在哪里。</p>
+
+<p>一些概念中vertica中也做了相应的变化，接下来我们来看看vertica中的一些重要概念。</p>
+
+<h2>储存设计</h2>
+
+<p>因为Vertica是面向列式储存的数据库，其读取也是按列为单位，其中读取实际单位是projections（作为vertica的FlexStore体系中的一个概念，假如说column-store是为了加快OLAP数据库查询速度的首选，那么FlexStore的存在就是进一步在这基础上从physical design, database storage, and query execution三个方面提升速度）。
+其中打破了按表储存的架构，表在vertica中只是一个逻辑概念，其本身还是一个特殊的projections，其物理储存全部用的是projections：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Projection
+</span><span class='line'>Optimized collections of table columns that provide physical storage for data. A projection can contain some or all of the columns of one or more tables. A projection that contains all of the columns of a table is called a super-projection. A projection that joins one or more tables is called a pre-join projection.</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>查看projection
+select node_name,wos_row_count,ros_row_count from projection_storage where anchor_table_name=&lsquo;dim_exp&rsquo;;</li>
+<li>wos vs ros
+<a href="http://vertica-forums.com/viewtopic.php?t=126">http://vertica-forums.com/viewtopic.php?t=126</a></li>
+</ul>
+
+
+<h2>如何hack</h2>
+
+<p>上面讲了很多原理，现在我们就开始动手操作吧，俗话说说的不如做的。</p>
+
+<h3>删除数据——分区的最大用处</h3>
+
+<p>到底使用分区比较好呢？还是用purage_table比较好呢？
+果断构建partition好，因为如果用purage对于已经转移好的ros数据块（到底会怎么样？解释不清楚了吧！）速度会很慢。<a href="https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/PURGE_TABLE.htm">https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/PURGE_TABLE.htm</a></p>
+
+<h3>索引到底是个什么鬼</h3>
+
+<h3>查看执行的任务，类似于mysql的show processlist</h3>
+
+<p>SELECT * FROM SESSIONS;</p>
+
+<h3>数据类型</h3>
+
+<p>在vertica中除了对int的定义不同，相比其他储存引擎，vertica的所有整形都是用64bit的，包括tinyint。
+在vertica主意使用char的问题，发现当定义char(200),不满200长度的字段，会自动补全空白，这样改变了数据的内容，对于精确搜索时，这是个坑。最好改成varchar，但现在还不明白这个的性能有什么差别。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/01/09/think-about-the-popular-of-beijing/">关于北京人口的一些想法</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-01-09T15:44:51+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:44 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近因为北京市出台《北京市居民积分制度》受到了在北京非户籍打拼的年轻人关注，自然这种政治、民生话题肯定能在知乎上找到话题，其中就有一个提问：<a href="">todo</a>。
+我作为一个名在北京默默无闻工作了2年半的IT工作者，开始对这个问题不包意见，对自己丝毫不了解的行业（中国zf），我没有依据和逻辑基础来判断。直到我在图书馆读了一本《北京市人口发展》的数据后，一个观点突然浮现在我脑海里。那就是：
+80、90后不要期待北京市政府能开放户籍政策，如果在毕业的时候没有难道户口，想定居又不想通过婚姻的方式的话需要离开北京。</p>
+
+<p>为什么我得出这个结论？看看下面的北京人口，户籍和非户籍人口曲线图。
+大约从2000开始非户籍人口的比例大幅度增加，而户籍人口的增加却区域平缓。总提老说户籍竞争越来越激烈。</p>
+
+<p>其次看全国出生人口曲线图：
+会发现出生人口在90年达到高峰，而现在90年左右出生的人现在正式年轻力壮的时候。
+再看第三张图，北京的历年出生人口曲线图：
+发现北京户籍出生人口从93年开始就严重下降。
+第三张图看出北京的本土人口增加市递减的加上超低的出生率，导致了严重的老龄化人口结构。所以为了维持北京的经济发展，北京需要不断吸收<code>年轻</code>的外来人口。
+为什么强调年轻呢？
+因为年轻的人口才能解决北京的人口结构失衡。当然这事废话。但是年轻一个属性其实意味深远。现在我们对中国的低生育率和越来越少的儿童习以为常，而且认为大城市为了竞争更过的人才来京，需要放宽人口政策。并且乐观的认为我们现在这些年轻人终于被奉献了人生的地方——北京所重视了。
+一定程度上这事实，北京必然会越来越重视人才，但是那是未来的人才。看看那张全国历年出生人口图，就会发现现在我们就是那批婴儿潮，也就是说我们就处于中国年轻人口最鼎盛的时候。此时北京最不缺的就是年轻人，他尽管把门槛和要求提的很高，也不怕年轻人口流失。
+所以说北京的户籍开放绝对轮不到我们这代人，并且我还处于北京人口控制的时期。这个时候期盼积分简直天方夜谭，不说分数线到底怎么定，就上面提到的入籍不得超过45岁，并且持有居住证连续7年的条件，就会让此时45-7=38岁以上（也就现在78后）的永远没有资格。这是无差别刷掉整整一个时代人的政策。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/01/09/how-to-recognize-a-brilliant-slash-awful-company/">How to Recognize a Brilliant/awful Company</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-01-09T13:43:35+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>1:43 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>How to define &ldquo;brilliant&rdquo; or &ldquo;awful&rdquo;?
+Can I say I am losing myself in an organisation, and then I define this organisation is awful? My answer is yes. What can be worse than something which is wasting you life? This is the biggest sin of organisztions, and this is also your biggest sin for not leaving it right now.
+Maybe someone say my opinion is too emotional,no one can define a company through one people&rsquo;s pointview. But think about it for few minutes, If a company cann&rsquo;t let you close your life meaning, what&rsquo;s the meaning of it to you? Although it let your colleagues rich or important, but they are not you, it is still meanless for you. We are all born as indenpendent human in the world, we want to use our power to let our own or others happer. And this is the only purpose of companise for us.</p>
+
+<h2>reference</h2>
+
+<ul>
+<li>《阿里巴巴》</li>
+<li>《How Goole Works》</li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/01/07/purpose-of-jobs/">What Are You Purchasing Now?</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-01-07T22:56:42+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>7</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:56 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>rules</h1>
+
+<ol>
+<li>Total grade must be 100:sum(grade)&lt;=100</li>
+<li>Grade of evey item must less than or equal to 10 and bigger than 0: 0&lt;=grade&lt;=10</li>
+</ol>
+
+
+<table>
+<thead>
+<tr>
+<th> purpose </th>
+<th> 2016</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>position </td>
+<td>   10</td>
+</tr>
+<tr>
+<td>scale    </td>
+<td>   10</td>
+</tr>
+<tr>
+<td>team     </td>
+<td>   10</td>
+</tr>
+<tr>
+<td>industry </td>
+<td>   7</td>
+</tr>
+<tr>
+<td>salary   </td>
+<td>   9</td>
+</tr>
+<tr>
+<td>place    </td>
+<td>   6</td>
+</tr>
+<tr>
+<td>dailyTime</td>
+<td>    6</td>
+</tr>
+</tbody>
+</table>
+
 </div>
   
   
@@ -391,847 +962,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/01/05/nginx-proxy/">Nginx反向代理配置</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-01-05T22:04:29+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:04 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>什么是代理</h2>
-
-<p>代理在普通生活中的意义就是本来应该你做的事情，你让别人代你做了，那么那个帮你做的人就是你的代理。而在计算机网络中代理的概念差不多，就是本来要客户端要做的网络访问，现在移交给另外一个机器做，那么那个机器就被称为代理服务器，代理服务器帮你来访问。过程如下：</p>
-
-<p>正常情况：
-client &mdash;(send request)&mdash;> server</p>
-
-<p>代理情况：
-client &mdash;(send request)&mdash;> clinet proxy &ndash;(send request)&mdash;> server</p>
-
-<h2>什么又是反向代理</h2>
-
-<p>那什么又是反向代理呢？反向代理可不是说本来代理你事务的人，反过来代理别人。反向代理在计算机网络中是指这么一个过程。一般来说正向代理是客户机找人来代理把自己的请求转发给服务端，但是如果反向代理，找代理的人不再是客户机，而是服务器这边把自己接受的请求转发给背后的其他机器。其主要区别：</p>
-
-<ul>
-<li>正向代理中代理的过程是客户端，代理机器是作为一个访问客户的身份的；而在反向代理中代理机器是作为服务身份。</li>
-<li>正向代理中代理的过程是服务端，服务端对代理的存在无感知；而在反向代理中客户机对代理的存在无感知。</li>
-</ul>
-
-
-<p>反向代理情况：
-clinet &ndash;(send request)&ndash;> server proxy &ndash;(send request)&ndash;>other
-server</p>
-
-<h2>先让我们看看一个示例</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-<span class='line-number'>59</span>
-<span class='line-number'>60</span>
-<span class='line-number'>61</span>
-<span class='line-number'>62</span>
-<span class='line-number'>63</span>
-<span class='line-number'>64</span>
-<span class='line-number'>65</span>
-<span class='line-number'>66</span>
-<span class='line-number'>67</span>
-<span class='line-number'>68</span>
-<span class='line-number'>69</span>
-<span class='line-number'>70</span>
-<span class='line-number'>71</span>
-<span class='line-number'>72</span>
-<span class='line-number'>73</span>
-<span class='line-number'>74</span>
-<span class='line-number'>75</span>
-<span class='line-number'>76</span>
-<span class='line-number'>77</span>
-<span class='line-number'>78</span>
-<span class='line-number'>79</span>
-<span class='line-number'>80</span>
-<span class='line-number'>81</span>
-<span class='line-number'>82</span>
-<span class='line-number'>83</span>
-<span class='line-number'>84</span>
-<span class='line-number'>85</span>
-<span class='line-number'>86</span>
-<span class='line-number'>87</span>
-<span class='line-number'>88</span>
-<span class='line-number'>89</span>
-<span class='line-number'>90</span>
-<span class='line-number'>91</span>
-<span class='line-number'>92</span>
-<span class='line-number'>93</span>
-<span class='line-number'>94</span>
-<span class='line-number'>95</span>
-<span class='line-number'>96</span>
-<span class='line-number'>97</span>
-<span class='line-number'>98</span>
-<span class='line-number'>99</span>
-<span class='line-number'>100</span>
-<span class='line-number'>101</span>
-<span class='line-number'>102</span>
-<span class='line-number'>103</span>
-<span class='line-number'>104</span>
-<span class='line-number'>105</span>
-<span class='line-number'>106</span>
-<span class='line-number'>107</span>
-<span class='line-number'>108</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>#① part start
-</span><span class='line'>#运行nginx进程的账户
-</span><span class='line'>user www;
-</span><span class='line'>#
-</span><span class='line'>worker_process 1;
-</span><span class='line'>error_log /var/log/nginx/error.log
-</span><span class='line'>pid /var/run/nginx.pid;
-</span><span class='line'>
-</span><span class='line'>events{
-</span><span class='line'>  use epoll;
-</span><span class='line'>  worker_connections 1024;
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>http{
-</span><span class='line'>    include       /etc/nginx/mime.types;
-</span><span class='line'>    default_type  application/octet-stream;
-</span><span class='line'>    access_log  /var/log/nginx/access.log  main;
-</span><span class='line'>    #
-</span><span class='line'>    sendfile        on;
-</span><span class='line'>    #
-</span><span class='line'>    keepalive_timeout  65;
-</span><span class='line'>    gzip  on;
-</span><span class='line'>   
-</span><span class='line'>    index   index.html index.htm;
-</span><span class='line'>    include /etc/nginx/conf.d/*.conf;
-</span><span class='line'>    include /etc/nginx/sites-enabled/*;
-</span><span class='line'>    #② part start
-</span><span class='line'>      # 定义上游服务器列表组
-</span><span class='line'>    upstream web1 {
-</span><span class='line'>        server 127.0.0.1:111 weight=1;
-</span><span class='line'>        server 127.0.0.1:222 weight=1;
-</span><span class='line'>    }
-</span><span class='line'>    upstream web2 {
-</span><span class='line'>        server 127.0.0.2:111 weight=1;
-</span><span class='line'>        server 127.0.0.2:222 weight=6;
-</span><span class='line'>        server 127.0.0.2:333 weight=7;
-</span><span class='line'>    }
-</span><span class='line'>    #定义一个服务器，其监听80端口，配置的域名是www.company.com
-</span><span class='line'>    server{
-</span><span class='line'>      listen 80;
-</span><span class='line'>      # using www  domain to access the main website
-</span><span class='line'>      server_name www.company.com;
-</span><span class='line'>      access_log  /var/log/nginx/www.log
-</span><span class='line'>      
-</span><span class='line'>      location / {
-</span><span class='line'>          root /home/website_root;
-</span><span class='line'>          
-</span><span class='line'>      }
-</span><span class='line'>    }
-</span><span class='line'>    #③ part start
-</span><span class='line'>    #定义第二个服务器，其同样监听80端口，但是匹配域名是web.company.com
-</span><span class='line'>    server{
-</span><span class='line'>      listen 80;
-</span><span class='line'>      # using web sub domain to access
-</span><span class='line'>      server_name web.company.com;
-</span><span class='line'>      access_log  /var/log/nginx/web_access.log
-</span><span class='line'>      
-</span><span class='line'>      location / {
-</span><span class='line'>          root /home/web2_root;
-</span><span class='line'>          proxy_pass http://127.0.0.1:8080/web/;
-</span><span class='line'>          proxy_read_timeout 300;
-</span><span class='line'>          proxy_connect_timeout 300;
-</span><span class='line'>          proxy_redirect     off;
-</span><span class='line'>
-</span><span class='line'>          proxy_set_header   X-Forwarded-Proto $scheme;
-</span><span class='line'>          proxy_set_header   Host              $http_host;
-</span><span class='line'>          proxy_set_header   X-Real-IP         $remote_addr;
-</span><span class='line'>      }
-</span><span class='line'>    }
-</span><span class='line'>    #定义第三个服务器，其同样监听80端口，但是匹配域名是web1.company.com，并把请求转发到web1上游服务
-</span><span class='line'>    server{
-</span><span class='line'>      listen 80;
-</span><span class='line'>      # using web1 sub domain to access
-</span><span class='line'>      server_name web1.company.com;
-</span><span class='line'>      access_log  /var/log/nginx/web1_access.log
-</span><span class='line'>      
-</span><span class='line'>      location / {
-</span><span class='line'>          root /home/web1_root;
-</span><span class='line'>          proxy_pass http://web1;
-</span><span class='line'>          proxy_read_timeout 300;
-</span><span class='line'>          proxy_connect_timeout 300;
-</span><span class='line'>          proxy_redirect     off;
-</span><span class='line'>
-</span><span class='line'>          proxy_set_header   X-Forwarded-Proto $scheme;
-</span><span class='line'>          proxy_set_header   Host              $http_host;
-</span><span class='line'>          proxy_set_header   X-Real-IP         $remote_addr;
-</span><span class='line'>      }
-</span><span class='line'>    }
-</span><span class='line'>        #定义第三个服务器，其同样监听80端口，但是匹配域名是web2.company.com，并把请求转发到web2上游服务
-</span><span class='line'>    server{
-</span><span class='line'>      listen 80;
-</span><span class='line'>      # using web2 sub domain to access
-</span><span class='line'>      server_name web2.company.com;
-</span><span class='line'>      access_log  /var/log/nginx/web2_access.log
-</span><span class='line'>      
-</span><span class='line'>      location / {
-</span><span class='line'>          root /home/web2_root;
-</span><span class='line'>          proxy_pass http://web2;
-</span><span class='line'>          proxy_read_timeout 300;
-</span><span class='line'>          proxy_connect_timeout 300;
-</span><span class='line'>          proxy_redirect     off;
-</span><span class='line'>
-</span><span class='line'>          proxy_set_header   X-Forwarded-Proto $scheme;
-</span><span class='line'>          proxy_set_header   Host              $http_host;
-</span><span class='line'>          proxy_set_header   X-Real-IP         $remote_addr;
-</span><span class='line'>      }
-</span><span class='line'>    }
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>这个示例都做了什么</h3>
-
-<ol>
-<li>第①部分，定义nginx通用规则，包括运行账户，处理进程个数等</li>
-<li>第②部分，开始定义上游服务器组</li>
-<li>第③部分，定义server，并指定怎么使用第②部分定义的upstream</li>
-</ol>
-
-
-<p>总体来说就是这个提供了4个服务，www，web，web1，web2 4个网站。这个例子很适合只有一台机器，但是有想避免url中携带端口号，统一使用域名的方式访问。4个网站都监听80端口，但是分配不同的二级域名既可以。这就需要nginx的反向代理，把接到的请求转发给背后不同的服务。</p>
-
-<h2>为什么需要方向代理</h2>
-
-<p>为什么要反向代理？作用服务端的代理，自然就是一台服务器处理不过来了，需要转发、分散请求给其他服务器做。下面罗列些适用场景：</p>
-
-<ul>
-<li><p>负载均衡
-上面例子中的web1和web2使用了nginx的负载均衡技术，把请求转向一组服务器。具体转发到哪个服务器，nginx提供了多种负载策略，例子中使用的是加权重的方式，web1 upstream是2个请求中，1个请求给111服务器，1个给222服务器。关于跟多的负载均衡的策略，请参看<a href="http://nginx.org/en/docs/http/load_balancing.html">nginx官方文档-负载均衡</a></p></li>
-<li><p>一个域名，多个网站。在这里反向代理倒不是为了负责存在，而是为了域名和服务的统一部署。例如一个公司的内部网站需要搭建很多服务——代码管理服、wiki服务、oa……，但是只要一个域名。这时候就可以用反向代理把不同的子域名转发到不同的服务上。下面是一个例子：</p></li>
-<li><p>当然反向代理的另一大用处就是隐藏后面的实际服务，以此来达到一定的安全性。</p></li>
-</ul>
-
-
-<h2>仔细讲解每个模块</h2>
-
-<h3>user</h3>
-
-<p>user 设置nginx是以什么用户来运行的，这个非常重要，<strong>确保运行nginx的用户能有权限访问读写网站的文件</strong>,否则会报404 not found等错误。</p>
-
-<h3>events</h3>
-
-<h3><a href="http://nginx.org/cn/docs/http/ngx_http_upstream_module.html">nginx upstream</a></h3>
-
-<p>upstream 直接翻译就是上游，即上游服务，其封装一组服务器列表，这些服务器可以别proxy_pass,fastcgi_pass,uwsgi_pass,scgi_pass和 memcached_pass引用，把接到的请求转发给这些服务器组。
-引用方法就是加行<a href="http://">http://</a>[upstream module name]</p>
-
-<pre><code>&gt; The ngx_http_upstream_module module is used to define groups of servers that can be referenced by the proxy_pass, fastcgi_pass, uwsgi_pass, scgi_pass, and memcached_pass directives.
-</code></pre>
-
-<p>例子：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>upstream  backend {  #①
-</span><span class='line'>    server backend1.example.com       weight=5;
-</span><span class='line'>    server backend2.example.com:8080;
-</span><span class='line'>    server unix:/tmp/backend3;
-</span><span class='line'>
-</span><span class='line'>    server backup1.example.com:8080   backup;
-</span><span class='line'>    server backup2.example.com:8080   backup;
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>server {
-</span><span class='line'>    location / {
-</span><span class='line'>        proxy_pass http://backend; #②
-</span><span class='line'>    }
-</span><span class='line'>}
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>注意有①，和②行的写法。要引用<strong>backend</strong>模块，只需把它制定成**<a href="http://backend**%E5%B0%B1%E8%A1%8C%E3%80%82">http://backend**%E5%B0%B1%E8%A1%8C%E3%80%82</a></p>
-
-<h3>http 意义和配置</h3>
-
-<p>http就是指配置关于http服务的地方，server等都是http的子模块</p>
-
-<h3>server 配置和匹配规则</h3>
-
-<p>一个http服务可以有多个server，而对server的路径匹配，反向代理都是在这里配置的。</p>
-
-<p>在server中最重要的一项配置：server_name的配置。server_name决定了来了一个url，到底是哪个server处理该请求。nginx会依次找和url配置的第一次出现的server。server_name可以使用通配符，也可以使用正则表达式。而且一个server的server_name可以多个，以空格分隔。更详细的关于server_name匹配规则，<a href="http://nginx.org/en/docs/http/server_names.html">参看这里</a></p>
-
-<h3>location 配置和匹配规则</h3>
-
-<p>server_name是定义域名级别的规则，而location则是url中文件部分的规则的。适应例如会对图片等静态资源做单独处理等需求。</p>
-
-<h2>参考资料</h2>
-
-<ul>
-<li><a href="http://nginx.org/cn/docs/http/ngx_http_upstream_module.html">nginx upstream模块介绍文档1</a></li>
-<li><a href="http://tengine.taobao.org/book/chapter_05.html">nginx upstream模块介绍文档2</a></li>
-<li><a href="http://www.cnblogs.com/xiaogangqq123/archive/2011/03/02/1969006.html">nginx配置例子</a></li>
-<li><a href="http://nginx.org/en/docs/http/load_balancing.html">nginx load balancer</a></li>
-<li><a href="http://nginx.com/blog/nginx-plus-r6-released/?_ga=1.99990941.241485225.1426074750">Enhanced Load Balancing,High Availability, and Monitoring Features</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/01/05/java-project-orangnism/">Java Project Orangnism</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-01-05T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>12:00 am</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>单个文件的编译</h2>
-
-<p>HelloWorld.java</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.util.*</span><span class="o">;</span>
-</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">HelloWorld</span> <span class="c1">//the class name must the same as file name case sensitivly</span>
-</span><span class='line'><span class="o">{</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span>
-</span><span class='line'>    <span class="o">{</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">print</span><span class="o">(</span><span class="s">&quot;hello world!\n&quot;</span><span class="o">);</span>
-</span><span class='line'>        <span class="k">for</span><span class="o">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="mi">10</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span>
-</span><span class='line'>            <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">print</span><span class="o">(</span><span class="n">i</span><span class="o">+</span><span class="s">&quot;\n&quot;</span><span class="o">);</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>shell>javac HelloWorld.java       产生HelloWorld.class文件
-shell>java HelloWorld             执行HelloWorld.class</p>
-
-<h2>多个文件的编译</h2>
-
-<p>不过实际中只有一个文件的项目几乎不会出现，现在我们衍生到2个文件的组织和编译。
-- 先看第一种情况：所有文件都放在同一个文件夹中，即所有java文件都是平级的。这种编译和一个文件编译方法是一样的，直接编译入口java文件（包含main函数）即可。编译器会自动在当前目录寻找引入类的定义。</p>
-
-<p>HelloWorld.java</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.util.*</span><span class="o">;</span>
-</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">HelloWorld</span><span class="o">{</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">){</span>
-</span><span class='line'>        <span class="n">DogWorld</span> <span class="n">dg</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">DogWorld</span><span class="o">();</span>
-</span><span class='line'>        <span class="n">dg</span><span class="o">.</span><span class="na">setname</span><span class="o">(</span><span class="s">&quot;Mr Steph&quot;</span><span class="o">);</span>
-</span><span class='line'>        <span class="n">String</span> <span class="n">dgname</span><span class="o">=</span><span class="n">dg</span><span class="o">.</span><span class="na">getname</span><span class="o">();</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">printf</span><span class="o">(</span><span class="s">&quot;hello %s!\n&quot;</span><span class="o">,</span><span class="n">dgname</span><span class="o">);</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>DogWorld.java</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">DogWorld</span>
-</span><span class='line'><span class="o">{</span>
-</span><span class='line'>    <span class="kd">private</span> <span class="n">String</span> <span class="n">dogname</span><span class="o">;</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setname</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">)</span>
-</span><span class='line'>    <span class="o">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="o">.</span><span class="na">dogname</span><span class="o">=</span><span class="n">name</span><span class="o">;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="n">String</span> <span class="nf">getname</span><span class="o">()</span>
-</span><span class='line'>    <span class="o">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">dogname</span><span class="o">;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>shell>javac HelloWorld.java     <code>产生HelloWorld.class文件</code>
-shell>java HelloWorld           <code>执行HelloWorld.class</code></p>
-
-<ul>
-<li>第二种：当工程的文件达到上千个，放在同一个文件有开始有损工程可读性了，这是开始使用子文件夹来对代码文件模块化组织。</li>
-</ul>
-
-
-<p>现在我们把DogWorld放入到一个animal文件夹中，工程文文件目录如下：
-- HelloWorld.java
-- animal
-- DogWorld.java</p>
-
-<p>HelloWorld.java</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.util.*</span><span class="o">;</span>
-</span><span class='line'><span class="kn">import</span> <span class="nn">animal.*</span><span class="o">;</span>
-</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">HelloWorld</span><span class="o">{</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">){</span>
-</span><span class='line'>        <span class="n">DogWorld</span> <span class="n">dg</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">DogWorld</span><span class="o">();</span>
-</span><span class='line'>        <span class="n">dg</span><span class="o">.</span><span class="na">setname</span><span class="o">(</span><span class="s">&quot;Mr Steph&quot;</span><span class="o">);</span>
-</span><span class='line'>        <span class="n">String</span> <span class="n">dgname</span><span class="o">=</span><span class="n">dg</span><span class="o">.</span><span class="na">getname</span><span class="o">();</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">printf</span><span class="o">(</span><span class="s">&quot;hello %s!\n&quot;</span><span class="o">,</span><span class="n">dgname</span><span class="o">);</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>注意HelloWorld.java多了一行import animal.*代码，用于指定要引入的package。</p>
-
-<p>animal/DogWorld.java</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">animal</span><span class="o">;</span>
-</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">DogWorld</span>
-</span><span class='line'><span class="o">{</span>
-</span><span class='line'>    <span class="kd">private</span> <span class="n">String</span> <span class="n">dogname</span><span class="o">;</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setname</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">)</span>
-</span><span class='line'>    <span class="o">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="o">.</span><span class="na">dogname</span><span class="o">=</span><span class="n">name</span><span class="o">;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="n">String</span> <span class="nf">getname</span><span class="o">()</span>
-</span><span class='line'>    <span class="o">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">dogname</span><span class="o">;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>DogWorld.java也多了一行package animal，指定把这个类打入到animal package中，否则DogWorld将被打入默认package中。</p>
-
-<p>一下子多出来package和import的概念，我们还是先来探索package，这个给文件指定路径的机制。</p>
-
-<p><strong>我们先规定一个概念：工程根目录——这个目录的定义是包含main函数的文件的package指定的目录，如果入口文件没有package那么默认就是文件当前所在目录。例如我们的HelloWorld.java没有指定package， 那么根目录就是./</strong></p>
-
-<p>  当java文件中没有使用package显示指定它属于那个包的时候，它默认是属于根目录的包的，而且不管这个java文件是放在哪里。而显示指定package的时候，它又一定规则，即报名必须和文件的放的位置匹配。如果package animal，那么这个java文件就必须放入到相对于根目录的animal目录下。这样做的一个用处——源文件和中间文件路径可以分离。
-  javac的寻找类级别是先寻找xxx.class文件，如果没有那么再寻找xxx.java文件现编译xxx.class。而package其实指定xxx.class文件的路径的，而不是xxx.java文件。</p>
-
-<p>例如上面的例子，你也可以这样编译：
-shell>cd animal; javac DogWorld.java  <code>用来生产DogWorld.class文件</code>
-shell>cd ../     <code>到工程根目录</code>
-shell>javac HelloWorld.java
-shell>java HelloWorld</p>
-
-<p>假如你把DogWorld.java的package去掉，那么相当于你是想表达把DogWorld.class放到根目录上去。执行步骤是这样的。
-shell>cd animal; javac DogWorld.java  <code>用来生产DogWorld.class文件</code>
-shell> mv DogWorld.class ../   <code>把DogWorld.class移动到工程根目录去</code>
-shell>cd ../
-shell>javac HelloWorld.java
-shell>java HelloWorld</p>
-
-<p>而import是用来引入class文件的。它很简单，import xxx，完全就按照xxx来寻找。xxx的写法规则是用.来表示文件的层次。如com.animal那么就再相对于工程根目录的com/animal文件夹。</p>
-
-<p>有趣的是package和import的都是相对于根目录的路径，和代码文件本身所在目录完全无关，只和工程根目录有关。</p>
-
-<p>这些引用规则和c中#include使用大为不同。</p>
-
-<h2>虚拟机是如何定位类</h2>
-
-<p>接下来我们来仔细探讨下虚拟机的定位规则。</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/01/01/100-open-source-operating-system-papers-for-programmers/">100 Open Source Operating System Papers for Programmers.</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-01-01T18:32:21+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>6:32 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/01/01/2015-annual-report/">2015 Annual Report</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-01-01T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>12:00 am</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>还是先吐槽吧</h2>
-
-<p>为什么我这么讨厌写季度总结或者职称评定这些材料？为什么在夸自己成果的时候，反而觉得这些是麻烦？是因为写了太多次这种东西后，发现依然没有什么用处吗（确实，写了这么多次，绩效被评了C，职称升级也无望，对于这些过场的无用的东西，谁还有激情去写，想想一开始入职公司的时候多有动力去写这些东西啊）？还是因为发现自己并没有什么可称赞的工作成果？总之想想这些无聊的东西就痛苦。</p>
-
-<p>但不管怎么样，或者什么原因，我还是要写的。也许我该找一个动力去完成这项任务，让我摆脱或者减轻我的痛苦。</p>
-
-<p>就当是人生记录吧！人生的一个阶段记录。好好写，过3～5年(可能一点兴趣都没有，我现在就一点都不想看自己一年前的各种总结。包括那份很傻的职称评定。不管怎么样，还是先写吧！)再拿出来看，我自己一定会庆幸自己记录这些，就像我的日记一样。</p>
-
-<p>远离那些伤害我的人，一定要果断，一旦判断某人伤害过我，一定毫不犹豫的断绝任何和此人的关系，并且阻断任何联系方式。</p>
-
-<p>在不知道前进方向的时候如何继续前进？或者在巨大的心里抵触的情况下，怎么进入工作状态？</p>
-
-<p>怎么克服别人对自己的能力否定？</p>
-
-<h2>输入性知识总结</h2>
-
-<h3>对机器学习做了初步的了解</h3>
-
-<h3>《计算的解析与构造》和《计算的本质》</h3>
-
-<h3>《computer system: a prospective of a programmer》</h3>
-
-<h3>操作系统</h3>
-
-<h3>java语言学习和平行编程</h3>
-
-<h2>输出性项目</h2>
-
-<p>这方面太失败，计划要做的myCompiler，myZip都没有任何输出性成果。只是读了一本书的前面几章。
-- myZip
-- myCompiler</p>
-
-<h2>第二天性技能</h2>
-
-<ul>
-<li>写作演讲基本机构技能：批判性思考方式</li>
-<li>谈判技能</li>
-<li>决策技能</li>
-<li>基本沟通技能</li>
-</ul>
-
-
-<h2>创造散发性技能</h2>
-
-<h2>工作总结</h2>
-
-<p>在多盟的这两年内，非常遗憾的只有一项成就——saiku。</p>
-
-<h2>此阶段最重要的3个问题</h2>
-
-<h2>2016的书单</h2>
-
-<p>目标就是至少能设计实现一个自己的分布式数据储存软件——myDB。</p>
-
-<h3>数据库设计与实现</h3>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/12/30/my-career-decision-tree/">My Career Decision Tree</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-12-30T22:32:30+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>30</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:32 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/12/30/how-to-be-a-programmer/">成为程序员的点点滴滴?</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-12-30T22:11:07+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>30</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:11 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>技能是最基础的，绝对是第一位的，不管你的经理或者leader多么强调业务多么重要。也不能因此就可以认为暂停锻炼技术技能，专心业务技能。</h2>
-
-<p>要判断什么对自己重要，什么对自己不重要。这个问题不是别人告诉你的，特别是更你有利益关系的人。要从自己的目的和初衷出发。
-我为什么选择做为一个程序员？
-- 因为我喜欢技术，就像其他的数据和自然科学一样。喜欢创作能改变生活的东西（从小到大，各个方面），更喜欢沉浸在创作的感觉中。
-- 因为喜欢找到系统解决问题的方法，喜欢量化模型，喜欢逻辑推理，然后推广，批量复制。
-- 因为喜欢确定的感觉，或者一定是程度的确定，然后放心的睡觉，放心的吃饭。
-- 因为自己擅长技术过于其他的项目。</p>
-
-<h2>如何应对季度或者年度评优？</h2>
-
-<p>一年一度的评优活动又开始了，You know your trouble comes。如果你获奖，恭喜你，不是因为你的付出得到了回报，而是因为你的地位保住了。何谈此话，想想你的上学经历，或者在任何一个封闭的团队的经历，那就是地位从来都是分等级的。如果你因获奖而地位上升的，那么也意味着如果你没有获奖，地位是下降了的。请记住这还不是更遭，更糟糕的是你以为你没获奖紧紧是你一个人的事？错～这是关系到整个团队的事，因为他们都知道你没有获奖，从而改变对你的看法和态度(也许是潜意识的，也许连他们自己也无法意识到)。但是你在他们眼里确实变成了个一能力"稍差"的同事了。
-一定请记住这点，经理设置的一定比例的奖项真的能鼓励员工更努力的工作吗？一项固定比例份额的奖项，评价指标是相对按团队名次排名来的系统，真的能提高员工工作激情？开什么玩笑！也许得奖的人是提高了工作激情，但是那些没得奖的人呢？综合一下提高的部分和打击的部分，总体上到底是提升还是下降？这种不是一种赤裸裸的内部竞争体系吗？在我眼里这种封闭团体的按排名获奖的系统的作用只有一个，就是为了淘汰末尾，这是一种淘汰机制。
-既然认清了其本质，经历过几次评优，也大致到了解了自己在企业团队中的地位了。接下来该做什么？也很清楚吧，如果无法挽回，那就时刻准备跑路～</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/12/28/how-to-learn-a-programming-language/">How to Learn a Programming Language</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-12-28T10:20:32+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:20 am</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/12/18/i-cant-help/">吐槽时间</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-12-18T17:11:40+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>5:11 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>我实在是忍不住了，我要吐槽！
-为什么读java代码的这么费劲。一层一层的拨开后发现，他们使用的是接口，然后你就发现如果不向上追踪代码根本不可能知道到底是传递了那个具体类，从而更不知道具体的处理逻辑是什么。何谈修改其中逻辑？《代码大全》里说，如果你使用他们的接口，发现不懂应该要求其作者改动,那是针对使用者来说。但是你是这个接口是新的接手人，要改变具体的逻辑，呵呵，那就等着哭吧！
-每次看代码都有种被骗，被忽悠的感觉。</p>
-
-<ol>
-<li>老板今天要我给系统升级，增加一个显示用户闪亮亮的脑门大小</li>
-<li>找到显示用户信息的function，它调用了一个人类,很简单，我点进去看看人类</li>
-<li>点进去看，发现人类是个interface。好吧，这意味着我向上回滚看showUserProfile()的人类参数是什么时候实现。发现一个createPeople()</li>
-<li>看了五六层，总算找到showUserProfile()里的人类是从那里开始产生的了。为了这个又走了一遍分支。不管怎么着，先看看createPeople()，发现人类又分了凡人，超人和坏人。然后点进凡人看看，发现又是一个接口扩展于人类。算了，那放放，不想再跑其他分支看createPeople()里的凡人到底是那个具体类。那我们再看看超人吧！发现超人和坏人是扩展于凡人的另一接口。。。。［摔桌子了！］</li>
-</ol>
-
-
-<p>看了这么多，又都好像啥都没看到。你以为了解人类，呵呵，其实你不了解任何一种人类。全是浮云。。。
-实在不明白，明明就一个实现类还要用接口干什么？</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -1247,23 +977,23 @@ shell>java HelloWorld</p>
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/01/06/mondrian-design-guess-metadata-type/">Mondrian Design Guess Metadata Type</a>
+        <a href="/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands/">Linux系统状态命令详解</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/05/networking-server/">网络编程中的服务器模型</a>
+        <a href="/blog/2016/01/26/introduce-thrift/">Introduce Thrift</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/05/nginx-proxy/">Nginx反向代理配置</a>
+        <a href="/blog/2016/01/18/book-graph/">Book Graph</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/05/java-project-orangnism/">Java Project Orangnism</a>
+        <a href="/blog/2016/01/17/business-dataming-ecosystem-investigation/">Pentaho和Pivotal</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/01/100-open-source-operating-system-papers-for-programmers/">100 Open Source Operating System Papers for Programmers.</a>
+        <a href="/blog/2016/01/13/read-note-how-google-works/">Read-note: How Google Works</a>
       </li>
     
   </ul>
