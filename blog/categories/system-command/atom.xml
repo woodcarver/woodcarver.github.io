@@ -4,7 +4,7 @@
   <title><![CDATA[Category: System Command | Wood Carver]]></title>
   <link href="http://woodcarver.github.io/blog/categories/system-command/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2016-02-18T00:33:28+08:00</updated>
+  <updated>2016-02-18T10:45:47+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -23,7 +23,7 @@
 <ul>
 <li><p>什么是I/O
 再让我们看一眼csapp的那幅经典图
-<img src="../images/posts/computer_organization.png" alt="computer organization" />
+<img src="/images/posts/computer_organization.png" alt="computer organization" />
 看到所有的设备都是通过I/O bridge把数据移动到Main memory上，然后再主存再和CPU交互进行计算。当CPU有输出时，也是先输出到主存上，然后再输入到设备上。而再计算机中I/O设备就只除去CPU和主存的设备，也成外围设备。
 介绍完I/O设备，那什么是I/O呢？按照《Unix系统内幕》的定义：</p>
 
@@ -36,7 +36,7 @@
 <h2>top</h2>
 
 top对I/O的描述是用I/O wait这个指标，例如下图：
-<img src="../images/posts/top_command_short.png" alt="top command" />
+<img src="/images/posts/top_command_short.png" alt="top command" />
 其中I/O wait 的定义是：
 
 <blockquote><p>I/O wait is the percentage of time your processors are waiting on the disk.
