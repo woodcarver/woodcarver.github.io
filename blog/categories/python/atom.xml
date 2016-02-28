@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Python | Wood Carver]]></title>
+  <link href="http://woodcarver.github.io/blog/categories/python/atom.xml" rel="self"/>
+  <link href="http://woodcarver.github.io/"/>
+  <updated>2016-02-28T22:18:09+08:00</updated>
+  <id>http://woodcarver.github.io/</id>
+  <author>
+    <name><![CDATA[Wood Carver]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[丑陋的python]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/02/23/ugly-python/"/>
+    <updated>2016-02-23T18:00:50+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/02/23/ugly-python</id>
+    <content type="html"><![CDATA[<h1>python的别扭的self关键字</h1>
+
+<p>Python的类的方法和普通的函数有一个很明显的区别，在类的方法必须有个额外的第一个参数 (self )，但在调用这个方法的时候不必为这个参数赋值,说是因为 explicit is better than implicit。但是这种调用和声明的不一致性，让程序的看起来非常不一致，且增加了特殊规则，同时让人感到非常莫名其妙。
+如果要显示传递，有太多的使用可能：</p>
+
+<pre><code class="python">class x:
+   def __init__(self):
+       self.name="It's test"
+   def test1(self):
+        print 'test1 %s' % self.name
+   def test2():
+        print 'without self'
+</code></pre>
+
+<p>例如上面这个程序，如果显示传递，那么我认为我可以传递一个自己想要传递任何同种类型的类或者对象(前提能运行起来，不过事实证明不写self根本的方法根本不能运行)。对第一个test2应该要能满足非常多的调用情况,因为这样显示的设计看起来就是这样的:
+<code>
+test=x()
+test.test2() ? # TypeError: test2() takes no arguments (1 given)
+test.test2(x) ? # TypeError: test2() takes no arguments (2 given)
+test.test2(test) ? # 不能运行，报错——TypeError: test2() takes no arguments (2 given)
+</code>
+各种情况全部阵亡，所以说python对象方法的第一个参数必须显示声明上self，既然全部方法都必须声明self，那其实就等于不用声明self，这个显示特性对于使用者来说没有任何意义。完全不同与java的this的使用。</p>
+
+<h1>python的sys加载</h1>
+
+<pre><code class="python">import sys
+import json
+
+reload(sys) 
+    sys.setdefaultencoding('utf8')
+</code></pre>
+
+<p>上面对sys的用法，那个reload使用有木有一种诡异的感觉，我刚刚import一下，还没用就要reload了。后来查了一下，发现是python自己在这两句中间做了一些改变，导致sys的环境状态发生了变化，所以需要reload一下，恢复一下。活生生的把不属于开发者自己的责任推卸到开发者自己身上了。</p>
+]]></content>
+  </entry>
+  
+</feed>

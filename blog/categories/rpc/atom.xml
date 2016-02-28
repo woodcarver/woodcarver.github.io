@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Rpc | Wood Carver]]></title>
   <link href="http://woodcarver.github.io/blog/categories/rpc/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2016-02-18T10:45:47+08:00</updated>
+  <updated>2016-02-28T22:18:09+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -40,12 +40,55 @@ If you want to know thrift, you must know RPC.</p>
 读过计算机网络的都知道，如果一切都正常的话是最简单的情况，但是旁枝的异常情况和各种因素的权益会让系统复杂n倍。
 涉及到通信就需要考虑到一下几个因素：
 1. 时间性
-2. 数据完整性</p>
+3. 顺序性
+2. 会发生丢失</p>
 
 <p>让我们来仔细列出这个动态系统的主题：
 1. client： 动作——request，receive
 2. server：动作——process，send
-3. message</p>
+3. message：怎么传输——Transport模块和方法</p>
+
+<p>一个简单的RPC模型：
+假设有echoNum一个过程，其函数形态是：
+int echoNum(int num);
+从上面可以知道client要发起echoNum过程调用的时候，只需给server端传输一个整形参数即可。而server端接到这个num，直接原数返回。
+开始第一次调用：
+echoNum(1)
+我们分析我们从客户端的角度看，会产生三种结果：1.接收到了1；2.接收到了数据，但是数字不是想要的1；3.没接收到1；
+我们再分析下有那些原因会导致这些结果（状态）：
+第一种情况：server接收到client请求正常，并且处理正常在一个合理的时间返回了结果。
+第二种情况：数据发生了错误，也许client发送数据就发送错误，或许在传输过程种出错了，又或者server process过程种就错了。总之这个问题可能在图中1～4步骤都都可能。
+第三种情况：client等了“很久”，但是数据就没有来，他也不知道哪里出问题了，所它决定不在等了，返回值设置成失败。
+从上面看第一种和第三种的一个关键点就在于接收到返回隐含着等待时间的问题，加入client迟迟等不到返回该采用怎样的策略。是一直等着（block），还是我先离开过段时间我再回来（sleep），还是直接永远的离去（exit）？
+再复杂化一点模型，上面只牵涉到一个请求，我们现在加入多个请求：
+echoNum(1)，echoNum(2)，echoNum(3)
+这下我们再分析下client的返回状态有：
+- 1,2,3
+- 1,3,2
+- 2,1,3
+- 2,3,1
+- 3,1,2
+- 3,2,1
+调用全部有返回，只是返回的时间是不确定的，所以接收到的数据也是不确定的
+- 1,2
+- 1,3
+- 2,1
+- 2,3
+- 3,1
+- 3,2
+- 1
+- 2
+- 3
+- 啥也没有接收到
+发生了数据丢失，上面描述了丢失一个到全部丢失的全部情况。
+根据实际业务需求，上面的一些结果肯定是要被剔除的，这也是RPC的调用设计种的同步和异步问题。</p>
+
+<p>仔细学习什么<a href="http://www.cs.cf.ac.uk/Dave/C/node33.html">RPC</a>
+- RPC的基本模型和解决的问题
+- RPC框架需要注意的问题
+- RPC框架的天生缺陷和优点
+- RPC框架的使用场景和局限性
+- 和RPC对应的还有那些解决框架？各自的有缺点和应用的普遍情况</p>
 
 <h2>thrift的定义中的特性</h2>
 
@@ -68,6 +111,12 @@ If you want to know thrift, you must know RPC.</p>
 - Unix系统内幕</p>
 
 <h2>一个简单的开发例子</h2>
+
+<p>thrift包括其他的RPC应用的开发步骤分为下面三个步骤:
+- 定义client和server之间通信协议（protocol），即输入输出约定方式
+以为一个RPC可以通过普通的函数来描述，所以协议中也必须指出函数名称，参数类型还有返回值类型。thrift根据定义好的协议来自动生成整个RPC框架，主要封装了整套的网络传输部分，剩下的部分只是业务逻辑需要开发者自己编写。控制主了远程访问的复杂度，非常棒的设计思路。
+- 开发client端程序
+- 开发server端程序</p>
 
 <h2>Reference</h2>
 

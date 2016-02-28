@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://woodcarver.github.io/blog/2016/02/27/data-warehouse/</loc>
+    <lastmod>2016-02-27T21:56:28+08:00</lastmod>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/2016/02/27/mondrian-connection-pool/</loc>
+    <lastmod>2016-02-27T14:48:11+08:00</lastmod>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/2016/02/23/ugly-python/</loc>
+    <lastmod>2016-02-23T18:00:50+08:00</lastmod>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/2016/02/22/notes-for-hadoop-the-defintive-guid/</loc>
+    <lastmod>2016-02-22T15:13:26+08:00</lastmod>
+  </url>
+  <url>
     <loc>http://woodcarver.github.io/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands/</loc>
     <lastmod>2016-02-17T21:58:48+08:00</lastmod>
   </url>
@@ -25,16 +41,8 @@
     <lastmod>2016-01-13T18:55:49+08:00</lastmod>
   </url>
   <url>
-    <loc>http://woodcarver.github.io/blog/2016/01/09/think-about-the-popular-of-beijing/</loc>
+    <loc>http://woodcarver.github.io/blog/2016/01/09/think-about-the-population-of-beijing/</loc>
     <lastmod>2016-01-09T15:44:51+08:00</lastmod>
-  </url>
-  <url>
-    <loc>http://woodcarver.github.io/blog/2016/01/09/how-to-recognize-a-brilliant-slash-awful-company/</loc>
-    <lastmod>2016-01-09T13:43:35+08:00</lastmod>
-  </url>
-  <url>
-    <loc>http://woodcarver.github.io/blog/2016/01/07/purpose-of-jobs/</loc>
-    <lastmod>2016-01-07T22:56:42+08:00</lastmod>
   </url>
   <url>
     <loc>http://woodcarver.github.io/blog/2016/01/05/networking-server/</loc>
@@ -51,10 +59,6 @@
   <url>
     <loc>http://woodcarver.github.io/blog/2016/01/01/100-open-source-operating-system-papers-for-programmers/</loc>
     <lastmod>2016-01-01T18:32:21+08:00</lastmod>
-  </url>
-  <url>
-    <loc>http://woodcarver.github.io/blog/2016/01/01/2015-annual-report/</loc>
-    <lastmod>2016-01-01T11:48:49+08:00</lastmod>
   </url>
   <url>
     <loc>http://woodcarver.github.io/blog/2015/12/30/my-career-decision-tree/</loc>
@@ -113,6 +117,18 @@
     <lastmod>2015-07-09T16:20:30+08:00</lastmod>
   </url>
   <url>
+    <loc>http://woodcarver.github.io/draft/2016-01-01-2015-annual-report.html</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/draft/2016-01-07-purpose-of-jobs.html</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/draft/2016-01-09-how-to-recognize-a-brilliant-slash-awful-company.html</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/draft/2016-02-28-think-about-big-data.html</loc>
+  </url>
+  <url>
     <loc>http://woodcarver.github.io/blog/archives/</loc>
   </url>
   <url>
@@ -144,9 +160,6 @@
   </url>
   <url>
     <loc>http://woodcarver.github.io/blog/categories/math/</loc>
-  </url>
-  <url>
-    <loc>http://woodcarver.github.io/blog/categories/report/</loc>
   </url>
   <url>
     <loc>http://woodcarver.github.io/blog/categories/nginx/</loc>
@@ -186,5 +199,20 @@
   </url>
   <url>
     <loc>http://woodcarver.github.io/blog/categories/system-command/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/hadoop/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/dbms/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/python/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/programming-language/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/mondrian/</loc>
   </url>
 </urlset>
