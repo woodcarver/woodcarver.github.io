@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Rpc | Wood Carver]]></title>
   <link href="http://woodcarver.github.io/blog/categories/rpc/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2016-02-28T22:18:09+08:00</updated>
+  <updated>2016-02-28T22:37:28+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -38,15 +38,23 @@ If you want to know thrift, you must know RPC.</p>
 整个过程是客户端发送RPC请求到服务端，服务端处理后再发结果反馈过来。听这很简单，看着很容易，而且很熟悉。这不就是cs模型吗？但是其中涉及的难点就隐藏在老生常谈的信息通信中。比如消息体的打包，拆分，解读等等。
 目的就是保质保量的让消息正确抵达目的地。
 读过计算机网络的都知道，如果一切都正常的话是最简单的情况，但是旁枝的异常情况和各种因素的权益会让系统复杂n倍。
-涉及到通信就需要考虑到一下几个因素：
-1. 时间性
-3. 顺序性
-2. 会发生丢失</p>
+涉及到通信就需要考虑到一下几个因素：</p>
 
-<p>让我们来仔细列出这个动态系统的主题：
-1. client： 动作——request，receive
-2. server：动作——process，send
-3. message：怎么传输——Transport模块和方法</p>
+<ol>
+<li>时间性</li>
+<li>顺序性</li>
+<li>会发生丢失</li>
+</ol>
+
+
+<p>让我们来仔细列出这个动态系统的主题：</p>
+
+<ol>
+<li>client： 动作——request，receive</li>
+<li>server：动作——process，send</li>
+<li>message：怎么传输——Transport模块和方法</li>
+</ol>
+
 
 <p>一个简单的RPC模型：
 假设有echoNum一个过程，其函数形态是：
@@ -62,33 +70,47 @@ echoNum(1)
 从上面看第一种和第三种的一个关键点就在于接收到返回隐含着等待时间的问题，加入client迟迟等不到返回该采用怎样的策略。是一直等着（block），还是我先离开过段时间我再回来（sleep），还是直接永远的离去（exit）？
 再复杂化一点模型，上面只牵涉到一个请求，我们现在加入多个请求：
 echoNum(1)，echoNum(2)，echoNum(3)
-这下我们再分析下client的返回状态有：
-- 1,2,3
-- 1,3,2
-- 2,1,3
-- 2,3,1
-- 3,1,2
-- 3,2,1
-调用全部有返回，只是返回的时间是不确定的，所以接收到的数据也是不确定的
-- 1,2
-- 1,3
-- 2,1
-- 2,3
-- 3,1
-- 3,2
-- 1
-- 2
-- 3
-- 啥也没有接收到
-发生了数据丢失，上面描述了丢失一个到全部丢失的全部情况。
+这下我们再分析下client的返回状态有：</p>
+
+<ul>
+<li>1,2,3</li>
+<li>1,3,2</li>
+<li>2,1,3</li>
+<li>2,3,1</li>
+<li>3,1,2</li>
+<li>3,2,1</li>
+</ul>
+
+
+<p>调用全部有返回，只是返回的时间是不确定的，所以接收到的数据也是不确定的</p>
+
+<ul>
+<li>1,2</li>
+<li>1,3</li>
+<li>2,1</li>
+<li>2,3</li>
+<li>3,1</li>
+<li>3,2</li>
+<li>1</li>
+<li>2</li>
+<li>3</li>
+<li>啥也没有接收到</li>
+</ul>
+
+
+<p>发生了数据丢失，上面描述了丢失一个到全部丢失的全部情况。
 根据实际业务需求，上面的一些结果肯定是要被剔除的，这也是RPC的调用设计种的同步和异步问题。</p>
 
-<p>仔细学习什么<a href="http://www.cs.cf.ac.uk/Dave/C/node33.html">RPC</a>
-- RPC的基本模型和解决的问题
-- RPC框架需要注意的问题
-- RPC框架的天生缺陷和优点
-- RPC框架的使用场景和局限性
-- 和RPC对应的还有那些解决框架？各自的有缺点和应用的普遍情况</p>
+<p>仔细学习什么<a href="http://www.cs.cf.ac.uk/Dave/C/node33.html">RPC</a></p>
+
+<ul>
+<li>RPC的基本模型和解决的问题</li>
+<li>RPC框架需要注意的问题</li>
+<li>RPC框架的天生缺陷和优点</li>
+<li>RPC框架的使用场景和局限性</li>
+<li>和RPC对应的还有那些解决框架？各自的有缺点和应用的普遍情况</li>
+</ul>
+
 
 <h2>thrift的定义中的特性</h2>
 
@@ -96,27 +118,43 @@ echoNum(1)，echoNum(2)，echoNum(3)
 
 <blockquote><p>The Apache Thrift software framework, for scalable cross-language services development, combines a software stack with a code generation engine to build services that work efficiently and seamlessly between C++, Java, Python, PHP, Ruby, Erlang, Perl, Haskell, C#, Cocoa, JavaScript, Node.js, Smalltalk, OCaml and Delphi and other languages.</p></blockquote>
 
-<p>先解释下这个定义都讲了什么。
-- software framework：本身是一个软件框架，意味这你自己需要补充其中的业务逻辑
-- services development：这个框架是为了辅助开发者开发出自己的一个网络服务c/s软件，而这个服务具备接下来的两个重要特点：
-    - <a href="http://www.infoq.com/cn/news/2007/10/whatisscalability">scalable 可伸缩性</a>：？？为啥说是可伸缩的？根据可伸缩的核心特征——处理能力能随这个扩展服务规模而提升。
-    - cross-language 跨语言：这个可能是thrift的最大特点了，为了实现这个特性，thrift直接为此定义了一套中间语言，并且配备了一个此语言到各种目标语言的编译器。不过说起来跨语言到底指什么呢？其实一句话概括就是服务短和客户端可以是不同语言开发的，比如官方的例子：客户端是python，服务端是java。而这个中间语言就是只定义一遍服务的逻辑语义一次，通过编译器转成各种目标语言多次。从而解决重复编写的问题。</p>
+<p>先解释下这个定义都讲了什么。</p>
+
+<ul>
+<li>software framework：本身是一个软件框架，意味这你自己需要补充其中的业务逻辑</li>
+<li>services development：这个框架是为了辅助开发者开发出自己的一个网络服务c/s软件，而这个服务具备接下来的两个重要特点：
+
+<ul>
+<li><a href="http://www.infoq.com/cn/news/2007/10/whatisscalability">scalable 可伸缩性</a>：？？为啥说是可伸缩的？根据可伸缩的核心特征——处理能力能随这个扩展服务规模而提升。</li>
+<li>cross-language 跨语言：这个可能是thrift的最大特点了，为了实现这个特性，thrift直接为此定义了一套中间语言，并且配备了一个此语言到各种目标语言的编译器。不过说起来跨语言到底指什么呢？其实一句话概括就是服务短和客户端可以是不同语言开发的，比如官方的例子：客户端是python，服务端是java。而这个中间语言就是只定义一遍服务的逻辑语义一次，通过编译器转成各种目标语言多次。从而解决重复编写的问题。</li>
+</ul>
+</li>
+</ul>
+
 
 <h2>需要的知识背景</h2>
 
 <p>thrift的所有技能都在操作系统和计算机网络里可以找到,
-推荐书籍：
-- 计算机网络
-- Unix网络编程
-- Unix系统内幕</p>
+推荐书籍：</p>
+
+<ul>
+<li>计算机网络</li>
+<li>Unix网络编程</li>
+<li>Unix系统内幕</li>
+</ul>
+
 
 <h2>一个简单的开发例子</h2>
 
-<p>thrift包括其他的RPC应用的开发步骤分为下面三个步骤:
-- 定义client和server之间通信协议（protocol），即输入输出约定方式
-以为一个RPC可以通过普通的函数来描述，所以协议中也必须指出函数名称，参数类型还有返回值类型。thrift根据定义好的协议来自动生成整个RPC框架，主要封装了整套的网络传输部分，剩下的部分只是业务逻辑需要开发者自己编写。控制主了远程访问的复杂度，非常棒的设计思路。
-- 开发client端程序
-- 开发server端程序</p>
+<p>thrift包括其他的RPC应用的开发步骤分为下面三个步骤:</p>
+
+<ul>
+<li>定义client和server之间通信协议（protocol），即输入输出约定方式
+以为一个RPC可以通过普通的函数来描述，所以协议中也必须指出函数名称，参数类型还有返回值类型。thrift根据定义好的协议来自动生成整个RPC框架，主要封装了整套的网络传输部分，剩下的部分只是业务逻辑需要开发者自己编写。控制主了远程访问的复杂度，非常棒的设计思路。</li>
+<li>开发client端程序</li>
+<li>开发server端程序</li>
+</ul>
+
 
 <h2>Reference</h2>
 
