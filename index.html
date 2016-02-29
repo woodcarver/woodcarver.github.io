@@ -9,8 +9,8 @@
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="Commands about I/O 什么是I/O
-再让我们看一眼csapp的那幅经典图 看到所有的设备都是通过I/O bridge把数据移动到Main memory上，然后再主存再和CPU交互进行计算。当CPU有输出时，也是先输出到主存上，然后再输入到设备上。而再计算机中I/ &hellip;">
+  <meta name="description" content="阅读 MapReduce: A major step backwards 这个是2014年图灵奖获得者Michael Stonebraker和David J. DeWitt。两位都是数据库界的领军人物。
+下面主要介绍下文章对mapreduce提出的质疑和观点 mapreduce的理念设计方面 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -67,6 +67,108 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/02/22/notes-for-hadoop-the-defintive-guid/">Hadoop权威指南笔记</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-02-22T15:13:26+08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>3:13 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>阅读 <a href="http://blog.nosqlfan.com/html/744.html">MapReduce: A major step backwards</a></h1>
+
+<p>这个是2014年图灵奖获得者Michael Stonebraker和David J. DeWitt。两位都是数据库界的领军人物。
+下面主要介绍下文章对mapreduce提出的质疑和观点</p>
+
+<h2>mapreduce的理念设计方面</h2>
+
+<ul>
+<li>在数据库Schema(结构和数据的关系)方面，破坏了40年的数据实践条律：
+
+<ul>
+<li>Schemas是有益的——没有schema的存在，数据可以被任意填充，所以会有很多的垃圾数据出现</li>
+<li>将schema和程序分开处理是有益的——指mapreduce把数据结构都埋藏在代码中，非常不便与重复提出和维护</li>
+<li>High-level存取语言是有益的——关系型数据库使用一种声明式存取方法，而不展现出存取的具体算法。而mapreduce直接把整个存取算法过程仍给使用者
+这里主要是说mapreduce中的两个步骤都和应用紧密结合，可以填充任意操作</li>
+</ul>
+</li>
+</ul>
+
+
+<h2>mapreduce的实现方面</h2>
+
+<ul>
+<li>没有索引，所以所有搜索都是暴力的顺序搜索。</li>
+<li>mapreduce的并行特性，早在19世界80年代就有成熟的商业产品，例如Teradata，Gamma等，和这些软件比起来mapreduce并没有特别突出的地方。</li>
+<li>mapreduce的map阶段有数据倾斜的分线（skew，类似于一个二叉树中的非平衡情况，如果特别不平衡直接会使搜索退化成了顺序的）会直接降低并行的计算能力</li>
+<li>mapreduce中的reduce获取map的结果方式使用的是pull（map的结果一般存放在map的本地机器上）,这是一个巨大的性能瓶颈。原文提出使用push paradigm代替pull paradigm，这个具体不太明白？</li>
+</ul>
+
+
+<h2>mapreduce概念一点都不新鲜</h2>
+
+<h2>mapreduce缺乏现有数据库的关键特性,对终端使用者造成了很大困扰</h2>
+
+<ul>
+<li>Bulk loader — to transform input data in files into a desired format and load it into a DBMS</li>
+<li>Indexing — as noted above</li>
+<li>Updates — to change the data in the data base</li>
+<li>Transactions — to support parallel update and recovery from failures during update</li>
+<li>Integrity constraints — to help keep garbage out of the data base</li>
+<li>Referential integrity — again, to help keep garbage out of the data base</li>
+<li>Views — so the schema can change without having to rewrite the application program</li>
+</ul>
+
+
+<h2>mapreduce不兼容现有的DBMS工具</h2>
+
+<ul>
+<li>Report writers (e.g., Crystal reports) to prepare reports for human visualization</li>
+<li>Business intelligence tools (e.g., Business Objects or Cognos) to enable ad-hoc querying of large data warehouses</li>
+<li>Data mining tools (e.g., Oracle Data Mining or IBM DB2 Intelligent Miner) to allow a user to discover structure in large data sets</li>
+<li>Replication tools (e.g., Golden Gate) to allow a user to replicate data from on DBMS to another</li>
+<li>Database design tools (e.g., Embarcadero) to assist the user in constructing a data base.</li>
+</ul>
+
+
+<p>文章最后呼吁mapreduce的开发这了解最近25年内并行数据库文献，放下自以为是的态度，汲取40年的数据库发展经历和各方观点解决上面提出的问题。</p>
+
+<p>这篇文章写的年代比较早，现在已经有了很多基于mapreduce的工具。比如hive，实现了很多现代数据库的很多特性。比如，物理数据结构和logical schame分离；提供方便的查询语言（一种类似SQL语言）；提供了Bulk loader工具。
+当然hive只是在hadoop上建设了一层中间转层，提供了数据的逻辑结构，但是仍然不提供修改数据等功能等。这个和mysql等现有的关系性数据库从数据入库开始就做强约束的策略是不一样的。所以hive在写入文件是没有强约束的，而约束是只发生在读取数据时候。</p>
+
+<h1>阅读 <a href="http://scienceblogs.com/goodmath/2008/01/22/databases-are-hammers-mapreduc/">Databases are hammers; MapReduce is a screwdriver</a></h1>
+
+<p>文章上来就指出关系数据库的拥护者过于痴迷于这种完美的工具，以至于本末倒置的宁愿把螺丝当钉子使用，就因为有这么完美的锤子（指关系型数据库）在手。
+接下来开始列车作者的观点：
+- 关系型数据库不能很好并行运行
+- 不能很好的处理非结构化数据
+- 在处理内嵌结构数据上也背负恶名
+<strong> MapReduce的目的不是用来取代Relation Ddatabase，而是祢补其缺点的，提供一种轻量级并行编程，解决另外一族计算问题。 </strong></p>
+
+<p>这篇文章是回应上面那篇文章的，并一一针对上面的各种观点提出了自己的看法。
+- 没有索引，所以所有搜索都是暴力的顺序搜索 —— 回应是：大多数大规模数据计算是使用不了关系数据模型在单机上进行的，且索引这种中心式结构很容易成为性能瓶颈，还有当计算是密集型的时候，索引是没有用的
+- mapreduce缺乏现有数据库的关键特性 —— 回应是：难道不是关系型就是不好的吗？（两篇文章感觉火药味十足啊！）
+- mapreduce不兼容现有的DBMS工具 —— 回应是：如果继续兼容现有DBMS，就想上面提到的为了使用锤子，而错把螺丝钉当钉子使用</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1153,376 +1255,6 @@ shell>java HelloWorld</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/01/05/nginx-proxy/">Nginx反向代理配置</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-01-05T22:04:29+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:04 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>什么是代理</h2>
-
-<p>代理在普通生活中的意义就是本来应该你做的事情，你让别人代你做了，那么那个帮你做的人就是你的代理。而在计算机网络中代理的概念差不多，就是本来要客户端要做的网络访问，现在移交给另外一个机器做，那么那个机器就被称为代理服务器，代理服务器帮你来访问。过程如下：</p>
-
-<p>正常情况：
-client &mdash;(send request)&mdash;> server</p>
-
-<p>代理情况：
-client &mdash;(send request)&mdash;> clinet proxy &ndash;(send request)&mdash;> server</p>
-
-<h2>什么又是反向代理</h2>
-
-<p>那什么又是反向代理呢？反向代理可不是说本来代理你事务的人，反过来代理别人。反向代理在计算机网络中是指这么一个过程。一般来说正向代理是客户机找人来代理把自己的请求转发给服务端，但是如果反向代理，找代理的人不再是客户机，而是服务器这边把自己接受的请求转发给背后的其他机器。其主要区别：</p>
-
-<ul>
-<li>正向代理中代理的过程是客户端，代理机器是作为一个访问客户的身份的；而在反向代理中代理机器是作为服务身份。</li>
-<li>正向代理中代理的过程是服务端，服务端对代理的存在无感知；而在反向代理中客户机对代理的存在无感知。</li>
-</ul>
-
-
-<p>反向代理情况：
-clinet &ndash;(send request)&ndash;> server proxy &ndash;(send request)&ndash;>other
-server</p>
-
-<h2>先让我们看看一个示例</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-<span class='line-number'>59</span>
-<span class='line-number'>60</span>
-<span class='line-number'>61</span>
-<span class='line-number'>62</span>
-<span class='line-number'>63</span>
-<span class='line-number'>64</span>
-<span class='line-number'>65</span>
-<span class='line-number'>66</span>
-<span class='line-number'>67</span>
-<span class='line-number'>68</span>
-<span class='line-number'>69</span>
-<span class='line-number'>70</span>
-<span class='line-number'>71</span>
-<span class='line-number'>72</span>
-<span class='line-number'>73</span>
-<span class='line-number'>74</span>
-<span class='line-number'>75</span>
-<span class='line-number'>76</span>
-<span class='line-number'>77</span>
-<span class='line-number'>78</span>
-<span class='line-number'>79</span>
-<span class='line-number'>80</span>
-<span class='line-number'>81</span>
-<span class='line-number'>82</span>
-<span class='line-number'>83</span>
-<span class='line-number'>84</span>
-<span class='line-number'>85</span>
-<span class='line-number'>86</span>
-<span class='line-number'>87</span>
-<span class='line-number'>88</span>
-<span class='line-number'>89</span>
-<span class='line-number'>90</span>
-<span class='line-number'>91</span>
-<span class='line-number'>92</span>
-<span class='line-number'>93</span>
-<span class='line-number'>94</span>
-<span class='line-number'>95</span>
-<span class='line-number'>96</span>
-<span class='line-number'>97</span>
-<span class='line-number'>98</span>
-<span class='line-number'>99</span>
-<span class='line-number'>100</span>
-<span class='line-number'>101</span>
-<span class='line-number'>102</span>
-<span class='line-number'>103</span>
-<span class='line-number'>104</span>
-<span class='line-number'>105</span>
-<span class='line-number'>106</span>
-<span class='line-number'>107</span>
-<span class='line-number'>108</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>#① part start
-</span><span class='line'>#运行nginx进程的账户
-</span><span class='line'>user www;
-</span><span class='line'>#
-</span><span class='line'>worker_process 1;
-</span><span class='line'>error_log /var/log/nginx/error.log
-</span><span class='line'>pid /var/run/nginx.pid;
-</span><span class='line'>
-</span><span class='line'>events{
-</span><span class='line'>  use epoll;
-</span><span class='line'>  worker_connections 1024;
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>http{
-</span><span class='line'>    include       /etc/nginx/mime.types;
-</span><span class='line'>    default_type  application/octet-stream;
-</span><span class='line'>    access_log  /var/log/nginx/access.log  main;
-</span><span class='line'>    #
-</span><span class='line'>    sendfile        on;
-</span><span class='line'>    #
-</span><span class='line'>    keepalive_timeout  65;
-</span><span class='line'>    gzip  on;
-</span><span class='line'>   
-</span><span class='line'>    index   index.html index.htm;
-</span><span class='line'>    include /etc/nginx/conf.d/*.conf;
-</span><span class='line'>    include /etc/nginx/sites-enabled/*;
-</span><span class='line'>    #② part start
-</span><span class='line'>      # 定义上游服务器列表组
-</span><span class='line'>    upstream web1 {
-</span><span class='line'>        server 127.0.0.1:111 weight=1;
-</span><span class='line'>        server 127.0.0.1:222 weight=1;
-</span><span class='line'>    }
-</span><span class='line'>    upstream web2 {
-</span><span class='line'>        server 127.0.0.2:111 weight=1;
-</span><span class='line'>        server 127.0.0.2:222 weight=6;
-</span><span class='line'>        server 127.0.0.2:333 weight=7;
-</span><span class='line'>    }
-</span><span class='line'>    #定义一个服务器，其监听80端口，配置的域名是www.company.com
-</span><span class='line'>    server{
-</span><span class='line'>      listen 80;
-</span><span class='line'>      # using www  domain to access the main website
-</span><span class='line'>      server_name www.company.com;
-</span><span class='line'>      access_log  /var/log/nginx/www.log
-</span><span class='line'>      
-</span><span class='line'>      location / {
-</span><span class='line'>          root /home/website_root;
-</span><span class='line'>          
-</span><span class='line'>      }
-</span><span class='line'>    }
-</span><span class='line'>    #③ part start
-</span><span class='line'>    #定义第二个服务器，其同样监听80端口，但是匹配域名是web.company.com
-</span><span class='line'>    server{
-</span><span class='line'>      listen 80;
-</span><span class='line'>      # using web sub domain to access
-</span><span class='line'>      server_name web.company.com;
-</span><span class='line'>      access_log  /var/log/nginx/web_access.log
-</span><span class='line'>      
-</span><span class='line'>      location / {
-</span><span class='line'>          root /home/web2_root;
-</span><span class='line'>          proxy_pass http://127.0.0.1:8080/web/;
-</span><span class='line'>          proxy_read_timeout 300;
-</span><span class='line'>          proxy_connect_timeout 300;
-</span><span class='line'>          proxy_redirect     off;
-</span><span class='line'>
-</span><span class='line'>          proxy_set_header   X-Forwarded-Proto $scheme;
-</span><span class='line'>          proxy_set_header   Host              $http_host;
-</span><span class='line'>          proxy_set_header   X-Real-IP         $remote_addr;
-</span><span class='line'>      }
-</span><span class='line'>    }
-</span><span class='line'>    #定义第三个服务器，其同样监听80端口，但是匹配域名是web1.company.com，并把请求转发到web1上游服务
-</span><span class='line'>    server{
-</span><span class='line'>      listen 80;
-</span><span class='line'>      # using web1 sub domain to access
-</span><span class='line'>      server_name web1.company.com;
-</span><span class='line'>      access_log  /var/log/nginx/web1_access.log
-</span><span class='line'>      
-</span><span class='line'>      location / {
-</span><span class='line'>          root /home/web1_root;
-</span><span class='line'>          proxy_pass http://web1;
-</span><span class='line'>          proxy_read_timeout 300;
-</span><span class='line'>          proxy_connect_timeout 300;
-</span><span class='line'>          proxy_redirect     off;
-</span><span class='line'>
-</span><span class='line'>          proxy_set_header   X-Forwarded-Proto $scheme;
-</span><span class='line'>          proxy_set_header   Host              $http_host;
-</span><span class='line'>          proxy_set_header   X-Real-IP         $remote_addr;
-</span><span class='line'>      }
-</span><span class='line'>    }
-</span><span class='line'>        #定义第三个服务器，其同样监听80端口，但是匹配域名是web2.company.com，并把请求转发到web2上游服务
-</span><span class='line'>    server{
-</span><span class='line'>      listen 80;
-</span><span class='line'>      # using web2 sub domain to access
-</span><span class='line'>      server_name web2.company.com;
-</span><span class='line'>      access_log  /var/log/nginx/web2_access.log
-</span><span class='line'>      
-</span><span class='line'>      location / {
-</span><span class='line'>          root /home/web2_root;
-</span><span class='line'>          proxy_pass http://web2;
-</span><span class='line'>          proxy_read_timeout 300;
-</span><span class='line'>          proxy_connect_timeout 300;
-</span><span class='line'>          proxy_redirect     off;
-</span><span class='line'>
-</span><span class='line'>          proxy_set_header   X-Forwarded-Proto $scheme;
-</span><span class='line'>          proxy_set_header   Host              $http_host;
-</span><span class='line'>          proxy_set_header   X-Real-IP         $remote_addr;
-</span><span class='line'>      }
-</span><span class='line'>    }
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>这个示例都做了什么</h3>
-
-<ol>
-<li>第①部分，定义nginx通用规则，包括运行账户，处理进程个数等</li>
-<li>第②部分，开始定义上游服务器组</li>
-<li>第③部分，定义server，并指定怎么使用第②部分定义的upstream</li>
-</ol>
-
-
-<p>总体来说就是这个提供了4个服务，www，web，web1，web2 4个网站。这个例子很适合只有一台机器，但是有想避免url中携带端口号，统一使用域名的方式访问。4个网站都监听80端口，但是分配不同的二级域名既可以。这就需要nginx的反向代理，把接到的请求转发给背后不同的服务。</p>
-
-<h2>为什么需要方向代理</h2>
-
-<p>为什么要反向代理？作用服务端的代理，自然就是一台服务器处理不过来了，需要转发、分散请求给其他服务器做。下面罗列些适用场景：</p>
-
-<ul>
-<li><p>负载均衡
-上面例子中的web1和web2使用了nginx的负载均衡技术，把请求转向一组服务器。具体转发到哪个服务器，nginx提供了多种负载策略，例子中使用的是加权重的方式，web1 upstream是2个请求中，1个请求给111服务器，1个给222服务器。关于跟多的负载均衡的策略，请参看<a href="http://nginx.org/en/docs/http/load_balancing.html">nginx官方文档-负载均衡</a></p></li>
-<li><p>一个域名，多个网站。在这里反向代理倒不是为了负责存在，而是为了域名和服务的统一部署。例如一个公司的内部网站需要搭建很多服务——代码管理服、wiki服务、oa……，但是只要一个域名。这时候就可以用反向代理把不同的子域名转发到不同的服务上。下面是一个例子：</p></li>
-<li><p>当然反向代理的另一大用处就是隐藏后面的实际服务，以此来达到一定的安全性。</p></li>
-</ul>
-
-
-<h2>仔细讲解每个模块</h2>
-
-<h3>user</h3>
-
-<p>user 设置nginx是以什么用户来运行的，这个非常重要，<strong>确保运行nginx的用户能有权限访问读写网站的文件</strong>,否则会报404 not found等错误。</p>
-
-<h3>events</h3>
-
-<h3><a href="http://nginx.org/cn/docs/http/ngx_http_upstream_module.html">nginx upstream</a></h3>
-
-<p>upstream 直接翻译就是上游，即上游服务，其封装一组服务器列表，这些服务器可以别proxy_pass,fastcgi_pass,uwsgi_pass,scgi_pass和 memcached_pass引用，把接到的请求转发给这些服务器组。
-引用方法就是加行<a href="http://">http://</a>[upstream module name]</p>
-
-<pre><code>&gt; The ngx_http_upstream_module module is used to define groups of servers that can be referenced by the proxy_pass, fastcgi_pass, uwsgi_pass, scgi_pass, and memcached_pass directives.
-</code></pre>
-
-<p>例子：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>upstream  backend {  #①
-</span><span class='line'>    server backend1.example.com       weight=5;
-</span><span class='line'>    server backend2.example.com:8080;
-</span><span class='line'>    server unix:/tmp/backend3;
-</span><span class='line'>
-</span><span class='line'>    server backup1.example.com:8080   backup;
-</span><span class='line'>    server backup2.example.com:8080   backup;
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>server {
-</span><span class='line'>    location / {
-</span><span class='line'>        proxy_pass http://backend; #②
-</span><span class='line'>    }
-</span><span class='line'>}
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>注意有①，和②行的写法。要引用<strong>backend</strong>模块，只需把它制定成**<a href="http://backend**%E5%B0%B1%E8%A1%8C%E3%80%82">http://backend**%E5%B0%B1%E8%A1%8C%E3%80%82</a></p>
-
-<h3>http 意义和配置</h3>
-
-<p>http就是指配置关于http服务的地方，server等都是http的子模块</p>
-
-<h3>server 配置和匹配规则</h3>
-
-<p>一个http服务可以有多个server，而对server的路径匹配，反向代理都是在这里配置的。</p>
-
-<p>在server中最重要的一项配置：server_name的配置。server_name决定了来了一个url，到底是哪个server处理该请求。nginx会依次找和url配置的第一次出现的server。server_name可以使用通配符，也可以使用正则表达式。而且一个server的server_name可以多个，以空格分隔。更详细的关于server_name匹配规则，<a href="http://nginx.org/en/docs/http/server_names.html">参看这里</a></p>
-
-<h3>location 配置和匹配规则</h3>
-
-<p>server_name是定义域名级别的规则，而location则是url中文件部分的规则的。适应例如会对图片等静态资源做单独处理等需求。</p>
-
-<h2>参考资料</h2>
-
-<ul>
-<li><a href="http://nginx.org/cn/docs/http/ngx_http_upstream_module.html">nginx upstream模块介绍文档1</a></li>
-<li><a href="http://tengine.taobao.org/book/chapter_05.html">nginx upstream模块介绍文档2</a></li>
-<li><a href="http://www.cnblogs.com/xiaogangqq123/archive/2011/03/02/1969006.html">nginx配置例子</a></li>
-<li><a href="http://nginx.org/en/docs/http/load_balancing.html">nginx load balancer</a></li>
-<li><a href="http://nginx.com/blog/nginx-plus-r6-released/?_ga=1.99990941.241485225.1426074750">Enhanced Load Balancing,High Availability, and Monitoring Features</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -1538,6 +1270,10 @@ server</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/02/22/notes-for-hadoop-the-defintive-guid/">Hadoop权威指南笔记</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands/">Linux系统状态命令详解</a>
       </li>
     
@@ -1551,10 +1287,6 @@ server</p>
     
       <li class="post">
         <a href="/blog/2016/01/17/business-dataming-ecosystem-investigation/">Pentaho和Pivotal</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/01/13/read-note-how-google-works/">Read-note: How Google Works</a>
       </li>
     
   </ul>
