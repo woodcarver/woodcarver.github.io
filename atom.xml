@@ -4,7 +4,7 @@
   <title><![CDATA[Wood Carver]]></title>
   <link href="http://woodcarver.github.io/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2016-02-18T10:45:47+08:00</updated>
+  <updated>2016-02-29T14:04:49+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -40,7 +40,8 @@ top对I/O的描述是用I/O wait这个指标，例如下图：
 其中I/O wait 的定义是：
 
 <blockquote><p>I/O wait is the percentage of time your processors are waiting on the disk.
-I/O wait就是CPU在整个任务处理中等待闲置的时间，举个例子：一个任务一共使用了1s，但是其中从从磁盘中取数据花了700ms，而在磁盘读取数据时CPU是闲置的，所以CPU的等待I/O的时间占了70%，即I/O wait 是70%。</p></blockquote></li>
+I/O wait就是CPU在整个任务处理中等待闲置的时间，举个例子：一个任务一共使用了1s，但是其中从从磁盘中取数据花了700ms，而在磁盘读取数据时CPU是闲置的，所以CPU的等待I/O的时间占了70%，即I/O wait 是70%。
+当然有人指出对多核cpu通过iowait来统计io的负载情况并不准确，<a href="http://veithen.github.io/2013/11/18/iowait-linux.html">详见</a></p></blockquote></li>
 </ul>
 
 
@@ -94,14 +95,79 @@ If you want to know thrift, you must know RPC.</p>
 整个过程是客户端发送RPC请求到服务端，服务端处理后再发结果反馈过来。听这很简单，看着很容易，而且很熟悉。这不就是cs模型吗？但是其中涉及的难点就隐藏在老生常谈的信息通信中。比如消息体的打包，拆分，解读等等。
 目的就是保质保量的让消息正确抵达目的地。
 读过计算机网络的都知道，如果一切都正常的话是最简单的情况，但是旁枝的异常情况和各种因素的权益会让系统复杂n倍。
-涉及到通信就需要考虑到一下几个因素：
-1. 时间性
-2. 数据完整性</p>
+涉及到通信就需要考虑到一下几个因素：</p>
 
-<p>让我们来仔细列出这个动态系统的主题：
-1. client： 动作——request，receive
-2. server：动作——process，send
-3. message</p>
+<ol>
+<li>时间性</li>
+<li>顺序性</li>
+<li>会发生丢失</li>
+</ol>
+
+
+<p>让我们来仔细列出这个动态系统的主题：</p>
+
+<ol>
+<li>client： 动作——request，receive</li>
+<li>server：动作——process，send</li>
+<li>message：怎么传输——Transport模块和方法</li>
+</ol>
+
+
+<p>一个简单的RPC模型：
+假设有echoNum一个过程，其函数形态是：
+int echoNum(int num);
+从上面可以知道client要发起echoNum过程调用的时候，只需给server端传输一个整形参数即可。而server端接到这个num，直接原数返回。
+开始第一次调用：
+echoNum(1)
+我们分析我们从客户端的角度看，会产生三种结果：1.接收到了1；2.接收到了数据，但是数字不是想要的1；3.没接收到1；
+我们再分析下有那些原因会导致这些结果（状态）：
+第一种情况：server接收到client请求正常，并且处理正常在一个合理的时间返回了结果。
+第二种情况：数据发生了错误，也许client发送数据就发送错误，或许在传输过程种出错了，又或者server process过程种就错了。总之这个问题可能在图中1～4步骤都都可能。
+第三种情况：client等了“很久”，但是数据就没有来，他也不知道哪里出问题了，所它决定不在等了，返回值设置成失败。
+从上面看第一种和第三种的一个关键点就在于接收到返回隐含着等待时间的问题，加入client迟迟等不到返回该采用怎样的策略。是一直等着（block），还是我先离开过段时间我再回来（sleep），还是直接永远的离去（exit）？
+再复杂化一点模型，上面只牵涉到一个请求，我们现在加入多个请求：
+echoNum(1)，echoNum(2)，echoNum(3)
+这下我们再分析下client的返回状态有：</p>
+
+<ul>
+<li>1,2,3</li>
+<li>1,3,2</li>
+<li>2,1,3</li>
+<li>2,3,1</li>
+<li>3,1,2</li>
+<li>3,2,1</li>
+</ul>
+
+
+<p>调用全部有返回，只是返回的时间是不确定的，所以接收到的数据也是不确定的</p>
+
+<ul>
+<li>1,2</li>
+<li>1,3</li>
+<li>2,1</li>
+<li>2,3</li>
+<li>3,1</li>
+<li>3,2</li>
+<li>1</li>
+<li>2</li>
+<li>3</li>
+<li>啥也没有接收到</li>
+</ul>
+
+
+<p>发生了数据丢失，上面描述了丢失一个到全部丢失的全部情况。
+根据实际业务需求，上面的一些结果肯定是要被剔除的，这也是RPC的调用设计种的同步和异步问题。</p>
+
+<p>仔细学习什么<a href="http://www.cs.cf.ac.uk/Dave/C/node33.html">RPC</a></p>
+
+<ul>
+<li>RPC的基本模型和解决的问题</li>
+<li>RPC框架需要注意的问题</li>
+<li>RPC框架的天生缺陷和优点</li>
+<li>RPC框架的使用场景和局限性</li>
+<li>和RPC对应的还有那些解决框架？各自的有缺点和应用的普遍情况</li>
+</ul>
+
 
 <h2>thrift的定义中的特性</h2>
 
@@ -109,21 +175,43 @@ If you want to know thrift, you must know RPC.</p>
 
 <blockquote><p>The Apache Thrift software framework, for scalable cross-language services development, combines a software stack with a code generation engine to build services that work efficiently and seamlessly between C++, Java, Python, PHP, Ruby, Erlang, Perl, Haskell, C#, Cocoa, JavaScript, Node.js, Smalltalk, OCaml and Delphi and other languages.</p></blockquote>
 
-<p>先解释下这个定义都讲了什么。
-- software framework：本身是一个软件框架，意味这你自己需要补充其中的业务逻辑
-- services development：这个框架是为了辅助开发者开发出自己的一个网络服务c/s软件，而这个服务具备接下来的两个重要特点：
-    - <a href="http://www.infoq.com/cn/news/2007/10/whatisscalability">scalable 可伸缩性</a>：？？为啥说是可伸缩的？根据可伸缩的核心特征——处理能力能随这个扩展服务规模而提升。
-    - cross-language 跨语言：这个可能是thrift的最大特点了，为了实现这个特性，thrift直接为此定义了一套中间语言，并且配备了一个此语言到各种目标语言的编译器。不过说起来跨语言到底指什么呢？其实一句话概括就是服务短和客户端可以是不同语言开发的，比如官方的例子：客户端是python，服务端是java。而这个中间语言就是只定义一遍服务的逻辑语义一次，通过编译器转成各种目标语言多次。从而解决重复编写的问题。</p>
+<p>先解释下这个定义都讲了什么。</p>
+
+<ul>
+<li>software framework：本身是一个软件框架，意味这你自己需要补充其中的业务逻辑</li>
+<li>services development：这个框架是为了辅助开发者开发出自己的一个网络服务c/s软件，而这个服务具备接下来的两个重要特点：
+
+<ul>
+<li><a href="http://www.infoq.com/cn/news/2007/10/whatisscalability">scalable 可伸缩性</a>：？？为啥说是可伸缩的？根据可伸缩的核心特征——处理能力能随这个扩展服务规模而提升。</li>
+<li>cross-language 跨语言：这个可能是thrift的最大特点了，为了实现这个特性，thrift直接为此定义了一套中间语言，并且配备了一个此语言到各种目标语言的编译器。不过说起来跨语言到底指什么呢？其实一句话概括就是服务短和客户端可以是不同语言开发的，比如官方的例子：客户端是python，服务端是java。而这个中间语言就是只定义一遍服务的逻辑语义一次，通过编译器转成各种目标语言多次。从而解决重复编写的问题。</li>
+</ul>
+</li>
+</ul>
+
 
 <h2>需要的知识背景</h2>
 
 <p>thrift的所有技能都在操作系统和计算机网络里可以找到,
-推荐书籍：
-- 计算机网络
-- Unix网络编程
-- Unix系统内幕</p>
+推荐书籍：</p>
+
+<ul>
+<li>计算机网络</li>
+<li>Unix网络编程</li>
+<li>Unix系统内幕</li>
+</ul>
+
 
 <h2>一个简单的开发例子</h2>
+
+<p>thrift包括其他的RPC应用的开发步骤分为下面三个步骤:</p>
+
+<ul>
+<li>定义client和server之间通信协议（protocol），即输入输出约定方式
+以为一个RPC可以通过普通的函数来描述，所以协议中也必须指出函数名称，参数类型还有返回值类型。thrift根据定义好的协议来自动生成整个RPC框架，主要封装了整套的网络传输部分，剩下的部分只是业务逻辑需要开发者自己编写。控制主了远程访问的复杂度，非常棒的设计思路。</li>
+<li>开发client端程序</li>
+<li>开发server端程序</li>
+</ul>
+
 
 <h2>Reference</h2>
 
@@ -337,9 +425,9 @@ select node_name,wos_row_count,ros_row_count from projection_storage where ancho
   
   <entry>
     <title type="html"><![CDATA[关于北京人口的一些想法]]></title>
-    <link href="http://woodcarver.github.io/blog/2016/01/09/think-about-the-popular-of-beijing/"/>
+    <link href="http://woodcarver.github.io/blog/2016/01/09/think-about-the-population-of-beijing/"/>
     <updated>2016-01-09T15:44:51+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2016/01/09/think-about-the-popular-of-beijing</id>
+    <id>http://woodcarver.github.io/blog/2016/01/09/think-about-the-population-of-beijing</id>
     <content type="html"><![CDATA[<p>最近因为北京市出台《北京市居民积分制度》受到了在北京非户籍打拼的年轻人关注，自然这种政治、民生话题肯定能在知乎上找到话题，其中就有一个提问：<a href="">todo</a>。
 我作为一个名在北京默默无闻工作了2年半的IT工作者，开始对这个问题不包意见，对自己丝毫不了解的行业（中国zf），我没有依据和逻辑基础来判断。直到我在图书馆读了一本《北京市人口发展》的数据后，一个观点突然浮现在我脑海里。那就是：
 80、90后不要期待北京市政府能开放户籍政策，如果在毕业的时候没有难道户口，想定居又不想通过婚姻的方式的话需要离开北京。</p>
@@ -356,80 +444,6 @@ select node_name,wos_row_count,ros_row_count from projection_storage where ancho
 因为年轻的人口才能解决北京的人口结构失衡。当然这事废话。但是年轻一个属性其实意味深远。现在我们对中国的低生育率和越来越少的儿童习以为常，而且认为大城市为了竞争更过的人才来京，需要放宽人口政策。并且乐观的认为我们现在这些年轻人终于被奉献了人生的地方——北京所重视了。
 一定程度上这事实，北京必然会越来越重视人才，但是那是未来的人才。看看那张全国历年出生人口图，就会发现现在我们就是那批婴儿潮，也就是说我们就处于中国年轻人口最鼎盛的时候。此时北京最不缺的就是年轻人，他尽管把门槛和要求提的很高，也不怕年轻人口流失。
 所以说北京的户籍开放绝对轮不到我们这代人，并且我还处于北京人口控制的时期。这个时候期盼积分简直天方夜谭，不说分数线到底怎么定，就上面提到的入籍不得超过45岁，并且持有居住证连续7年的条件，就会让此时45-7=38岁以上（也就现在78后）的永远没有资格。这是无差别刷掉整整一个时代人的政策。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[How to Recognize a Brilliant/awful Company]]></title>
-    <link href="http://woodcarver.github.io/blog/2016/01/09/how-to-recognize-a-brilliant-slash-awful-company/"/>
-    <updated>2016-01-09T13:43:35+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2016/01/09/how-to-recognize-a-brilliant-slash-awful-company</id>
-    <content type="html"><![CDATA[<p>How to define &ldquo;brilliant&rdquo; or &ldquo;awful&rdquo;?
-Can I say I am losing myself in an organisation, and then I define this organisation is awful? My answer is yes. What can be worse than something which is wasting you life? This is the biggest sin of organisztions, and this is also your biggest sin for not leaving it right now.
-Maybe someone say my opinion is too emotional,no one can define a company through one people&rsquo;s pointview. But think about it for few minutes, If a company cann&rsquo;t let you close your life meaning, what&rsquo;s the meaning of it to you? Although it let your colleagues rich or important, but they are not you, it is still meanless for you. We are all born as indenpendent human in the world, we want to use our power to let our own or others happer. And this is the only purpose of companise for us.</p>
-
-<h2>reference</h2>
-
-<ul>
-<li>《阿里巴巴》</li>
-<li>《How Goole Works》</li>
-</ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[What Are You Purchasing Now?]]></title>
-    <link href="http://woodcarver.github.io/blog/2016/01/07/purpose-of-jobs/"/>
-    <updated>2016-01-07T22:56:42+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2016/01/07/purpose-of-jobs</id>
-    <content type="html"><![CDATA[<h1>rules</h1>
-
-<ol>
-<li>Total grade must be 100:sum(grade)&lt;=100</li>
-<li>Grade of evey item must less than or equal to 10 and bigger than 0: 0&lt;=grade&lt;=10</li>
-</ol>
-
-
-<table>
-<thead>
-<tr>
-<th> purpose </th>
-<th> 2016</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>position </td>
-<td>   10</td>
-</tr>
-<tr>
-<td>scale    </td>
-<td>   10</td>
-</tr>
-<tr>
-<td>team     </td>
-<td>   10</td>
-</tr>
-<tr>
-<td>industry </td>
-<td>   7</td>
-</tr>
-<tr>
-<td>salary   </td>
-<td>   9</td>
-</tr>
-<tr>
-<td>place    </td>
-<td>   6</td>
-</tr>
-<tr>
-<td>dailyTime</td>
-<td>    6</td>
-</tr>
-</tbody>
-</table>
-
 ]]></content>
   </entry>
   
@@ -1264,69 +1278,6 @@ server</p>
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[2015非正式总结报告]]></title>
-    <link href="http://woodcarver.github.io/blog/2016/01/01/2015-annual-report/"/>
-    <updated>2016-01-01T11:48:49+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2016/01/01/2015-annual-report</id>
-    <content type="html"><![CDATA[<h2>还是先吐槽吧</h2>
-
-<p>为什么我这么讨厌写季度总结或者职称评定这些材料？为什么在夸自己成果的时候，反而觉得这些是麻烦？是因为写了太多次这种东西后，发现依然没有什么用处吗（确实，写了这么多次，绩效被评了C，职称升级也无望，对于这些过场的无用的东西，谁还有激情去写，想想一开始入职公司的时候多有动力去写这些东西啊）？还是因为发现自己并没有什么可称赞的工作成果？总之想想这些无聊的东西就痛苦。</p>
-
-<p>但不管怎么样，或者什么原因，我还是要写的。也许我该找一个动力去完成这项任务，让我摆脱或者减轻我的痛苦。</p>
-
-<p>就当是人生记录吧！人生的一个阶段记录。好好写，过3～5年(可能一点兴趣都没有，我现在就一点都不想看自己一年前的各种总结。包括那份很傻的职称评定。不管怎么样，还是先写吧！)再拿出来看，我自己一定会庆幸自己记录这些，就像我的日记一样。</p>
-
-<p>远离那些伤害我的人，一定要果断，一旦判断某人伤害过我，一定毫不犹豫的断绝任何和此人的关系，并且阻断任何联系方式。</p>
-
-<p>在不知道前进方向的时候如何继续前进？或者在巨大的心里抵触的情况下，怎么进入工作状态？</p>
-
-<p>怎么克服别人对自己的能力否定？</p>
-
-<h2>输入性知识总结</h2>
-
-<h3>对机器学习做了初步的了解</h3>
-
-<h3>《计算的解析与构造》和《计算的本质》</h3>
-
-<h3>《computer system: a prospective of a programmer》</h3>
-
-<h3>操作系统</h3>
-
-<h3>java语言学习和平行编程</h3>
-
-<h2>输出性项目</h2>
-
-<p>这方面太失败，计划要做的myCompiler，myZip都没有任何输出性成果。只是读了一本书的前面几章。
-- myZip
-- myCompiler</p>
-
-<h2>第二天性技能</h2>
-
-<ul>
-<li>写作演讲基本机构技能：批判性思考方式</li>
-<li>谈判技能</li>
-<li>决策技能</li>
-<li>基本沟通技能</li>
-</ul>
-
-
-<h2>创造散发性技能</h2>
-
-<h2>工作总结</h2>
-
-<p>在多盟的这两年内，非常遗憾的只有一项成就——saiku。</p>
-
-<h2>此阶段最重要的3个问题</h2>
-
-<h2>2016的书单</h2>
-
-<p>目标就是至少能设计实现一个自己的分布式数据储存软件——myDB。</p>
-
-<h3>数据库设计与实现</h3>
-]]></content>
-  </entry>
-  
-  <entry>
     <title type="html"><![CDATA[My Career Decision Tree]]></title>
     <link href="http://woodcarver.github.io/blog/2015/12/30/my-career-decision-tree/"/>
     <updated>2015-12-30T22:32:30+08:00</updated>
@@ -1879,6 +1830,59 @@ T= 1+1+while里面的步骤。while里面的步骤怎么计算？
 <blockquote><p>定义：如果存在常数c0和n0，对于所有n>n0,有g(n)&lt;c0f(n),则称函数g(n)是O(f(n))的。</p></blockquote>
 
 <p>即用g(n)来代替f(n)来比较衡量大小。</p>
+
+<h1>可计算问题和不可计算问题</h1>
+
+<p>上面讨论到计算的复杂度增长问题，</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Mondrian中的线程模型使用情况]]></title>
+    <link href="http://woodcarver.github.io/blog/2015/10/19/mondrian-and-multithread/"/>
+    <updated>2015-10-19T14:50:09+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2015/10/19/mondrian-and-multithread</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Mondrian in a Perspective of Code Complete]]></title>
+    <link href="http://woodcarver.github.io/blog/2015/10/19/mondrian-in-the-perspective-of-code-complete/"/>
+    <updated>2015-10-19T14:42:12+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2015/10/19/mondrian-in-the-perspective-of-code-complete</id>
+    <content type="html"><![CDATA[<p>看mondrian代码非常痛了，代码经常是绕来绕去的，特别是一些假递归比比皆是。还有A调用B，B再调用A，来回折腾，其中有些是用的单利，有些没有。
+比如：RolapConnection调用RolapSchema，RolapSchema内部又实例化另一个RolapConnection，这样来回折腾</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Introduce OLAP Model]]></title>
+    <link href="http://woodcarver.github.io/blog/2015/10/18/introduce-olap-model/"/>
+    <updated>2015-10-18T15:09:46+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2015/10/18/introduce-olap-model</id>
+    <content type="html"><![CDATA[<h1>Introduce OLAP</h1>
+
+<p>OLAP（Online analytical processing）就是联系分析系统。它是商务智能或者数据挖掘的链条中一个环节。而它的上游是数据仓库，下游就是直接的用户。所以从这几一个环节开始提供了直接的人机互动服务。所以对它的定义就是一个人接互动的工具，主要服务是提供高效的、广泛的多维度数据分析。
+<img src="http://woodcarver.github.io/images/posts/data_mining_olap.png" alt="olap在数据挖掘中的位置" /></p>
+
+<p>由于OLAP对数据仓库的依赖性很强（公用一个数据模型），所以一般来说这两个一般都放在一起作为一个整体来讨论。</p>
+
+<p>对于一个系统来说，只提供基本通用的定义是不够的，必须明确其必须满足的条件，而且需要解释为什么要满足这些条件（即满足最小集合条件，如果不满足就不应该称它是属于这种系统）。所以到底什么是OLAP的具体明明确的定定义？一种定义：
+按照 W. H. Inmon,一位数据仓库系统构造方面的领头建筑师的说法,“数据仓库是一个面向 主题的、集成的、时变的、非易失的数据集合,支持管理决策制定”[Inm96]
+“A data warehouse is a subject-oriented, integrated, time-variant, and nonvolatile collection of data in support of management’s decision making process”
+ - <strong>面向主题的</strong>:数据仓库围绕一些主题,如顾客、供应商、产品和销售组织。数据仓库关注决策 者的数据建模与分析,而不是构造组织机构的日常操作和事务处理。因此,数据仓库排除对于 决策无用的数据,提供特定主题的简明视图。
+ - <strong>集成的</strong>:通常构造数据仓库是将多个异种数据源,如关系数据库、一般文件和联机事务处理 记录,集成在一起。使用数据清理和数据集成技术,确保命名约定、编码结构、属性度量的一 致性。
+ - <strong>时变的</strong>:数据存储从历史的角度(例如,过去5-10年)提供信息。数据仓库中的关键结构, 隐式或显式地包含时间元素。
+ - <strong>非易失的</strong>:数据仓库总是物理地分离存放数据;这些数据源于操作环境下的应用数据。由于这 种分离,数据仓库不需要事务处理、恢复和并行控制机制。通常,它只需要两种数据访问:数 据的初始化装入和数据访问。</p>
+
+<h2>发现历史</h2>
+
+<h2>概念层次</h2>
+
+<h2>实用技术（MDX）</h2>
+
+<h2>衍生产品</h2>
 ]]></content>
   </entry>
   

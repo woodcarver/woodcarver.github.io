@@ -108,7 +108,8 @@ top对I/O的描述是用I/O wait这个指标，例如下图：
 其中I/O wait 的定义是：
 
 <blockquote><p>I/O wait is the percentage of time your processors are waiting on the disk.
-I/O wait就是CPU在整个任务处理中等待闲置的时间，举个例子：一个任务一共使用了1s，但是其中从从磁盘中取数据花了700ms，而在磁盘读取数据时CPU是闲置的，所以CPU的等待I/O的时间占了70%，即I/O wait 是70%。</p></blockquote></li>
+I/O wait就是CPU在整个任务处理中等待闲置的时间，举个例子：一个任务一共使用了1s，但是其中从从磁盘中取数据花了700ms，而在磁盘读取数据时CPU是闲置的，所以CPU的等待I/O的时间占了70%，即I/O wait 是70%。
+当然有人指出对多核cpu通过iowait来统计io的负载情况并不准确，<a href="http://veithen.github.io/2013/11/18/iowait-linux.html">详见</a></p></blockquote></li>
 </ul>
 
 
@@ -150,15 +151,6 @@ dstat -tdD total,sda,sdb,sdc,md1 60</p>
 
 
 <time class='entry-date' datetime='2016-02-17T21:58:48+08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>17</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:58 pm</span></time>
-      
-
-<span class="categories">
-  
-    <a class='category' href='/blog/categories/linux/'>linux</a>, <a class='category' href='/blog/categories/system-command/'>system command</a>
-  
-</span>
-
-
     </p>
     
       <div class="sharing">

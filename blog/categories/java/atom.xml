@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Java | Wood Carver]]></title>
   <link href="http://woodcarver.github.io/blog/categories/java/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2016-02-28T22:37:28+08:00</updated>
+  <updated>2016-02-29T14:04:49+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -12,15 +12,6 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
-  
-  <entry>
-    <title type="html"><![CDATA[Mondrian中的线程池详解]]></title>
-    <link href="http://woodcarver.github.io/blog/2016/02/27/mondrian-connection-pool/"/>
-    <updated>2016-02-27T14:48:11+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2016/02/27/mondrian-connection-pool</id>
-    <content type="html"><![CDATA[<p>mondrian中的连接数据库线程池用的是apache的dbpc库，代码位置在：mondrian.rolap.RolapConnectionPool。</p>
-]]></content>
-  </entry>
   
   <entry>
     <title type="html"><![CDATA[Java 项目构建过程]]></title>

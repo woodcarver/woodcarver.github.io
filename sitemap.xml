@@ -1,22 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>http://woodcarver.github.io/blog/2016/02/27/data-warehouse/</loc>
-    <lastmod>2016-02-27T21:56:28+08:00</lastmod>
-  </url>
-  <url>
-    <loc>http://woodcarver.github.io/blog/2016/02/27/mondrian-connection-pool/</loc>
-    <lastmod>2016-02-27T14:48:11+08:00</lastmod>
-  </url>
-  <url>
-    <loc>http://woodcarver.github.io/blog/2016/02/23/ugly-python/</loc>
-    <lastmod>2016-02-23T18:00:50+08:00</lastmod>
-  </url>
-  <url>
-    <loc>http://woodcarver.github.io/blog/2016/02/22/notes-for-hadoop-the-defintive-guid/</loc>
-    <lastmod>2016-02-22T15:13:26+08:00</lastmod>
-  </url>
-  <url>
     <loc>http://woodcarver.github.io/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands/</loc>
     <lastmod>2016-02-17T21:58:48+08:00</lastmod>
   </url>
@@ -126,6 +110,18 @@
     <loc>http://woodcarver.github.io/draft/2016-01-09-how-to-recognize-a-brilliant-slash-awful-company.html</loc>
   </url>
   <url>
+    <loc>http://woodcarver.github.io/draft/2016-02-22-notes-for-hadoop-the-defintive-guid.html</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/draft/2016-02-23-ugly-python.html</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/draft/2016-02-27-data-warehouse.html</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/draft/2016-02-27-mondrian-connection-pool.html</loc>
+  </url>
+  <url>
     <loc>http://woodcarver.github.io/draft/2016-02-28-think-about-big-data.html</loc>
   </url>
   <url>
@@ -199,20 +195,5 @@
   </url>
   <url>
     <loc>http://woodcarver.github.io/blog/categories/system-command/</loc>
-  </url>
-  <url>
-    <loc>http://woodcarver.github.io/blog/categories/hadoop/</loc>
-  </url>
-  <url>
-    <loc>http://woodcarver.github.io/blog/categories/dbms/</loc>
-  </url>
-  <url>
-    <loc>http://woodcarver.github.io/blog/categories/python/</loc>
-  </url>
-  <url>
-    <loc>http://woodcarver.github.io/blog/categories/programming-language/</loc>
-  </url>
-  <url>
-    <loc>http://woodcarver.github.io/blog/categories/mondrian/</loc>
   </url>
 </urlset>
