@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Web Service | Wood Carver]]></title>
   <link href="http://woodcarver.github.io/blog/categories/web-service/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2016-03-06T18:10:14+08:00</updated>
+  <updated>2016-03-06T18:38:21+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -62,12 +62,18 @@ int echoNum(int num);
 从上面可以知道client要发起echoNum过程调用的时候，只需给server端传输一个整形参数即可。而server端接到这个num，直接原数返回。
 开始第一次调用：
 echoNum(1)
-我们分析我们从客户端的角度看，会产生三种结果：1.接收到了1；2.接收到了数据，但是数字不是想要的1；3.没接收到1；
-我们再分析下有那些原因会导致这些结果（状态）：
-第一种情况：server接收到client请求正常，并且处理正常在一个合理的时间返回了结果。
-第二种情况：数据发生了错误，也许client发送数据就发送错误，或许在传输过程种出错了，又或者server process过程种就错了。总之这个问题可能在图中1～4步骤都都可能。
-第三种情况：client等了“很久”，但是数据就没有来，他也不知道哪里出问题了，所它决定不在等了，返回值设置成失败。
-从上面看第一种和第三种的一个关键点就在于接收到返回隐含着等待时间的问题，加入client迟迟等不到返回该采用怎样的策略。是一直等着（block），还是我先离开过段时间我再回来（sleep），还是直接永远的离去（exit）？
+我们分析我们从客户端的角度看，会产生三种结果：1.接收到了1；2.接收到了数据，但是数字不是想要的1；3.没接收到1；</p>
+
+<p>我们再分析下有那些原因会导致这些结果（状态）：</p>
+
+<ul>
+<li>第一种情况：server接收到client请求正常，并且处理正常在一个合理的时间返回了结果。</li>
+<li>第二种情况：数据发生了错误，也许client发送数据就发送错误，或许在传输过程种出错了，又或者server process过程种就错了。总之这个问题可能在图中1～4步骤都都可能。</li>
+<li>第三种情况：client等了“很久”，但是数据就没有来，他也不知道哪里出问题了，所它决定不在等了，返回值设置成失败。</li>
+</ul>
+
+
+<p>从上面看第一种和第三种的一个关键点就在于接收到返回隐含着等待时间的问题，加入client迟迟等不到返回该采用怎样的策略。是一直等着（block），还是我先离开过段时间我再回来（sleep），还是直接永远的离去（exit）？
 再复杂化一点模型，上面只牵涉到一个请求，我们现在加入多个请求：
 echoNum(1)，echoNum(2)，echoNum(3)
 这下我们再分析下client的返回状态有：</p>
