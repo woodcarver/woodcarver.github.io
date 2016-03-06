@@ -9,7 +9,9 @@
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="Introduce OLAP OLAP（Online analytical processing）就是联系分析系统。它是商务智能或者数据挖掘的链条中一个环节。而它的上游是数据仓库，下游就是直接的用户。所以从这几一个环节开始提供了直接的人机互动服务。所以对它的定义就是一个人接互动的工具， &hellip;">
+  <meta name="description" content="看mondrian代码非常痛了，代码经常是绕来绕去的，特别是一些假递归比比皆是。还有A调用B，B再调用A，来回折腾，其中有些是用的单利，有些没有。
+比如：RolapConnection调用RolapSchema，RolapSchema内部又实例化另一个RolapConnection，这样来回折腾
+">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -66,6 +68,36 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/10/19/mondrian-in-the-perspective-of-code-complete/">Mondrian in a Perspective of Code Complete</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-10-19T14:42:12+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>2:42 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>看mondrian代码非常痛了，代码经常是绕来绕去的，特别是一些假递归比比皆是。还有A调用B，B再调用A，来回折腾，其中有些是用的单利，有些没有。
+比如：RolapConnection调用RolapSchema，RolapSchema内部又实例化另一个RolapConnection，这样来回折腾</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -606,6 +638,14 @@ B可能就是慢了1纳秒，但是B还认为计数器才累积到100，所以�
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/03/02/introduce-zookeeper/">Zookeeper</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/02/28/think-about-big-data/">对大数据行业的一些思考</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/02/22/notes-for-hadoop-the-defintive-guid/">Hadoop权威指南笔记</a>
       </li>
     
@@ -615,14 +655,6 @@ B可能就是慢了1纳秒，但是B还认为计数器才累积到100，所以�
     
       <li class="post">
         <a href="/blog/2016/01/26/introduce-thrift/">Introduce Thrift</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/01/18/book-graph/">Book Graph</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/01/17/business-dataming-ecosystem-investigation/">Pentaho和Pivotal</a>
       </li>
     
   </ul>

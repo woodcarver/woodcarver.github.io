@@ -4,7 +4,7 @@
   <title><![CDATA[Wood Carver]]></title>
   <link href="http://woodcarver.github.io/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2016-02-29T14:05:44+08:00</updated>
+  <updated>2016-03-06T18:06:27+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -12,6 +12,29 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Zookeeper]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/03/02/introduce-zookeeper/"/>
+    <updated>2016-03-02T10:41:20+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/03/02/introduce-zookeeper</id>
+    <content type="html"><![CDATA[<h1>paxos algorithm</h1>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[对大数据行业的一些思考]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/02/28/think-about-big-data/"/>
+    <updated>2016-02-28T22:16:20+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/02/28/think-about-big-data</id>
+    <content type="html"><![CDATA[<p>我对数据行业的兴趣开始于2013，没错就是大数据最火的那几年，我就是那波跟风的人。我身边有很多人本能的讨厌根风，比如2011年时候人人崇拜的乔布斯，我身边的人反而觉得他不如盖茨。也许跟风是个负面次，但是它也有正面的说法，那就是追逐潮流，再好听点就是成为从潮流。所以对于个热点，到底是盲目跟风还是成为改变世界的弄潮儿取决于见识、知识还有运气。
+我相信大数据技术一定能改变各行各业，成为人们日常生活不可或缺的部分。
+谈到大数据，我先来说说后面两个字数据的精妙的使用：
+- 知乎上一个特别精彩的通过卷子答案相似度来抓作弊的例子。[todo:]
+- 统计大师利用概率统计识别出面包师的偷斤缺两的。[todo:]
+从上面可以看出数据分析不是仅仅学习一下概率统计学知识就能实际应用，这里需要case积累和艺术。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Hadoop权威指南笔记]]></title>
@@ -1360,15 +1383,6 @@ server</p>
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[My Career Decision Tree]]></title>
-    <link href="http://woodcarver.github.io/blog/2015/12/30/my-career-decision-tree/"/>
-    <updated>2015-12-30T22:32:30+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2015/12/30/my-career-decision-tree</id>
-    <content type="html"><![CDATA[
-]]></content>
-  </entry>
-  
-  <entry>
     <title type="html"><![CDATA[How to Learn a Programming Language]]></title>
     <link href="http://woodcarver.github.io/blog/2015/12/28/how-to-learn-a-programming-language/"/>
     <updated>2015-12-28T10:20:32+08:00</updated>
@@ -1925,16 +1939,6 @@ T= 1+1+while里面的步骤。while里面的步骤怎么计算？
     <updated>2015-10-19T14:50:09+08:00</updated>
     <id>http://woodcarver.github.io/blog/2015/10/19/mondrian-and-multithread</id>
     <content type="html"><![CDATA[
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Mondrian in a Perspective of Code Complete]]></title>
-    <link href="http://woodcarver.github.io/blog/2015/10/19/mondrian-in-the-perspective-of-code-complete/"/>
-    <updated>2015-10-19T14:42:12+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2015/10/19/mondrian-in-the-perspective-of-code-complete</id>
-    <content type="html"><![CDATA[<p>看mondrian代码非常痛了，代码经常是绕来绕去的，特别是一些假递归比比皆是。还有A调用B，B再调用A，来回折腾，其中有些是用的单利，有些没有。
-比如：RolapConnection调用RolapSchema，RolapSchema内部又实例化另一个RolapConnection，这样来回折腾</p>
 ]]></content>
   </entry>
   

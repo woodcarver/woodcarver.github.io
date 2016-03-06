@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://woodcarver.github.io/blog/2016/03/02/introduce-zookeeper/</loc>
+    <lastmod>2016-03-02T10:41:20+08:00</lastmod>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/2016/02/28/think-about-big-data/</loc>
+    <lastmod>2016-02-28T22:16:20+08:00</lastmod>
+  </url>
+  <url>
     <loc>http://woodcarver.github.io/blog/2016/02/22/notes-for-hadoop-the-defintive-guid/</loc>
     <lastmod>2016-02-22T15:13:26+08:00</lastmod>
   </url>
@@ -47,10 +55,6 @@
   <url>
     <loc>http://woodcarver.github.io/blog/2016/01/01/100-open-source-operating-system-papers-for-programmers/</loc>
     <lastmod>2016-01-01T18:32:21+08:00</lastmod>
-  </url>
-  <url>
-    <loc>http://woodcarver.github.io/blog/2015/12/30/my-career-decision-tree/</loc>
-    <lastmod>2015-12-30T22:32:30+08:00</lastmod>
   </url>
   <url>
     <loc>http://woodcarver.github.io/blog/2015/12/28/how-to-learn-a-programming-language/</loc>
@@ -121,9 +125,6 @@
   </url>
   <url>
     <loc>http://woodcarver.github.io/draft/2016-02-27-mondrian-connection-pool.html</loc>
-  </url>
-  <url>
-    <loc>http://woodcarver.github.io/draft/2016-02-28-think-about-big-data.html</loc>
   </url>
   <url>
     <loc>http://woodcarver.github.io/blog/archives/</loc>
@@ -202,5 +203,11 @@
   </url>
   <url>
     <loc>http://woodcarver.github.io/blog/categories/dbms/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/big-data/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/algorithm/</loc>
   </url>
 </urlset>
