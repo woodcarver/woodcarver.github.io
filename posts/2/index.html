@@ -9,7 +9,8 @@
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="网络编程中的服务器模型根据接受请求和处理请求的方法来分，大方向分为阻塞模型和非阻塞模型。像redis这种服务使用的是非阻塞模型。而根据服务器对请求派生的进程或者线程方式，模型又分为单进程或线程和多进程或线程。下面依次讲解这几种经典模型： 单进程的阻塞模型 这是服务器模型中最为简单的模型， &hellip;">
+  <meta name="description" content="什么是代理 代理在普通生活中的意义就是本来应该你做的事情，你让别人代你做了，那么那个帮你做的人就是你的代理。而在计算机网络中代理的概念差不多，就是本来要客户端要做的网络访问，现在移交给另外一个机器做，那么那个机器就被称为代理服务器，代理服务器帮你来访问。过程如下： 正常情况：
+client & &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -66,517 +67,6 @@
     <div id="content">
       <div class="blog-index">
   
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/01/05/networking-server/">网络编程中的服务器模型</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-01-05T22:14:11+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:14 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>网络编程中的服务器模型根据接受请求和处理请求的方法来分，大方向分为阻塞模型和非阻塞模型。像redis这种服务使用的是非阻塞模型。而根据服务器对请求派生的进程或者线程方式，模型又分为单进程或线程和多进程或线程。下面依次讲解这几种经典模型：</p>
-
-<h2>单进程的阻塞模型</h2>
-
-<p>这是服务器模型中最为简单的模型，当然处理客户端请有的效率也是最低的。该模型是启动一个socket进程，每来一个请求就处理一个，如果同时有多个请求，只处理最先到达的请求，其他的请求处于阻塞状态直到前一个请求处理完成。尽管这个模型很简单，但是理解其他网络服务器模型的基石。其参考代码如下(代码下载：)：</p>
-
-<p>下面的例子的功能是把服务端的时间传送给客户端：</p>
-
-<pre><code>服务端程序：
-</code></pre>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span><span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="kt">int</span> <span class="n">sockfd</span><span class="p">,</span><span class="n">bin</span><span class="p">,</span><span class="n">connfd</span><span class="p">,</span><span class="n">lisfd</span><span class="p">;</span>
-</span><span class='line'>  <span class="kt">char</span> <span class="n">buff</span><span class="p">[</span><span class="n">MAXLINE</span><span class="p">];</span>
-</span><span class='line'>  <span class="k">struct</span> <span class="n">sockaddr_in</span> <span class="n">sevr_addr</span><span class="p">;</span>
-</span><span class='line'>  <span class="kt">time_t</span> <span class="n">ticks</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="n">memset</span><span class="p">(</span><span class="o">&amp;</span><span class="n">sevr_addr</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="k">sizeof</span><span class="p">(</span><span class="n">sevr_addr</span><span class="p">));</span>
-</span><span class='line'>  <span class="n">sevr_addr</span><span class="p">.</span><span class="n">sin_family</span><span class="o">=</span><span class="n">AF_INET</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">sevr_addr</span><span class="p">.</span><span class="n">sin_addr</span><span class="p">.</span><span class="n">s_addr</span><span class="o">=</span><span class="n">htonl</span><span class="p">(</span><span class="n">INADDR_ANY</span><span class="p">);</span>
-</span><span class='line'>  <span class="n">sevr_addr</span><span class="p">.</span><span class="n">sin_port</span><span class="o">=</span><span class="n">htons</span><span class="p">(</span><span class="n">SERVER_PORT</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="n">sockfd</span><span class="o">=</span><span class="n">socket</span><span class="p">(</span><span class="n">AF_INET</span><span class="p">,</span><span class="n">SOCK_STREAM</span><span class="p">,</span><span class="n">IPPROTO_TCP</span><span class="p">);</span>
-</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="n">sockfd</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">)</span>
-</span><span class='line'>      <span class="n">fatal</span><span class="p">(</span><span class="s">&quot;socket failed&quot;</span><span class="p">);</span>
-</span><span class='line'>  <span class="n">bin</span><span class="o">=</span><span class="n">bind</span><span class="p">(</span><span class="n">sockfd</span><span class="p">,(</span><span class="k">struct</span> <span class="n">sockaddr</span> <span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">sevr_addr</span><span class="p">,</span><span class="k">sizeof</span><span class="p">(</span><span class="n">sevr_addr</span><span class="p">));</span>
-</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="n">bin</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">)</span>
-</span><span class='line'>      <span class="n">fatal</span><span class="p">(</span><span class="s">&quot;bind failed&quot;</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="n">lisfd</span><span class="o">=</span><span class="n">listen</span><span class="p">(</span><span class="n">sockfd</span><span class="p">,</span><span class="n">QUEUE_SIZE</span><span class="p">);</span>
-</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="n">lisfd</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">)</span>
-</span><span class='line'>      <span class="n">fatal</span><span class="p">(</span><span class="s">&quot;listen failed&quot;</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">while</span><span class="p">(</span><span class="mi">1</span><span class="p">){</span>
-</span><span class='line'>      <span class="n">connfd</span><span class="o">=</span><span class="n">accept</span><span class="p">(</span><span class="n">sockfd</span><span class="p">,</span><span class="nb">NULL</span><span class="p">,</span><span class="nb">NULL</span><span class="p">);</span>
-</span><span class='line'>      <span class="n">ticks</span><span class="o">=</span><span class="n">time</span><span class="p">(</span><span class="nb">NULL</span><span class="p">);</span>
-</span><span class='line'>      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;send time:%d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">ticks</span><span class="p">);</span>
-</span><span class='line'>      <span class="n">snprintf</span><span class="p">(</span><span class="n">buff</span><span class="p">,</span><span class="k">sizeof</span><span class="p">(</span><span class="n">buff</span><span class="p">),</span><span class="s">&quot;%.24s</span><span class="se">\r\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">ctime</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ticks</span><span class="p">));</span>
-</span><span class='line'>      <span class="n">write</span><span class="p">(</span><span class="n">connfd</span><span class="p">,</span><span class="n">buff</span><span class="p">,</span><span class="n">strlen</span><span class="p">(</span><span class="n">buff</span><span class="p">));</span>
-</span><span class='line'>      <span class="n">close</span><span class="p">(</span><span class="n">connfd</span><span class="p">);</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'>  <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<pre><code>该例子中，只启用了一个accept来接受客户端的请求连接，每次只处理一个请求。其他的请求则按照FIFO的原则排入队列中，队列的大小是作为listen函数的第二个参数通知系统的。关于socket编程，参考《unix网络编程》。
-
-客户端程序：
-</code></pre>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span><span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>        <span class="kt">int</span> <span class="n">sockfd</span><span class="p">,</span><span class="n">n</span><span class="p">;</span>
-</span><span class='line'>        <span class="kt">char</span> <span class="n">buff</span><span class="p">[</span><span class="n">MAXLINE</span><span class="o">+</span><span class="mi">1</span><span class="p">];</span>
-</span><span class='line'>        <span class="k">struct</span> <span class="n">sockaddr_in</span> <span class="n">sevr_addr</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="k">if</span><span class="p">((</span><span class="n">sockfd</span><span class="o">=</span><span class="n">socket</span><span class="p">(</span><span class="n">AF_INET</span><span class="p">,</span><span class="n">SOCK_STREAM</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">)</span>
-</span><span class='line'>                <span class="n">fatal</span><span class="p">(</span><span class="s">&quot;socket error&quot;</span><span class="p">);</span>
-</span><span class='line'>        <span class="n">memset</span><span class="p">(</span><span class="o">&amp;</span><span class="n">sevr_addr</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="k">sizeof</span><span class="p">(</span><span class="n">sevr_addr</span><span class="p">));</span>
-</span><span class='line'>        <span class="n">sevr_addr</span><span class="p">.</span><span class="n">sin_family</span><span class="o">=</span><span class="n">AF_INET</span><span class="p">;</span>
-</span><span class='line'>        <span class="n">sevr_addr</span><span class="p">.</span><span class="n">sin_port</span><span class="o">=</span><span class="n">htons</span><span class="p">(</span><span class="n">SERVER_PORT</span><span class="p">);</span>
-</span><span class='line'>        <span class="k">if</span><span class="p">(</span><span class="n">inet_pton</span><span class="p">(</span><span class="n">AF_INET</span><span class="p">,</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="o">&amp;</span><span class="n">sevr_addr</span><span class="p">.</span><span class="n">sin_addr</span><span class="p">)</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">)</span>
-</span><span class='line'>                <span class="n">fatal</span><span class="p">(</span><span class="s">&quot;can not reach the address&quot;</span><span class="p">);</span>
-</span><span class='line'>        <span class="k">if</span><span class="p">(</span><span class="n">connect</span><span class="p">(</span><span class="n">sockfd</span><span class="p">,(</span><span class="k">struct</span> <span class="n">sockaddr</span> <span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">sevr_addr</span><span class="p">,</span><span class="k">sizeof</span><span class="p">(</span><span class="n">sevr_addr</span><span class="p">))</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">)</span>
-</span><span class='line'>                <span class="n">fatal</span><span class="p">(</span><span class="s">&quot;can not connect&quot;</span><span class="p">);</span>
-</span><span class='line'>        <span class="k">while</span><span class="p">((</span><span class="n">n</span><span class="o">=</span><span class="n">read</span><span class="p">(</span><span class="n">sockfd</span><span class="p">,</span><span class="n">buff</span><span class="p">,</span><span class="n">MAXLINE</span><span class="p">))</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">){</span>
-</span><span class='line'>                <span class="n">buff</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span>
-</span><span class='line'>                <span class="k">if</span><span class="p">(</span><span class="n">fputs</span><span class="p">(</span><span class="n">buff</span><span class="p">,</span><span class="n">stdout</span><span class="p">)</span><span class="o">==</span><span class="n">EOF</span><span class="p">)</span>
-</span><span class='line'>                        <span class="n">fatal</span><span class="p">(</span><span class="s">&quot;fputs error&quot;</span><span class="p">);</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>        <span class="k">if</span><span class="p">(</span><span class="n">n</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">)</span>
-</span><span class='line'>                <span class="n">fatal</span><span class="p">(</span><span class="s">&quot;read error&quot;</span><span class="p">);</span>
-</span><span class='line'>        <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p></p>
-
-<pre><code>下面的模型，变化的只是服务端程序，客户端的程序是不变得。
-</code></pre>
-
-<h2>一个进程或者线程一个请求模型</h2>
-
-<p>这种模型是在单进程模型的基础上，对每个请求派生一个专属的进程。由于是多进程或者线程，这种模型是可以同时处理多个请求。但是这种模型存在派生进程过多，导致服务器崩溃的危险情况。同时由于大量的进程或者线程的生成和销毁，会耗费大量的cpu资源。而其他高级模型就是解决这种情况而演变出来的。其编程的核心是在单进程模型上利用fork函数。</p>
-
-<pre><code>服务端代码示例：
-</code></pre>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include&lt;stdio.h&gt;</span>
-</span><span class='line'><span class="cp">#include&lt;stdlib.h&gt;</span>
-</span><span class='line'><span class="cp">#include&lt;string.h&gt;</span>
-</span><span class='line'><span class="cp">#include&lt;netinet/in.h&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="cp">#define MAXLINE 100</span>
-</span><span class='line'><span class="cp">#define SERVER_PORT 12345</span>
-</span><span class='line'><span class="cp">#define QUEUE_SIZE 1</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">void</span> <span class="nf">fatal</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">msg</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">msg</span><span class="p">);</span>
-</span><span class='line'>  <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span><span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="kt">int</span> <span class="n">sockfd</span><span class="p">,</span><span class="n">bin</span><span class="p">,</span><span class="n">connfd</span><span class="p">,</span><span class="n">lisfd</span><span class="p">;</span>
-</span><span class='line'>  <span class="kt">char</span> <span class="n">buff</span><span class="p">[</span><span class="n">MAXLINE</span><span class="p">];</span>
-</span><span class='line'>  <span class="k">struct</span> <span class="n">sockaddr_in</span> <span class="n">sevr_addr</span><span class="p">;</span>
-</span><span class='line'>  <span class="kt">time_t</span> <span class="n">ticks</span><span class="p">;</span>
-</span><span class='line'>  <span class="kt">pid_t</span> <span class="n">pid</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="n">memset</span><span class="p">(</span><span class="o">&amp;</span><span class="n">sevr_addr</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="k">sizeof</span><span class="p">(</span><span class="n">sevr_addr</span><span class="p">));</span>
-</span><span class='line'>  <span class="n">sevr_addr</span><span class="p">.</span><span class="n">sin_family</span><span class="o">=</span><span class="n">AF_INET</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">sevr_addr</span><span class="p">.</span><span class="n">sin_addr</span><span class="p">.</span><span class="n">s_addr</span><span class="o">=</span><span class="n">htonl</span><span class="p">(</span><span class="n">INADDR_ANY</span><span class="p">);</span>
-</span><span class='line'>  <span class="n">sevr_addr</span><span class="p">.</span><span class="n">sin_port</span><span class="o">=</span><span class="n">htons</span><span class="p">(</span><span class="n">SERVER_PORT</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="n">sockfd</span><span class="o">=</span><span class="n">socket</span><span class="p">(</span><span class="n">AF_INET</span><span class="p">,</span><span class="n">SOCK_STREAM</span><span class="p">,</span><span class="n">IPPROTO_TCP</span><span class="p">);</span>
-</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="n">sockfd</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">)</span>
-</span><span class='line'>      <span class="n">fatal</span><span class="p">(</span><span class="s">&quot;socket failed&quot;</span><span class="p">);</span>
-</span><span class='line'>  <span class="n">bin</span><span class="o">=</span><span class="n">bind</span><span class="p">(</span><span class="n">sockfd</span><span class="p">,(</span><span class="k">struct</span> <span class="n">sockaddr</span> <span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">sevr_addr</span><span class="p">,</span><span class="k">sizeof</span><span class="p">(</span><span class="n">sevr_addr</span><span class="p">));</span>
-</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="n">bin</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">)</span>
-</span><span class='line'>      <span class="n">fatal</span><span class="p">(</span><span class="s">&quot;bind failed&quot;</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="n">lisfd</span><span class="o">=</span><span class="n">listen</span><span class="p">(</span><span class="n">sockfd</span><span class="p">,</span><span class="n">QUEUE_SIZE</span><span class="p">);</span>
-</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="n">lisfd</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">)</span>
-</span><span class='line'>      <span class="n">fatal</span><span class="p">(</span><span class="s">&quot;listen failed&quot;</span><span class="p">);</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">while</span><span class="p">(</span><span class="mi">1</span><span class="p">){</span>
-</span><span class='line'>      <span class="n">connfd</span><span class="o">=</span><span class="n">accept</span><span class="p">(</span><span class="n">sockfd</span><span class="p">,</span><span class="nb">NULL</span><span class="p">,</span><span class="nb">NULL</span><span class="p">);</span>
-</span><span class='line'>      <span class="k">if</span><span class="p">((</span><span class="n">pid</span><span class="o">=</span><span class="n">fork</span><span class="p">())</span><span class="o">==</span><span class="mi">0</span><span class="p">){</span>
-</span><span class='line'>          <span class="n">close</span><span class="p">(</span><span class="n">lisfd</span><span class="p">);</span><span class="cm">/*why?*/</span>
-</span><span class='line'>
-</span><span class='line'>          <span class="n">ticks</span><span class="o">=</span><span class="n">time</span><span class="p">(</span><span class="nb">NULL</span><span class="p">);</span>
-</span><span class='line'>          <span class="n">printf</span><span class="p">(</span><span class="s">&quot;send time:%d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">ticks</span><span class="p">);</span>
-</span><span class='line'>          <span class="n">snprintf</span><span class="p">(</span><span class="n">buff</span><span class="p">,</span><span class="k">sizeof</span><span class="p">(</span><span class="n">buff</span><span class="p">),</span><span class="s">&quot;%.24s</span><span class="se">\r\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">ctime</span><span class="p">(</span><span class="o">&amp;</span><span class="n">ticks</span><span class="p">));</span>
-</span><span class='line'>          <span class="n">write</span><span class="p">(</span><span class="n">connfd</span><span class="p">,</span><span class="n">buff</span><span class="p">,</span><span class="n">strlen</span><span class="p">(</span><span class="n">buff</span><span class="p">));</span>
-</span><span class='line'>
-</span><span class='line'>          <span class="n">printf</span><span class="p">(</span><span class="s">&quot;sleep for 10 seconds...</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
-</span><span class='line'>          <span class="n">sleep</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
-</span><span class='line'>          <span class="n">printf</span><span class="p">(</span><span class="s">&quot;the connect is over.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
-</span><span class='line'>          
-</span><span class='line'>          <span class="n">close</span><span class="p">(</span><span class="n">connfd</span><span class="p">);</span>
-</span><span class='line'>          <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
-</span><span class='line'>      <span class="p">}</span>
-</span><span class='line'>      <span class="n">close</span><span class="p">(</span><span class="n">connfd</span><span class="p">);</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/01/05/java-project-orangnism/">Java 项目构建过程</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-01-05T22:11:30+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:11 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>单个文件的编译</h2>
-
-<p>HelloWorld.java</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.util.*</span><span class="o">;</span>
-</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">HelloWorld</span> <span class="c1">//the class name must the same as file name case sensitivly</span>
-</span><span class='line'><span class="o">{</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span>
-</span><span class='line'>    <span class="o">{</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">print</span><span class="o">(</span><span class="s">&quot;hello world!\n&quot;</span><span class="o">);</span>
-</span><span class='line'>        <span class="k">for</span><span class="o">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="mi">10</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span>
-</span><span class='line'>            <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">print</span><span class="o">(</span><span class="n">i</span><span class="o">+</span><span class="s">&quot;\n&quot;</span><span class="o">);</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>shell>javac HelloWorld.java       产生HelloWorld.class文件
-shell>java HelloWorld             执行HelloWorld.class</p>
-
-<h2>多个文件的编译</h2>
-
-<p>不过实际中只有一个文件的项目几乎不会出现，现在我们衍生到2个文件的组织和编译。
-- 先看第一种情况：所有文件都放在同一个文件夹中，即所有java文件都是平级的。这种编译和一个文件编译方法是一样的，直接编译入口java文件（包含main函数）即可。编译器会自动在当前目录寻找引入类的定义。</p>
-
-<p>HelloWorld.java</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.util.*</span><span class="o">;</span>
-</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">HelloWorld</span><span class="o">{</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">){</span>
-</span><span class='line'>        <span class="n">DogWorld</span> <span class="n">dg</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">DogWorld</span><span class="o">();</span>
-</span><span class='line'>        <span class="n">dg</span><span class="o">.</span><span class="na">setname</span><span class="o">(</span><span class="s">&quot;Mr Steph&quot;</span><span class="o">);</span>
-</span><span class='line'>        <span class="n">String</span> <span class="n">dgname</span><span class="o">=</span><span class="n">dg</span><span class="o">.</span><span class="na">getname</span><span class="o">();</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">printf</span><span class="o">(</span><span class="s">&quot;hello %s!\n&quot;</span><span class="o">,</span><span class="n">dgname</span><span class="o">);</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>DogWorld.java</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">DogWorld</span>
-</span><span class='line'><span class="o">{</span>
-</span><span class='line'>    <span class="kd">private</span> <span class="n">String</span> <span class="n">dogname</span><span class="o">;</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setname</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">)</span>
-</span><span class='line'>    <span class="o">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="o">.</span><span class="na">dogname</span><span class="o">=</span><span class="n">name</span><span class="o">;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="n">String</span> <span class="nf">getname</span><span class="o">()</span>
-</span><span class='line'>    <span class="o">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">dogname</span><span class="o">;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>shell>javac HelloWorld.java     <code>产生HelloWorld.class文件</code>
-shell>java HelloWorld           <code>执行HelloWorld.class</code></p>
-
-<ul>
-<li>第二种：当工程的文件达到上千个，放在同一个文件有开始有损工程可读性了，这是开始使用子文件夹来对代码文件模块化组织。</li>
-</ul>
-
-
-<p>现在我们把DogWorld放入到一个animal文件夹中，工程文文件目录如下：
-- HelloWorld.java
-- animal
-- DogWorld.java</p>
-
-<p>HelloWorld.java</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.util.*</span><span class="o">;</span>
-</span><span class='line'><span class="kn">import</span> <span class="nn">animal.*</span><span class="o">;</span>
-</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">HelloWorld</span><span class="o">{</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">){</span>
-</span><span class='line'>        <span class="n">DogWorld</span> <span class="n">dg</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">DogWorld</span><span class="o">();</span>
-</span><span class='line'>        <span class="n">dg</span><span class="o">.</span><span class="na">setname</span><span class="o">(</span><span class="s">&quot;Mr Steph&quot;</span><span class="o">);</span>
-</span><span class='line'>        <span class="n">String</span> <span class="n">dgname</span><span class="o">=</span><span class="n">dg</span><span class="o">.</span><span class="na">getname</span><span class="o">();</span>
-</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">printf</span><span class="o">(</span><span class="s">&quot;hello %s!\n&quot;</span><span class="o">,</span><span class="n">dgname</span><span class="o">);</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>注意HelloWorld.java多了一行import animal.*代码，用于指定要引入的package。</p>
-
-<p>animal/DogWorld.java</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">package</span> <span class="n">animal</span><span class="o">;</span>
-</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">DogWorld</span>
-</span><span class='line'><span class="o">{</span>
-</span><span class='line'>    <span class="kd">private</span> <span class="n">String</span> <span class="n">dogname</span><span class="o">;</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setname</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">)</span>
-</span><span class='line'>    <span class="o">{</span>
-</span><span class='line'>        <span class="k">this</span><span class="o">.</span><span class="na">dogname</span><span class="o">=</span><span class="n">name</span><span class="o">;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>    <span class="kd">public</span> <span class="n">String</span> <span class="nf">getname</span><span class="o">()</span>
-</span><span class='line'>    <span class="o">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">dogname</span><span class="o">;</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>DogWorld.java也多了一行package animal，指定把这个类打入到animal package中，否则DogWorld将被打入默认package中。</p>
-
-<p>一下子多出来package和import的概念，我们还是先来探索package，这个给文件指定路径的机制。</p>
-
-<p><strong>我们先规定一个概念：工程根目录——这个目录的定义是包含main函数的文件的package指定的目录，如果入口文件没有package那么默认就是文件当前所在目录。例如我们的HelloWorld.java没有指定package， 那么根目录就是./</strong></p>
-
-<p>  当java文件中没有使用package显示指定它属于那个包的时候，它默认是属于根目录的包的，而且不管这个java文件是放在哪里。而显示指定package的时候，它又一定规则，即报名必须和文件的放的位置匹配。如果package animal，那么这个java文件就必须放入到相对于根目录的animal目录下。这样做的一个用处——源文件和中间文件路径可以分离。
-  javac的寻找类级别是先寻找xxx.class文件，如果没有那么再寻找xxx.java文件现编译xxx.class。而package其实指定xxx.class文件的路径的，而不是xxx.java文件。</p>
-
-<p>例如上面的例子，你也可以这样编译：
-shell>cd animal; javac DogWorld.java  <code>用来生产DogWorld.class文件</code>
-shell>cd ../     <code>到工程根目录</code>
-shell>javac HelloWorld.java
-shell>java HelloWorld</p>
-
-<p>假如你把DogWorld.java的package去掉，那么相当于你是想表达把DogWorld.class放到根目录上去。执行步骤是这样的。
-shell>cd animal; javac DogWorld.java  <code>用来生产DogWorld.class文件</code>
-shell> mv DogWorld.class ../   <code>把DogWorld.class移动到工程根目录去</code>
-shell>cd ../
-shell>javac HelloWorld.java
-shell>java HelloWorld</p>
-
-<p>而import是用来引入class文件的。它很简单，import xxx，完全就按照xxx来寻找。xxx的写法规则是用.来表示文件的层次。如com.animal那么就再相对于工程根目录的com/animal文件夹。</p>
-
-<p>有趣的是package和import的都是相对于根目录的路径，和代码文件本身所在目录完全无关，只和工程根目录有关。</p>
-
-<p>这些引用规则和c中#include使用大为不同。</p>
-
-<h2>虚拟机是如何定位类</h2>
-
-<p>接下来我们来仔细探讨下虚拟机的定位规则。</p>
-</div>
-  
-  
-
-
-    </article>
   
   
     <article>
@@ -1657,6 +1147,86 @@ T= 1+1+while里面的步骤。while里面的步骤怎么计算？
 
     </article>
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/10/19/mondrian-in-the-perspective-of-code-complete/">Mondrian in a Perspective of Code Complete</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-10-19T14:42:12+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>2:42 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>看mondrian代码非常痛了，代码经常是绕来绕去的，特别是一些假递归比比皆是。还有A调用B，B再调用A，来回折腾，其中有些是用的单利，有些没有。
+比如：RolapConnection调用RolapSchema，RolapSchema内部又实例化另一个RolapConnection，这样来回折腾</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/10/18/introduce-olap-model/">Introduce OLAP Model</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-10-18T15:09:46+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>3:09 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>Introduce OLAP</h1>
+
+<p>OLAP（Online analytical processing）就是联系分析系统。它是商务智能或者数据挖掘的链条中一个环节。而它的上游是数据仓库，下游就是直接的用户。所以从这几一个环节开始提供了直接的人机互动服务。所以对它的定义就是一个人接互动的工具，主要服务是提供高效的、广泛的多维度数据分析。
+<img src="/images/posts/data_mining_olap.png" alt="olap在数据挖掘中的位置" /></p>
+
+<p>由于OLAP对数据仓库的依赖性很强（公用一个数据模型），所以一般来说这两个一般都放在一起作为一个整体来讨论。</p>
+
+<p>对于一个系统来说，只提供基本通用的定义是不够的，必须明确其必须满足的条件，而且需要解释为什么要满足这些条件（即满足最小集合条件，如果不满足就不应该称它是属于这种系统）。所以到底什么是OLAP的具体明明确的定定义？一种定义：
+按照 W. H. Inmon,一位数据仓库系统构造方面的领头建筑师的说法,“数据仓库是一个面向 主题的、集成的、时变的、非易失的数据集合,支持管理决策制定”[Inm96]
+“A data warehouse is a subject-oriented, integrated, time-variant, and nonvolatile collection of data in support of management’s decision making process”
+ - <strong>面向主题的</strong>:数据仓库围绕一些主题,如顾客、供应商、产品和销售组织。数据仓库关注决策 者的数据建模与分析,而不是构造组织机构的日常操作和事务处理。因此,数据仓库排除对于 决策无用的数据,提供特定主题的简明视图。
+ - <strong>集成的</strong>:通常构造数据仓库是将多个异种数据源,如关系数据库、一般文件和联机事务处理 记录,集成在一起。使用数据清理和数据集成技术,确保命名约定、编码结构、属性度量的一 致性。
+ - <strong>时变的</strong>:数据存储从历史的角度(例如,过去5-10年)提供信息。数据仓库中的关键结构, 隐式或显式地包含时间元素。
+ - <strong>非易失的</strong>:数据仓库总是物理地分离存放数据;这些数据源于操作环境下的应用数据。由于这 种分离,数据仓库不需要事务处理、恢复和并行控制机制。通常,它只需要两种数据访问:数 据的初始化装入和数据访问。</p>
+
+<h2>发现历史</h2>
+
+<h2>概念层次</h2>
+
+<h2>实用技术（MDX）</h2>
+
+<h2>衍生产品</h2>
+</div>
+  
+  
+
+
+    </article>
+  
   <div class="pagination">
     
       <a class="prev" href="/posts/3">&larr; Older</a>
@@ -1674,14 +1244,6 @@ T= 1+1+while里面的步骤。while里面的步骤怎么计算？
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/03/02/introduce-zookeeper/">Zookeeper</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/02/28/think-about-big-data/">对大数据行业的一些思考</a>
-      </li>
-    
-      <li class="post">
         <a href="/blog/2016/02/22/notes-for-hadoop-the-defintive-guid/">Hadoop权威指南笔记</a>
       </li>
     
@@ -1691,6 +1253,14 @@ T= 1+1+while里面的步骤。while里面的步骤怎么计算？
     
       <li class="post">
         <a href="/blog/2016/01/26/introduce-thrift/">Introduce Thrift</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/01/18/book-graph/">Book Graph</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/01/17/business-dataming-ecosystem-investigation/">Pentaho和Pivotal</a>
       </li>
     
   </ul>

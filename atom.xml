@@ -4,7 +4,7 @@
   <title><![CDATA[Wood Carver]]></title>
   <link href="http://woodcarver.github.io/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2016-03-06T18:06:27+08:00</updated>
+  <updated>2016-03-06T18:10:14+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -12,29 +12,6 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
-  
-  <entry>
-    <title type="html"><![CDATA[Zookeeper]]></title>
-    <link href="http://woodcarver.github.io/blog/2016/03/02/introduce-zookeeper/"/>
-    <updated>2016-03-02T10:41:20+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2016/03/02/introduce-zookeeper</id>
-    <content type="html"><![CDATA[<h1>paxos algorithm</h1>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[对大数据行业的一些思考]]></title>
-    <link href="http://woodcarver.github.io/blog/2016/02/28/think-about-big-data/"/>
-    <updated>2016-02-28T22:16:20+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2016/02/28/think-about-big-data</id>
-    <content type="html"><![CDATA[<p>我对数据行业的兴趣开始于2013，没错就是大数据最火的那几年，我就是那波跟风的人。我身边有很多人本能的讨厌根风，比如2011年时候人人崇拜的乔布斯，我身边的人反而觉得他不如盖茨。也许跟风是个负面次，但是它也有正面的说法，那就是追逐潮流，再好听点就是成为从潮流。所以对于个热点，到底是盲目跟风还是成为改变世界的弄潮儿取决于见识、知识还有运气。
-我相信大数据技术一定能改变各行各业，成为人们日常生活不可或缺的部分。
-谈到大数据，我先来说说后面两个字数据的精妙的使用：
-- 知乎上一个特别精彩的通过卷子答案相似度来抓作弊的例子。[todo:]
-- 统计大师利用概率统计识别出面包师的偷斤缺两的。[todo:]
-从上面可以看出数据分析不是仅仅学习一下概率统计学知识就能实际应用，这里需要case积累和艺术。</p>
-]]></content>
-  </entry>
   
   <entry>
     <title type="html"><![CDATA[Hadoop权威指南笔记]]></title>
@@ -1939,6 +1916,46 @@ T= 1+1+while里面的步骤。while里面的步骤怎么计算？
     <updated>2015-10-19T14:50:09+08:00</updated>
     <id>http://woodcarver.github.io/blog/2015/10/19/mondrian-and-multithread</id>
     <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Mondrian in a Perspective of Code Complete]]></title>
+    <link href="http://woodcarver.github.io/blog/2015/10/19/mondrian-in-the-perspective-of-code-complete/"/>
+    <updated>2015-10-19T14:42:12+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2015/10/19/mondrian-in-the-perspective-of-code-complete</id>
+    <content type="html"><![CDATA[<p>看mondrian代码非常痛了，代码经常是绕来绕去的，特别是一些假递归比比皆是。还有A调用B，B再调用A，来回折腾，其中有些是用的单利，有些没有。
+比如：RolapConnection调用RolapSchema，RolapSchema内部又实例化另一个RolapConnection，这样来回折腾</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Introduce OLAP Model]]></title>
+    <link href="http://woodcarver.github.io/blog/2015/10/18/introduce-olap-model/"/>
+    <updated>2015-10-18T15:09:46+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2015/10/18/introduce-olap-model</id>
+    <content type="html"><![CDATA[<h1>Introduce OLAP</h1>
+
+<p>OLAP（Online analytical processing）就是联系分析系统。它是商务智能或者数据挖掘的链条中一个环节。而它的上游是数据仓库，下游就是直接的用户。所以从这几一个环节开始提供了直接的人机互动服务。所以对它的定义就是一个人接互动的工具，主要服务是提供高效的、广泛的多维度数据分析。
+<img src="http://woodcarver.github.io/images/posts/data_mining_olap.png" alt="olap在数据挖掘中的位置" /></p>
+
+<p>由于OLAP对数据仓库的依赖性很强（公用一个数据模型），所以一般来说这两个一般都放在一起作为一个整体来讨论。</p>
+
+<p>对于一个系统来说，只提供基本通用的定义是不够的，必须明确其必须满足的条件，而且需要解释为什么要满足这些条件（即满足最小集合条件，如果不满足就不应该称它是属于这种系统）。所以到底什么是OLAP的具体明明确的定定义？一种定义：
+按照 W. H. Inmon,一位数据仓库系统构造方面的领头建筑师的说法,“数据仓库是一个面向 主题的、集成的、时变的、非易失的数据集合,支持管理决策制定”[Inm96]
+“A data warehouse is a subject-oriented, integrated, time-variant, and nonvolatile collection of data in support of management’s decision making process”
+ - <strong>面向主题的</strong>:数据仓库围绕一些主题,如顾客、供应商、产品和销售组织。数据仓库关注决策 者的数据建模与分析,而不是构造组织机构的日常操作和事务处理。因此,数据仓库排除对于 决策无用的数据,提供特定主题的简明视图。
+ - <strong>集成的</strong>:通常构造数据仓库是将多个异种数据源,如关系数据库、一般文件和联机事务处理 记录,集成在一起。使用数据清理和数据集成技术,确保命名约定、编码结构、属性度量的一 致性。
+ - <strong>时变的</strong>:数据存储从历史的角度(例如,过去5-10年)提供信息。数据仓库中的关键结构, 隐式或显式地包含时间元素。
+ - <strong>非易失的</strong>:数据仓库总是物理地分离存放数据;这些数据源于操作环境下的应用数据。由于这 种分离,数据仓库不需要事务处理、恢复和并行控制机制。通常,它只需要两种数据访问:数 据的初始化装入和数据访问。</p>
+
+<h2>发现历史</h2>
+
+<h2>概念层次</h2>
+
+<h2>实用技术（MDX）</h2>
+
+<h2>衍生产品</h2>
 ]]></content>
   </entry>
   

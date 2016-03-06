@@ -9,9 +9,7 @@
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="看mondrian代码非常痛了，代码经常是绕来绕去的，特别是一些假递归比比皆是。还有A调用B，B再调用A，来回折腾，其中有些是用的单利，有些没有。
-比如：RolapConnection调用RolapSchema，RolapSchema内部又实例化另一个RolapConnection，这样来回折腾
-">
+  <meta name="description" content="java proxy 代理的概念和作用 代理是一个很通用的解决问题的方法。其用处也是无所不在，不管是在网络部署，编程语言、火车票贩售还是澳洲签证办理中。 这一点有篇文章讲的非常好，看详情直接点这里，中文版，或者点这里，原文 代理强制对象方法的调用要间接的通过代理对象， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -68,86 +66,6 @@
     <div id="content">
       <div class="blog-index">
   
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/10/19/mondrian-in-the-perspective-of-code-complete/">Mondrian in a Perspective of Code Complete</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-10-19T14:42:12+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>2:42 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>看mondrian代码非常痛了，代码经常是绕来绕去的，特别是一些假递归比比皆是。还有A调用B，B再调用A，来回折腾，其中有些是用的单利，有些没有。
-比如：RolapConnection调用RolapSchema，RolapSchema内部又实例化另一个RolapConnection，这样来回折腾</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/10/18/introduce-olap-model/">Introduce OLAP Model</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-10-18T15:09:46+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>3:09 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h1>Introduce OLAP</h1>
-
-<p>OLAP（Online analytical processing）就是联系分析系统。它是商务智能或者数据挖掘的链条中一个环节。而它的上游是数据仓库，下游就是直接的用户。所以从这几一个环节开始提供了直接的人机互动服务。所以对它的定义就是一个人接互动的工具，主要服务是提供高效的、广泛的多维度数据分析。
-<img src="/images/posts/data_mining_olap.png" alt="olap在数据挖掘中的位置" /></p>
-
-<p>由于OLAP对数据仓库的依赖性很强（公用一个数据模型），所以一般来说这两个一般都放在一起作为一个整体来讨论。</p>
-
-<p>对于一个系统来说，只提供基本通用的定义是不够的，必须明确其必须满足的条件，而且需要解释为什么要满足这些条件（即满足最小集合条件，如果不满足就不应该称它是属于这种系统）。所以到底什么是OLAP的具体明明确的定定义？一种定义：
-按照 W. H. Inmon,一位数据仓库系统构造方面的领头建筑师的说法,“数据仓库是一个面向 主题的、集成的、时变的、非易失的数据集合,支持管理决策制定”[Inm96]
-“A data warehouse is a subject-oriented, integrated, time-variant, and nonvolatile collection of data in support of management’s decision making process”
- - <strong>面向主题的</strong>:数据仓库围绕一些主题,如顾客、供应商、产品和销售组织。数据仓库关注决策 者的数据建模与分析,而不是构造组织机构的日常操作和事务处理。因此,数据仓库排除对于 决策无用的数据,提供特定主题的简明视图。
- - <strong>集成的</strong>:通常构造数据仓库是将多个异种数据源,如关系数据库、一般文件和联机事务处理 记录,集成在一起。使用数据清理和数据集成技术,确保命名约定、编码结构、属性度量的一 致性。
- - <strong>时变的</strong>:数据存储从历史的角度(例如,过去5-10年)提供信息。数据仓库中的关键结构, 隐式或显式地包含时间元素。
- - <strong>非易失的</strong>:数据仓库总是物理地分离存放数据;这些数据源于操作环境下的应用数据。由于这 种分离,数据仓库不需要事务处理、恢复和并行控制机制。通常,它只需要两种数据访问:数 据的初始化装入和数据访问。</p>
-
-<h2>发现历史</h2>
-
-<h2>概念层次</h2>
-
-<h2>实用技术（MDX）</h2>
-
-<h2>衍生产品</h2>
-</div>
-  
-  
-
-
-    </article>
   
   
     <article>
@@ -638,14 +556,6 @@ B可能就是慢了1纳秒，但是B还认为计数器才累积到100，所以�
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/03/02/introduce-zookeeper/">Zookeeper</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/02/28/think-about-big-data/">对大数据行业的一些思考</a>
-      </li>
-    
-      <li class="post">
         <a href="/blog/2016/02/22/notes-for-hadoop-the-defintive-guid/">Hadoop权威指南笔记</a>
       </li>
     
@@ -655,6 +565,14 @@ B可能就是慢了1纳秒，但是B还认为计数器才累积到100，所以�
     
       <li class="post">
         <a href="/blog/2016/01/26/introduce-thrift/">Introduce Thrift</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/01/18/book-graph/">Book Graph</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/01/17/business-dataming-ecosystem-investigation/">Pentaho和Pivotal</a>
       </li>
     
   </ul>
