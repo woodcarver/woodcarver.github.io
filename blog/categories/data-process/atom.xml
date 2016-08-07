@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Data Process | Wood Carver]]></title>
+  <link href="http://woodcarver.github.io/blog/categories/data-process/atom.xml" rel="self"/>
+  <link href="http://woodcarver.github.io/"/>
+  <updated>2016-08-08T00:01:19+08:00</updated>
+  <id>http://woodcarver.github.io/</id>
+  <author>
+    <name><![CDATA[Wood Carver]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Talk About Hash Functions]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/04/24/talk-about-hash-functions/"/>
+    <updated>2016-04-24T22:32:57+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/04/24/talk-about-hash-functions</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Introduce MapReduce]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/04/24/introduce-mapreduce/"/>
+    <updated>2016-04-24T19:16:20+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/04/24/introduce-mapreduce</id>
+    <content type="html"><![CDATA[<h1>mapreduce 的各个阶段解释</h1>
+]]></content>
+  </entry>
+  
+</feed>

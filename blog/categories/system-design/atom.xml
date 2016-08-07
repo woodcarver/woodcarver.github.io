@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: System Design | Wood Carver]]></title>
+  <link href="http://woodcarver.github.io/blog/categories/system-design/atom.xml" rel="self"/>
+  <link href="http://woodcarver.github.io/"/>
+  <updated>2016-08-08T00:01:19+08:00</updated>
+  <id>http://woodcarver.github.io/</id>
+  <author>
+    <name><![CDATA[Wood Carver]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[操作系统中的各种尝试参数]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/05/14/important-number-in-software-system-designing/"/>
+    <updated>2016-05-14T17:48:06+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/05/14/important-number-in-software-system-designing</id>
+    <content type="html"><![CDATA[<h1>各种储存设备的速度量级</h1>
+
+<p>时间单位是cpu cycles。
+| 储存类型    | 缓存的内容 | 储存的媒介| 处理速度| 被谁管理
+|&mdash;&mdash;&mdash;&mdash;-|&mdash;&mdash;&mdash;&mdash;|&mdash;&mdash;&mdash;&ndash;|&mdash;&mdash;&mdash;|&mdash;&mdash;&mdash;
+|cpu register| 4~8 byte word | 寄存器| 0| 编译器
+|TLB | Address translations| On-chip TLB| 0| Hardware MMU
+|L1 cache | 64-byte block| On-chip L1 cache| 1| Hardware
+|L2 cache | 64-byte block| On-chip L2 cache| 10| Hardware
+|L3 cache | 64-byte block| On-chip L3 cache| 30| Hardware
+|Virtual memory| 4-KB page| main memory| 100| Hardware + OS
+|Buffer cache| Parts of files| main memory| 100| OS
+|Disk cache| Disk sectors| Disk controller| 100,00| Controller firmware
+|Network cache| Parts of files| Local disk| 10,000,000| AFS/NFS client
+|Browser cache| Web pages| Local disk| 10,000,000| Web browser
+|Web cache    | Web pages| Remote server disks| 1,000,000,000| Web proxy server</p>
+
+<p>从上面看到，内存的访问速度是磁盘的1万倍（不过也要看是什么磁盘，比如固态磁盘访问速度是）
+固态磁盘(ssd)的读写速度：
+读            |写
+&mdash;&mdash;&mdash;&mdash;&ndash;|&mdash;-
+顺序：250MB/s |顺序：170MB/s
+随机：140MB/s |顺序：14MB/s
+固态磁盘(ssd)的读写速度大概是普通磁盘的10倍。</p>
+
+<h1>reference</h1>
+
+<ul>
+<li><a href="http://www.directionsmag.com/entry/ram-is-100-thousand-times-faster-than-disk-for-database-access/123964">ram-is-100-thousand-times-faster disk</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>

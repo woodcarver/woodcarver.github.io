@@ -9,8 +9,13 @@
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="Commands about I/O 什么是I/O
-再让我们看一眼csapp的那幅经典图 看到所有的设备都是通过I/O bridge把数据移动到Main memory上，然后再主存再和CPU交互进行计算。当CPU有输出时，也是先输出到主存上，然后再输入到设备上。而再计算机中I/ &hellip;">
+  <meta name="description" content="知识地图 这篇文章整理的是对关于诊断linux系统状况的相关指标和命令。涉及到：
+1. I/O负载状况
+2. 进程控制
+3. cpu负载状况
+4. memory占用情况
+5. disk使用情况 Commands about I/O 什么是I/O
+再让我们看一眼csapp的那幅经典图 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -59,7 +64,10 @@
 <ul class="main-navigation">
   <li><a href="/">Blog</a></li>
   <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/book-links">Books</a></li>
   <li><a href="/about">About Me</a></li>
+  <li><a href="/start-here">Start Here</a></li>
+  <li><a href="/others-blog">Reading</a></li>
 </ul>
 
 </nav>
@@ -86,7 +94,16 @@
   </header>
 
 
-<div class="entry-content"><h1>Commands about I/O</h1>
+<div class="entry-content"><h1>知识地图</h1>
+
+<p>这篇文章整理的是对关于诊断linux系统状况的相关指标和命令。涉及到：
+1. I/O负载状况
+2. 进程控制
+3. cpu负载状况
+4. memory占用情况
+5. disk使用情况</p>
+
+<h1>Commands about I/O</h1>
 
 <ul>
 <li><p>什么是I/O
@@ -134,7 +151,15 @@ dstat -tdD total,sda,sdb,sdc,md1 60</p>
 </ul>
 
 
-<h1>系统状态综合诊断</h1>
+<h1>进程控制</h1>
+
+<ul>
+<li>exec</li>
+<li>source</li>
+<li>kill</li>
+<li>bg,fg,jobs</li>
+</ul>
+
 </div>
 
 
@@ -180,23 +205,23 @@ dstat -tdD total,sda,sdb,sdc,md1 60</p>
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/02/22/notes-for-hadoop-the-defintive-guid/">Hadoop权威指南笔记</a>
+        <a href="/blog/2016/08/04/wordcount-in-mapreduce/">Wordcount in Mapreduce</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands/">Linux系统状态命令详解</a>
+        <a href="/blog/2016/08/02/synchronise-vs-blocking/">Synchronise vs Blocking</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/26/introduce-thrift/">Introduce Thrift</a>
+        <a href="/blog/2016/07/29/introduce-cap/">Introduce CAP</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/18/book-graph/">Book Graph</a>
+        <a href="/blog/2016/07/24/a-misusing-of-python-logging-lock/">A Misusing of Python Logging Lock</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/17/business-dataming-ecosystem-investigation/">Pentaho和Pivotal</a>
+        <a href="/blog/2016/07/24/how-to-understand-a-data-system/">如何理解一个数据存储系统</a>
       </li>
     
   </ul>

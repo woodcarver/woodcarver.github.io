@@ -1,0 +1,220 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Introduce Storm - Wood Carver</title>
+  <meta name="author" content="Wood Carver">
+
+  
+  <meta name="description" content="刚开始学习storm，首先打开storm的官方文档，那叫一个大写的“烂”。比起hadoop和kafka的quick start，能快速上手，搭建单机版，并开始写程序。storm上来就是不知所云的一些概念介绍，敢问一个新手面对这些概念有啥用？新手的关键是实践啊！
+然后开始找到了一本书， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://woodcarver.github.io/blog/2016/01/04/introduce-storm/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Wood Carver" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<!-- link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css"-->
+<!-- link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css"-->
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Wood Carver</a></h1>
+  
+    <h2>Find another pool</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="woodcarver.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/book-links">Books</a></li>
+  <li><a href="/about">About Me</a></li>
+  <li><a href="/start-here">Start Here</a></li>
+  <li><a href="/others-blog">Reading</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Introduce Storm</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-01-04T23:47:03+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>11:47 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>刚开始学习storm，首先打开storm的官方文档，那叫一个大写的“烂”。比起hadoop和kafka的quick start，能快速上手，搭建单机版，并开始写程序。storm上来就是不知所云的一些概念介绍，敢问一个新手面对这些概念有啥用？新手的关键是实践啊！
+然后开始找到了<a href="http://ifeve.com/getting-started-with-stom-index/">一本书</a>，但是这本书一开就是说storm啥xxx特性，这个倒还可以。然后直接来说storm有两种模式，但是没有说怎么搭建这些模式，而是直接给出一个例子，但是连怎么运行storm程序都不知道（难道不需要安装个zookeeper？）怎么上手！！！！为什么我想普通程勋运行storm程序得到的结果是连接不上zookeeper？这也跳跃的太快了吧，简直无语了。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>41388 [Thread-6-SendThread(localhost:2000)] INFO  org.apache.storm.zookeeper.ClientCnxn - Opening socket connection to server localhost/0:0:0:0:0:0:0:1:2000. Will not attempt to authenticate using SASL (unknown error)
+</span><span class='line'>41389 [Thread-6-SendThread(localhost:2000)] WARN  org.apache.storm.zookeeper.ClientCnxn - Session 0x0 for server null, unexpected error, closing socket connection and attempting reconnect
+</span><span class='line'>java.net.ConnectException: Connection refused
+</span><span class='line'>  at sun.nio.ch.SocketChannelImpl.checkConnect(Native Method) ~[na:1.7.0_67]
+</span><span class='line'>  at sun.nio.ch.SocketChannelImpl.finishConnect(SocketChannelImpl.java:739) ~[na:1.7.0_67]
+</span><span class='line'>  at org.apache.storm.zookeeper.ClientCnxnSocketNIO.doTransport(ClientCnxnSocketNIO.java:361) ~[storm-core-0.9.4.jar:0.9.4]
+</span><span class='line'>  at org.apache.storm.zookeeper.ClientCnxn$SendThread.run(ClientCnxn.java:1081) ~[storm-core-0.9.4.jar:0.9.4]</span></code></pre></td></tr></table></div></figure>
+
+
+<p>原因是本地模式也需要搭建zookeeper（果然）！而且我不知道知道在哪里配置storm连接zookeeper的地址和端口。</p>
+
+<p>然后发现了一个<a href="http://www.dahouduan.com/2015/11/10/storm-tutorial/">blog</a>，貌似看起来和不错，也解释了很多模糊的概念。但是——仍然没有给足运行的环境前提。</p>
+
+<p>所以我在这里给出一个完整的新手例子（单机版）。至少我是通过这个步骤一步步搭建起来的。
+基础：
+1. java知识
+2. maven使用知识</p>
+
+<p>第一步：搭建zookeeper
+第二步：写pom.xml
+第三步：写程序
+第四步：运行</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Wood Carver</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-01-04T23:47:03+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>11:47 pm</span></time>
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/01/01/100-open-source-operating-system-papers-for-programmers/" title="Previous Post: 100 open source operating system papers for programmers.">&laquo; 100 open source operating system papers for programmers.</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2016/01/05/nginx-proxy/" title="Next Post: nginx反向代理配置">nginx反向代理配置 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/08/04/wordcount-in-mapreduce/">Wordcount in Mapreduce</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/02/synchronise-vs-blocking/">Synchronise vs Blocking</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/07/29/introduce-cap/">Introduce CAP</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/07/24/a-misusing-of-python-logging-lock/">A Misusing of Python Logging Lock</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/07/24/how-to-understand-a-data-system/">如何理解一个数据存储系统</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Wood Carver -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

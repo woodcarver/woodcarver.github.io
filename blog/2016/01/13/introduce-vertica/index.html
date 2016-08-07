@@ -61,7 +61,10 @@
 <ul class="main-navigation">
   <li><a href="/">Blog</a></li>
   <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/book-links">Books</a></li>
   <li><a href="/about">About Me</a></li>
+  <li><a href="/start-here">Start Here</a></li>
+  <li><a href="/others-blog">Reading</a></li>
 </ul>
 
 </nav>
@@ -133,6 +136,10 @@ select node_name,wos_row_count,ros_row_count from projection_storage where ancho
 <p>到底使用分区比较好呢？还是用purage_table比较好呢？
 果断构建partition好，因为如果用purage对于已经转移好的ros数据块（到底会怎么样？解释不清楚了吧！）速度会很慢。<a href="https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/PURGE_TABLE.htm">https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/PURGE_TABLE.htm</a></p>
 
+<h3>如何查看当前liencese的使用情况</h3>
+
+<p>SELECT GET_COMPLIANCE_STATUS();</p>
+
 <h3>索引到底是个什么鬼</h3>
 
 <h3>查看执行的任务，类似于mysql的show processlist</h3>
@@ -188,23 +195,23 @@ select node_name,wos_row_count,ros_row_count from projection_storage where ancho
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/02/22/notes-for-hadoop-the-defintive-guid/">Hadoop权威指南笔记</a>
+        <a href="/blog/2016/08/04/wordcount-in-mapreduce/">Wordcount in Mapreduce</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands/">Linux系统状态命令详解</a>
+        <a href="/blog/2016/08/02/synchronise-vs-blocking/">Synchronise vs Blocking</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/26/introduce-thrift/">Introduce Thrift</a>
+        <a href="/blog/2016/07/29/introduce-cap/">Introduce CAP</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/18/book-graph/">Book Graph</a>
+        <a href="/blog/2016/07/24/a-misusing-of-python-logging-lock/">A Misusing of Python Logging Lock</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/17/business-dataming-ecosystem-investigation/">Pentaho和Pivotal</a>
+        <a href="/blog/2016/07/24/how-to-understand-a-data-system/">如何理解一个数据存储系统</a>
       </li>
     
   </ul>

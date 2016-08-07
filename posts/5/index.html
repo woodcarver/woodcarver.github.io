@@ -1,0 +1,1422 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Wood Carver</title>
+  <meta name="author" content="Wood Carver">
+
+  
+  <meta name="description" content="Dialect 模块是mondrian属于spi模块，主要作用用于支持跨平台支持各种关系性数据库。其基本设计理念使用了抽象工厂模型（abstract factory）。但是在上层有提供了一层抽象通过配置而不修改代码来实现自动根据加载的驱动来调用相应的Dialect，实现sql的兼容支持。 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://woodcarver.github.io/posts/5/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Wood Carver" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<!-- link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css"-->
+<!-- link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css"-->
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Wood Carver</a></h1>
+  
+    <h2>Find another pool</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="woodcarver.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/book-links">Books</a></li>
+  <li><a href="/about">About Me</a></li>
+  <li><a href="/start-here">Start Here</a></li>
+  <li><a href="/others-blog">Reading</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/11/30/mondrian-design-dialect-design/">Mondrian 设计于实现:Dialect 设计</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-11-30T22:56:19+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>30</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:56 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Dialect 模块是mondrian属于spi模块，主要作用用于支持跨平台支持各种关系性数据库。其基本设计理念使用了抽象工厂模型（abstract factory）。但是在上层有提供了一层抽象通过配置而不修改代码来实现自动根据加载的驱动来调用相应的Dialect，实现sql的兼容支持。</p>
+
+<p>我觉得如果要描述出来了解其中的机制，更需要回答下面3个问题，其实可以算2个，第一个问题拆开了就是后面那两个。
+为什么这么设计？有什么优点？有什么缺点？</p>
+
+<p>其中涉及到的类有：</p>
+
+<ul>
+<li>mondrian.rolap.RolapConnection</li>
+<li>mondrian.spi.DialectManager</li>
+<li>mondrian.spi.DialectManager.DialectManagerImpl</li>
+<li>mondrian.spi.DialectManager.ChainDialectFactory</li>
+<li>mondrian.util.ServiceDiscovery<T></li>
+<li>mondrian.spi.Dialect</li>
+<li>mondrian.spi.DialectFactory</li>
+<li>mondrian.spi.impl.JdbcDialectFactory</li>
+<li>mondrian.spi.impl.JdbcDialectImpl</li>
+<li>mondrian.spi.impl.VerticaDialect</li>
+</ul>
+
+
+<p>现在辨别其中的参与者的角色：</p>
+
+<ul>
+<li>client
+
+<ul>
+<li>mondrian.rolap.RolapConnection</li>
+</ul>
+</li>
+<li>抽象工厂
+
+<ul>
+<li>mondrian.spi.DialectFactory</li>
+</ul>
+</li>
+<li>具体工厂实现
+
+<ul>
+<li>mondrian.spi.impl.JdbcDialectFactory</li>
+</ul>
+</li>
+<li>产品抽象接口
+
+<ul>
+<li>mondrian.spi.Dialect</li>
+</ul>
+</li>
+<li>具体产品
+
+<ul>
+<li>mondrian.spi.impl.JdbcDialectImpl</li>
+<li>mondrian.spi.impl.VerticaDialect</li>
+</ul>
+</li>
+</ul>
+
+
+<p>这个模型的基本模型中还包括了管理者（mondrian.spi.DialectManager），除此之还有一个特殊支持是并没有给每个具体产品一个具体的工厂实现，而是所有的具体产品公用一个工厂——mondrian.spi.impl.JdbcDialectFactory。其中是通过传递给工厂参数来控制返回那个产品。</p>
+
+<p>公用一个工厂的好处是增大了代码的复用，显然写一大堆createDielact方法，而body中仅仅只是几行代码不同很烦人。而且每增加一个关系性数据库就需要增加一个具体工厂。
+具体步骤：</p>
+
+<ul>
+<li>RolapConnection调用DialectManager.createDialect</li>
+<li>DialectManager通过createDialect方法把任务传递给其私有内部类DialectManagerImpl。在这个类的构造函数中利用ServiceDiscovery类拿到所有的可能的数据库产品列表（读取的是"META-INF/services/mondrian.spi.Dialect文件的列表，注意的代码final List&lt;Class<Dialect>> dialectClasses=ServiceDiscovery.forClass(Dialect.class).getImplementor();）</li>
+<li>而且实际执行方法DialectManagerImpl.createDialect 根据传进来的dialectClassName来是实例化factory，如果dialectClassName为null，而默认是初始化一个CachingDialectFactory</li>
+<li>ChainDialectFactory内部实际由ServiceDiscovery传递过来的factory列表，最终轮询数据库设备列表调用JdbcDialectFactory直到找到合适的Dialect</li>
+<li>JdbcDialectFactory根据dataSource和connection的属性再透过JdbcDialectImpl来生层一个具体xxxDialect</li>
+</ul>
+
+
+<p>作为一个现在还没有“习惯Java编程”的初学者而言，mondrian源码中有许多我非常看不惯的设计。比如下面的循环调用：</p>
+
+<ul>
+<li>mondrian.spi.impl.JdbcDialectFactory.createDialectHelper()</li>
+<li>mondrian.spi.impl.JdbcDialectFactory.createDialect()</li>
+</ul>
+
+
+<h2>使用</h2>
+
+<p>通过上面的步骤很清楚的知道怎么去扩展一个数据库了。</p>
+
+<ul>
+<li>准备好驱动</li>
+<li>修改META-INF/services/mondrian.spi.Dialect，添加要支持的数据库的驱动（注意打包的时候一定要把META-INF放进去）</li>
+<li>在mondrian.spi包下添加的Dialect</li>
+<li>JdbcDialectImpl.getProduct()增加对应关系（该产品的JDBC 的metaDate.getDatabaseProductName返回的名称和Dialect 的databaeProduct的对应关系必须在JdbcDialectImpl.getProduct(productName, productVersion)定义）</li>
+<li>然后重新编译，部署就完成了</li>
+</ul>
+
+
+<h2>子模块设计</h2>
+
+<h3>输出类型控制（guessType的实现）</h3>
+
+<h2>吐槽时间</h2>
+
+<p>这两个函数居然是互相引用的，一开始看源代码根部搞不清楚到底在到底谁是入口，谁是中间过程。我贴出这两个函数的源代码：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="n">Dialect</span> <span class="nf">createDialectHelper</span><span class="o">(</span>
+</span><span class='line'>        <span class="n">DialectFactory</span> <span class="n">factory</span><span class="o">,</span>
+</span><span class='line'>        <span class="n">DataSource</span> <span class="n">dataSource</span><span class="o">)</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">dataSource</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">throw</span> <span class="k">new</span> <span class="nf">IllegalArgumentException</span><span class="o">(</span>
+</span><span class='line'>                <span class="s">&quot;Must specify either dataSource or connection&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="n">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>    <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">connection</span> <span class="o">=</span> <span class="n">dataSource</span><span class="o">.</span><span class="na">getConnection</span><span class="o">();</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="c1">// DataSource.getConnection does not return null. But</span>
+</span><span class='line'>            <span class="c1">// a null value here would cause infinite recursion, so</span>
+</span><span class='line'>            <span class="c1">// let&#39;s be cautious.</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="k">new</span> <span class="nf">IllegalArgumentException</span><span class="o">();</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>        <span class="kd">final</span> <span class="n">Dialect</span> <span class="n">dialect</span> <span class="o">=</span>
+</span><span class='line'>            <span class="n">factory</span><span class="o">.</span><span class="na">createDialect</span><span class="o">(</span><span class="n">dataSource</span><span class="o">,</span> <span class="n">connection</span><span class="o">);</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="c1">// Close the connection in such a way that if there is a</span>
+</span><span class='line'>        <span class="c1">// SQLException,</span>
+</span><span class='line'>        <span class="c1">// (a) we propagate the exception,</span>
+</span><span class='line'>        <span class="c1">// (b) we don&#39;t try to close the connection again.</span>
+</span><span class='line'>        <span class="n">Connection</span> <span class="n">connection2</span> <span class="o">=</span> <span class="n">connection</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">connection</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>        <span class="n">connection2</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">dialect</span><span class="o">;</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">SQLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">throw</span> <span class="n">Util</span><span class="o">.</span><span class="na">newError</span><span class="o">(</span>
+</span><span class='line'>                <span class="n">e</span><span class="o">,</span>
+</span><span class='line'>                <span class="s">&quot;Error while creating dialect&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">connection</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+</span><span class='line'>            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">SQLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                <span class="c1">// ignore</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">public</span> <span class="n">Dialect</span> <span class="nf">createDialect</span><span class="o">(</span><span class="n">DataSource</span> <span class="n">dataSource</span><span class="o">,</span> <span class="n">Connection</span> <span class="n">connection</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="c1">// If connection is null, create a temporary connection and</span>
+</span><span class='line'>    <span class="c1">// recursively call this method.</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nf">createDialectHelper</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">dataSource</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">assert</span> <span class="n">connection</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">acceptsConnection</span><span class="o">(</span><span class="n">connection</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">constructor</span><span class="o">.</span><span class="na">newInstance</span><span class="o">(</span><span class="n">connection</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">InstantiationException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="n">Util</span><span class="o">.</span><span class="na">newError</span><span class="o">(</span>
+</span><span class='line'>                    <span class="n">e</span><span class="o">,</span> <span class="s">&quot;Error while instantiating dialect&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IllegalAccessException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="n">Util</span><span class="o">.</span><span class="na">newError</span><span class="o">(</span>
+</span><span class='line'>                    <span class="n">e</span><span class="o">,</span> <span class="s">&quot;Error while instantiating dialect&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">InvocationTargetException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="k">throw</span> <span class="n">Util</span><span class="o">.</span><span class="na">newError</span><span class="o">(</span>
+</span><span class='line'>                    <span class="n">e</span><span class="o">,</span> <span class="s">&quot;Error while instantiating dialect&quot;</span><span class="o">);</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>去掉异常等处理，只看主干，变成下面的样子：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="n">Dialect</span> <span class="nf">createDialectHelper</span><span class="o">(</span>
+</span><span class='line'>        <span class="n">DialectFactory</span> <span class="n">factory</span><span class="o">,</span>
+</span><span class='line'>        <span class="n">DataSource</span> <span class="n">dataSource</span><span class="o">)</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>    <span class="n">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">connection</span> <span class="o">=</span> <span class="n">dataSource</span><span class="o">.</span><span class="na">getConnection</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">Dialect</span> <span class="n">dialect</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="na">createDialect</span><span class="o">(</span><span class="n">dataSource</span><span class="o">,</span> <span class="n">connection</span><span class="o">);</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">dialect</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">public</span> <span class="n">Dialect</span> <span class="nf">createDialect</span><span class="o">(</span><span class="n">DataSource</span> <span class="n">dataSource</span><span class="o">,</span> <span class="n">Connection</span> <span class="n">connection</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="nf">createDialectHelper</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">dataSource</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">assert</span> <span class="n">connection</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">acceptsConnection</span><span class="o">(</span><span class="n">connection</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">constructor</span><span class="o">.</span><span class="na">newInstance</span><span class="o">(</span><span class="n">connection</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>先从createDialect（他的名字最像是入口）入手看，发现他先检查connection，如果是null，那么调用createDialectHelperi，并且返回其返回值。如果connection不为null，再检查其是不是系统可接受（acceptsConnection），然后构造一个具体Dialect类。so far,so good。 再细入看createDialectHelper，发现居然又调用了createDialect，这是坑人吧！createDialect刚把任务交给createDialectHelper没多久，又被扔回来了。这隐藏着深深恶意迂回的递归是怎么回事。能直接点吗？createDialectHelper其实不就是生成了connection递给createDialect，这用得着递归逻辑吗？直接改成下面这种逻辑不就行了嘛，还用递归？</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="n">Dialect</span> <span class="nf">createDialectHelper</span><span class="o">(</span>
+</span><span class='line'>        <span class="n">DialectFactory</span> <span class="n">factory</span><span class="o">,</span>
+</span><span class='line'>        <span class="n">DataSource</span> <span class="n">dataSource</span><span class="o">)</span>
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'>    <span class="n">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">connection</span> <span class="o">=</span> <span class="n">dataSource</span><span class="o">.</span><span class="na">getConnection</span><span class="o">();</span>
+</span><span class='line'>    <span class="n">Dialect</span> <span class="n">dialect</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="na">createDialect</span><span class="o">(</span><span class="n">dataSource</span><span class="o">,</span> <span class="n">connection</span><span class="o">);</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">dialect</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">public</span> <span class="n">Dialect</span> <span class="nf">createDialect</span><span class="o">(</span><span class="n">DataSource</span> <span class="n">dataSource</span><span class="o">,</span> <span class="n">Connection</span> <span class="n">connection</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">connection</span> <span class="o">=</span> <span class="n">dataSource</span><span class="o">.</span><span class="na">getConnection</span><span class="o">();</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">assert</span> <span class="n">connection</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">acceptsConnection</span><span class="o">(</span><span class="n">connection</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">return</span> <span class="n">constructor</span><span class="o">.</span><span class="na">newInstance</span><span class="o">(</span><span class="n">connection</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'>    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样的线性关系比循环调用好理解多了。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/11/11/what-is-model-of-data/">What Is Model of Data</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-11-11T22:08:08+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>11</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:08 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content">
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/10/24/aha-analysis-of-algorithms/">Aha! Analysis of Algorithms</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-10-24T15:15:46+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>3:15 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>[跨越性发明]算法复杂度分析技术</h1>
+
+<p>关于算法分析技术的介绍，我看到最精彩的文章出自于Robert Sadgewick的《算法》。本书在第一章的介绍性文章给了一些很精彩的算法案例和程序代码后提出让我很震惊的问题:“怎么判断一个算法跑的快不快？”,而且这个问题从头到尾不断重复。我很震惊的原因是我认为既然都知道算法过程，其他的类似与计算步骤这种“附属问题”难道还需要考虑？然后真被问到后，我发现我还真不会。不信，假装大家都事先不知道分析技术，我们来看下面的例子：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include &lt;stdio.h&gt;</span>
+</span><span class='line'><span class="cp">#include &lt;types.h&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">size_t</span> <span class="nf">binary_search</span><span class="p">(</span><span class="kt">int</span> <span class="o">*</span><span class="n">arr</span><span class="p">,</span> <span class="kt">int</span> <span class="n">len</span><span class="p">,</span> <span class="kt">int</span> <span class="n">target</span><span class="p">)</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">left</span><span class="p">,</span><span class="n">right</span><span class="p">,</span><span class="n">middle</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">right</span><span class="o">=</span><span class="n">len</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>    <span class="k">while</span><span class="p">(</span><span class="n">left</span><span class="o">&lt;=</span><span class="n">right</span><span class="p">){</span>
+</span><span class='line'>        <span class="n">middle</span><span class="o">=</span><span class="p">(</span><span class="n">left</span><span class="o">+</span><span class="n">right</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">;</span>
+</span><span class='line'>        <span class="k">if</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="n">target</span><span class="p">]</span><span class="o">==</span><span class="n">arr</span><span class="p">[</span><span class="n">middle</span><span class="p">]){</span>
+</span><span class='line'>            <span class="k">return</span> <span class="n">middle</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="k">if</span> <span class="k">else</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="n">target</span><span class="p">]</span><span class="o">&lt;</span><span class="n">arr</span><span class="p">[</span><span class="n">middle</span><span class="p">]){</span>
+</span><span class='line'>            <span class="n">right</span><span class="o">=</span><span class="n">middle</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>        <span class="k">else</span><span class="p">{</span>
+</span><span class='line'>            <span class="n">left</span><span class="o">=</span><span class="n">middle</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>        <span class="p">}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上面的二分查找法，让我们来分析运行时间。
+首先反应就是实际运行一下，统计时间不就出来了。好，就这么办。不过当开始动手的时候就发现自己要构建输入，而构建个什么样的输入呢？arr的包括数据长度可以从10个整数到100000整数到无穷大……。从这个问题我们就会强烈的意识到算法的运行时间和输入数据大小直接相关。我们下记下来这条：</p>
+
+<blockquote><p>运行时间和输入数据大小直接相关</p></blockquote>
+
+<p>用更简介的纪录方法：</p>
+
+<blockquote><p>运行时间 ~ 输入数据大小</p></blockquote>
+
+<p>还是不够方便，我们用一种数据方法来记录，这种思想来自于波利亚的<a href="http://www.amazon.cn/%E6%80%8E%E6%A0%B7%E8%A7%A3%E9%A2%98-%E6%95%B0%E5%AD%A6%E6%80%9D%E7%BB%B4%E7%9A%84%E6%96%B0%E6%96%B9%E6%B3%95-%E6%B3%A2%E5%88%A9%E4%BA%9A/dp/B0011F6OGM/ref=sr_1_1?ie=UTF8&amp;qid=1445674579&amp;sr=8-1&amp;keywords=%E6%80%8E%E4%B9%88%E8%A7%A3%E9%A2%98">怎么解题</a>或者数据建模，这种数学化一个实际问题是我发现找到结果的最强大的工具。T来表示运行时间,arr_len作为时间函数的一个自变量</p>
+
+<blockquote><p>T=f(arr_len)</p></blockquote>
+
+<p>构建完第一参数，我们来构建第二个参数，查那个数呢？Oh，my god!又发现target同样影响查询效率。因为查中间的位置，比查第一个和最后一个元素的时间长多了。这时我们再加一个自变量：tar_pos(target_pos)。</p>
+
+<blockquote><p>T=f(arr_len,tar_pos)</p></blockquote>
+
+<p>后来又因为我开启了一个耗资源的游戏，这个程序居然在同样的参数下跑的慢了。突然有想到了，原来机器的资源不同也是个大因素，这里包括机器拥有的cpu、内存、磁盘等。这时又需要加参数进入我们的函数了。我们叫machine envrionment，简称m_env.</p>
+
+<blockquote><p>T=f(arr_len,tar_pos,m_env)</p></blockquote>
+
+<p>看上面的问题，我们发现要精确进算运行速度，简直是不可能的事，因为有一个非常不容易控制而且我们也不关心的自变量那就是m_env。我们的算法要成功，必须在任何机器上都需要有良好的性能。所以我们开始<strong>简化模型</strong>,那就是开始构建理想机器，其资源全部资源都给我们关心的程序。<code>且假设一个statment所用的时间都是1（没有单位）</code>.这样我们算时间就转化成了算程序使用了多少statment。</p>
+
+<blockquote><p>T=f(arr_len,tar_pos), assumpte every statment takes one time</p></blockquote>
+
+<p>现在基本确定了自变量（怎么知道考虑的自变量够了呢？），我们来细化关系式。
+T= 1+1+while里面的步骤。while里面的步骤怎么计算？
+假如我们的输入是：0 1 2 3 4 5。那么每个位置对应的运行次数如下图：</p>
+
+<p><img src="/images/posts/binary_search_tree.jpg" alt="bianry_search_tree" /></p>
+
+<p>上图给出的是n=6的情况。树的高hight=log(6)+1=3, t&lt;=hight(todo:能给出t＝f(k)的具体公式吗？参照平衡二叉树的性质)。</p>
+
+<p>给出了这个公式，我们就可以衡量任意参数的时间了。但是如果要对比算优良，就主要看在同样的参数下，谁更快了。现在我们拿出一个顺序查找来对比，我们都知道顺序查找的时间公式：T=tar_pos, 0&lt;=tar_pos&lt;6。 我们从第一个到k位置开始对比，下面列出个表格：</p>
+
+<table>
+<thead>
+<tr>
+<th>算法      </th>
+<th>0 </th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>avg</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>顺序查找法 </td>
+<td>0 </td>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+<td>4</td>
+<td>5</td>
+<td>6</td>
+<td>3</td>
+</tr>
+<tr>
+<td>二分法    </td>
+<td>3 </td>
+<td>2</td>
+<td>3</td>
+<td>1</td>
+<td>3</td>
+<td>2</td>
+<td>3</td>
+<td>2.4</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>对于上面的长度为6的数组查找我们还能一一列举出来，<code>但是当扩展到任意长度n后呢</code>？我们怎么比较呢？这里又是一个很跨越性的思想——概率统计：比较一组数时，我们使用</p>
+
+<blockquote><p>mean＝∑(k)*t,p(k)指被查找数在k位置的概率，t是该位置耗费的查找时间。</p></blockquote>
+
+<p>而且假定在没有任何前提下，所有位置的概率一样，即p(k)=1/n.</p>
+
+<p>然后具列出具体位置的式子：</p>
+
+<ul>
+<li>顺序查找法:t=k/n,mean=(1+n)/2</li>
+<li>二分法:t&lt;=log(n)+1,mean&lt;=log(n)+1 (太难精确计算了，所以用了不等式来表示)</li>
+</ul>
+
+
+<p>所以我们来比较t1=(1+n)/2 和 t2=ceil(log(n))+1,发现当n>=8后，t2开始超过t1,而且随着n的增大，他们的差距越来越大。（todo:需要张函数图才能直观说明啊）</p>
+
+<p>而8是个非常小的数，所以对于日常来说，我们大多数都是遇到大于8的情况，所以我们可以直觉判断二分法优于顺序查找法。</p>
+
+<p>从上面我们进步衍生出一个思想，<code>*不断扩充n的范围来观察时间效率的变化</code>。在这里我再插入一个故事：</p>
+
+<p>马上就到北邮的校庆了，北邮人很开心。但是一个北邮人想一个清华的吐槽，我们学校的年龄才是清华的一半。然后另一个北邮人又说了一句：“现在是北邮的年龄是清华的一半，100后是3/4，然后无限年后这两个学校的年龄就相等了。”
+这里有个故事蕴含着一个重要的思想就是极限。起始值和常数值会被快增长的部分迅速磨平。</p>
+
+<p>极限思想应用在算法分析中，一个天才的想法就诞生了。在这里产生了一个运算符O。就是一种抛弃增长慢部分的技术。</p>
+
+<blockquote><p>定义：如果存在常数c0和n0，对于所有n>n0,有g(n)&lt;c0f(n),则称函数g(n)是O(f(n))的。</p></blockquote>
+
+<p>即用g(n)来代替f(n)来比较衡量大小。</p>
+
+<h1>可计算问题和不可计算问题</h1>
+
+<p>上面讨论到计算的复杂度增长问题，</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/10/19/mondrian-and-multithread/">Mondrian中的线程模型使用情况</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-10-19T14:50:09+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>2:50 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content">
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/10/19/mondrian-in-the-perspective-of-code-complete/">Mondrian in a Perspective of Code Complete</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-10-19T14:42:12+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>2:42 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>看mondrian代码非常痛了，代码经常是绕来绕去的，特别是一些假递归比比皆是。还有A调用B，B再调用A，来回折腾，其中有些是用的单利，有些没有。
+比如：RolapConnection调用RolapSchema，RolapSchema内部又实例化另一个RolapConnection，这样来回折腾</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/10/18/introduce-olap-model/">Introduce OLAP Model</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-10-18T15:09:46+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>3:09 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>Introduce OLAP</h1>
+
+<ul>
+<li>[x] olap 产生的原因</li>
+<li><p>[ ] 数据仓库产生的原因</p></li>
+<li><p>为什么会产生这项技术 &ndash; one intuitive exmaple
+设想一下你开了一个卖书网站，因为懒惰的你只开发面向用户购物的网站。其架构一开始就如下：</p></li>
+</ul>
+
+
+<p>特别反应出数据仓库的异构数据集成、数据清洗和定义处理一致性保证。</p>
+
+<ol>
+<li>介绍其核心命题 —— 后续的分析挖掘工作的基础
+
+<h2>OLAP的诞生</h2>
+
+<p>从上面的例子我们继续发展出一个系统，简单起来就一张用户购买记表吧，比如下面这样：</p></li>
+</ol>
+
+
+<p>|userId | 操作  | 时间      | 商品ID | 价格|
+|&mdash;&mdash;-|&mdash;&mdash;|&mdash;&mdash;&mdash;&ndash;|&mdash;&mdash;-|&mdash;&ndash;|
+|   1   |支付   |2016-06-06 |10001| 100|
+|   2   |添加到购物车|2016-01-06|100002| 50|
+|   3   |生产订单|2016-05-01|100003|60|
+……</p>
+
+<p>看起不来不错是吧！我们现在使用它，假如我们有2个需求：
+一、查找出所有用户购买次数最多的10%
+二、查出那些只注册不够买的用户
+数据小的时候一切都完美，但是有没有发现数据发展到一年或者到1亿条后以上后，mysql已经支撑不了？根据逐渐逐渐的数据使用特性摸索区分出来对立的两大类——OLTP和OLAP。也就是说OLAP这个分支从服务需求中诞生的，属于一个业务推动技术发展的一个例子。
+接下来我们仔细看看OLTP和OLAP具体什么，还有为什么查询数据还有类别之分？先看看定义：</p>
+
+<p>OLTP(On-line Transaction Processing) —— 联机事务处理，即聚焦一个事务的处理，例如一次银行转账、一次用户注册、一次电影票购买等。</p>
+
+<p>OLAP (On-line Analytical Processing) —— 联机分析处理，聚焦历史数据的分析处理，例如全年销售记录按季度、按月按周趋势统计；表现最好的商品类别和区域。</p>
+
+<p>从定义第一反应就是这两种操作类型一个是覆盖点，一个是覆盖面。拿OLTP最典型的例子——一次银行转账，其操作是查询这个银行账户的余额，更新余额，然后更新被转入方的余额。所有过程都只涉及了当前一条或者几条数据。只要知道两个账户的信息即可。但是再看看OLAP要处理的需求涉及的数据什么样的。还是看其典型需求——全年销售记录按季度、按月按周趋势统计，一个稍大规模的企业一年购物涉及的数据少说也要上千万条。所以你确定使用MySQL的Innodb或者MyIsam这种面向OLTP的引擎可以一次查询搞定全年的统计分析？</p>
+
+<p>OLTP查询典型方式：点
+OLAP查询典型方式：面</p>
+
+<p>第二就是对于OLTP来说，一次事务的要求就是数据库理论中的ACID（原子性，一致性，隔离性和持久性），而其中还特别偏重对实时响应速度的要求（能想想一次打开朋友圈耗时5s的情景吗？）。这这种数据库中任何一项特性都需要耗费了大量的数据间协调工作，比如其中的隔离性就有4中级别，也是造成数据库性能的一个瓶颈（这就是为啥SQL一般来说要比NoSQL慢）。而这对于OLAP事务这个东西不在需要，OLAP只需要历史数据的集合就行了，而历史数据不涉及到修改（否则就不叫历史了），只涉及到累加。那么抛开事务，将使数据处理速度大大提升。</p>
+
+<p>从这两点就足以催生出一大批新型的OLAP Database了，比如SQL中的infobright、vertica等一大批面向列式的数据库了，NoSQL中的hadoop等各种生态圈储存系统。我们看看为什么列式数据适合于OLAP系统。</p>
+
+<p>还有很多其他方面的不同，下表依次的列出来，其中每个点都能进一步推动OLAP系统和OLTP系统的分家：
+<a href="http://datawarehouse4u.info/OLTP-vs-OLAP.html">http://datawarehouse4u.info/OLTP-vs-OLAP.html</a>
+| OLTP数据 | OLAP数据|
+|&mdash;&mdash;&mdash;|&mdash;&mdash;&mdash;|
+|</p>
+
+<p><code>建立好了储存和查询的基础后，接下来要革命的地方就是计算了。</code></p>
+
+<h2>OLAP计算技术</h2>
+
+<p>一般OLTP的操作的计算层面都是什么？大家都很熟悉就是不断的自己造轮子来满足各种不同或大或小差别的事务业务。比如银行自己造一套自己的，搜索引擎google自己造另一套。而OLAP却走了另一种，也许是因为分析业务的基础计算都很一致，所以这套系统就有了其基础的模型，那就是cube计算模型。</p>
+
+<h3>维度的计量的概念抽离</h3>
+
+<p>这个特征绝对是核心中的核心。从OLAP的发展历史来看，当OLAP出现的时候，数据库领域几乎都是关系型的，也就意味着你要做分析也是使用关系型模型。而在一张二维表中，如下图：
+<img>
+请问你能一眼看出来这张表中的字段之间的关系吗？
+而cube模型则直接指明了各个字段之间的树状关系。比如下图：
+</img></p>
+
+<p>而再维度和计量概念抽出来后，带来的更顺其自然的操作方式，比如对地里位置这种明显的层级关系操作：
+还有隐藏了所有的链表操作，只需配置一次，不用再关系各种字典表导致巨长的sql，比如：
+也因此在上人机交互上有了更长足的进展，比如基于关系型数据库的人机界面系统怎么开发？而基于cube模型的系统怎么开发？</p>
+
+<p>而从发展的眼光来看，因为cube模型的储存并没有局限在关系型，在现在nosql等储存技术上大爆发的时代，也迸发出来了更大、更快的新轮子。比如：Aapche Kylin、 Driud。
+4. 其中比较有趣的算法</p>
+
+<p>想象一个场景，当你开了一家杂货铺。你打算怎么记账？
+假设你的小点是比较现代的，所有的账目都是有收银机记录。记录的格式如下：
+订单ID 时间 物品 价格</p>
+
+<p>OLAP（Online analytical processing）就是联系分析系统。它是商务智能或者数据挖掘的链条中一个环节。而它的上游是数据仓库，下游就是直接的用户。所以从这几一个环节开始提供了直接的人机互动服务。所以对它的定义就是一个人接互动的工具，主要服务是提供高效的、广泛的多维度数据分析。
+<img src="/images/posts/data_mining_olap.png" alt="olap在数据挖掘中的位置" /></p>
+
+<p>由于OLAP对数据仓库的依赖性很强（公用一个数据模型），所以一般来说这两个一般都放在一起作为一个整体来讨论。</p>
+
+<p>对于一个系统来说，只提供基本通用的定义是不够的，必须明确其必须满足的条件，而且需要解释为什么要满足这些条件（即满足最小集合条件，如果不满足就不应该称它是属于这种系统）。所以到底什么是OLAP的具体明明确的定定义？一种定义：
+按照 W. H. Inmon,一位数据仓库系统构造方面的领头建筑师的说法,“数据仓库是一个面向 主题的、集成的、时变的、非易失的数据集合,支持管理决策制定”[Inm96]
+“A data warehouse is a subject-oriented, integrated, time-variant, and nonvolatile collection of data in support of management’s decision making process”
+ - <strong>面向主题的</strong>:数据仓库围绕一些主题,如顾客、供应商、产品和销售组织。数据仓库关注决策 者的数据建模与分析,而不是构造组织机构的日常操作和事务处理。因此,数据仓库排除对于 决策无用的数据,提供特定主题的简明视图。
+ - <strong>集成的</strong>:通常构造数据仓库是将多个异种数据源,如关系数据库、一般文件和联机事务处理 记录,集成在一起。使用数据清理和数据集成技术,确保命名约定、编码结构、属性度量的一 致性。
+ - <strong>时变的</strong>:数据存储从历史的角度(例如,过去5-10年)提供信息。数据仓库中的关键结构, 隐式或显式地包含时间元素。
+ - <strong>非易失的</strong>:数据仓库总是物理地分离存放数据;这些数据源于操作环境下的应用数据。由于这 种分离,数据仓库不需要事务处理、恢复和并行控制机制。通常,它只需要两种数据访问:数 据的初始化装入和数据访问。</p>
+
+<h2>发现历史</h2>
+
+<p>从上图的演化可以看出，数据仓库的核心命题是解决数据的集成和正确性。那么OLAP的核心命题就是怎么操作这些数据？
+首先再回顾下我们的杂货铺，假如我们决定要扩大市场规模，需要分析些啥东西。
+分析的结论不能转化成决策的话，这个分析活动就是失败的。</p>
+
+<p>每一项技术（应用比较普遍的）的发展都有它的历史路径和其要解决的一个核心问题。如果单看一个技术，也许我们并不知道它有什么作用，但是如果放入了历史中，则会完全不一样。观看历史也可以让我们理解技术的未来的去向。好接下来我们走一遍olap技术的发展历史。</p>
+
+<p>事情从有数据库开始说起，因为所有的数据技术的第一步就是要把数据记下来，第二步是把数据取出来，而这就是数据库被发明的原因。下面是一个简单的年代表：
+- 1960s前期: 原始文件储存
+- 1970s中期: 开始了数据库，当然这时候的属于探索模型，思想也是各种百花齐放，从分层到网状数据模型
+- 1970s:  E. F. Codd提出了关系型数据库概念。其完美的数学模型，清晰的提供各种操作逻辑，加上SQL这种更符合人类认知且表达力超强的声明型语言，让关系型数据迅速夺走了几乎所有的数据库市场，同时让其他的各种数据库都下了地狱。（现在几乎没有程序员知道还有分层到网状数据库的存在，其实这些模型也是有软件成品的，并且也投放使用过）。
+- 1980s: Data analysis方向上的数据处理技术开始被研发，而且Data warehouse、OLAP等技术也一次被提出来
+- 2000s: 关系型数据库的地位终于收到了颠覆。NoSQL技术开始大力发展，从而开始浩浩荡荡的NoSQL 、NewSQL并存的时代
+- 2010s: 数据挖掘、机器学习技术开始彭博发展</p>
+
+<p>1980s Data warehouse、OLAP等技术被研发，因为这时候</p>
+
+<p>着这里中间插入一个小插曲，在我供职的一家公司里，当时我负责产品购买数据的整合。当时产品已经上线了一周了，突然boss砸过来一个分析需求，要求如下：
+1. 每小时购买产品的用户数量
+2. 每小时的购买金额
+&hellip;
+3. 每天的购买用户数量
+这需求看起来很合理是吗？但是再看看这一周的数据，就发现这个需求实在太变态了。因为这个产品一周以内就只产生了10笔订单。最好的分析方法就是直接拉出原始看，一目了然。</p>
+
+<p>经济学中的一个概念就是，进步驱逐滞留。其核心思想是当其中有一些企业创造或者获取到了一些生产效率更高的技术后（这里并不仅仅指生产技术，也包括管理组织方法提高的生产力提升），这个不经意味这家企业的进步，而且同时意味着其他竞争厂商退不了。对于天然的“你死我活”的商业市场来说，也就意味着别的厂家生存概率下降。</p>
+
+<p>从OLTP向OLAP的发展：</p>
+
+<h2>为什么使用cube这种数据模型？</h2>
+
+<p>如果是从基础的web程序员干起，大多数接触的都是关系型数据库，包括大学的数据库课程也全讲的是关系型数据库。我也有很长一段时间以为数据库就这一种关系型，直到后来2013年开始，redis、Hadoop、Bigtable等Nosql数据库开始大火（这也是一场亲眼见证的技术革命吧！真是如火如荼，和现在的机器学习一样，打开技术网站没有不谈的，当让非技术网站也在谈，比如前几天的AlphaGo人机大战。如果能在这些前沿技术大火前就能了解，并且及时行动，绝对能在这个行业处于领先地位。错过当然是追悔莫及，特别是当发现呼哧于你擦肩而过的超速列车时候，心里的感慨是多么的万分）。开始明白了数据模型的细节和魅力。所以就有个问题，为什么数据仓库为基础的olap要选择 cube这种数据模型呢？</p>
+
+<p>首先明确一下什么是数据模型，设计数据模型的目的是什么？那只有一个，就是为了方便、有效的操作数据。所以数据模型就是数据的一种组织方式，其上层提供了各种相应的操作（这个改变和数据结构类似）。然后我们从cube能提供什么，而其他数据模型不能提供？当然也会分析下他的缺点。</p>
+
+<p>cube数据模型做的最大的事情是什么呢？那就是改变数据的获取方式（retrieval），其实每种数据模型的核心命题都是储存和获取。当“方便的”储存达到一个质的变化时候，一个新兴的行业就会诞生（比如hadoop的产生推动了数据使用的一个新的境界）。</p>
+
+<p>接下来我们拿一个例子来对比下使用cube模型和普通的关系型数据模型的区别和各自的优势。</p>
+
+<h2>OLTP、数据仓库和OLAP的关系</h2>
+
+<p>从上面的讨论看，OLTP可以理解为业务数据的产生来源，而数据仓库是OLTP的日志的汇集处，最上层是OLAP来处理分析数据仓库中的数据，得出结论后再通过行为反馈到OLTP系统中。</p>
+
+<h2>概念层次</h2>
+
+<h2>实用技术（MDX）</h2>
+
+<h2>衍生产品</h2>
+
+<h2>一点干活</h2>
+
+<p>前面讲了那么多的水货，接下里给一点小的bonus —— 一个olap技术中的基础算法：</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/08/05/java-proxy/">Java Proxy</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-08-05T17:20:04+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>5:20 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>java proxy</h1>
+
+<h2>代理的概念和作用</h2>
+
+<p>代理是一个很通用的解决问题的方法。其用处也是无所不在，不管是在网络部署，编程语言、火车票贩售还是澳洲签证办理中。</p>
+
+<p>这一点有篇文章讲的非常好，看详情直接<a href="http://www.importnew.com/11412.html">点这里，中文版</a>，或者<a href="http://www.javaworld.com/article/2076233/java-se/explore-the-dynamic-proxy-api.html">点这里，原文</a></p>
+
+<blockquote><p>代理强制对象方法的调用要间接的通过代理对象，代理对象就扮演了底层实际被代理对象的代理人的角色。代理对象跟普通对象的声明方式一样，因此，客户端对象根本觉察不到它们有代理对象实例。</p>
+
+<p>有一些常见的代理，比如：访问代理，门面(facade)，远程代理和虚拟代理。访问代理用来给服务或者数据对象的访问添加安全策略。门面是给底层的多个对象提供一个单一的上层接口。远程代理让客户端对象感觉不到底层数据实际是在远程。虚拟代理用来给实际对象做延迟或者是及时(just-in-time)初始化。</p>
+
+<p>在编程中，代理是一个很常用的基本的设计模式。但是，它的一个缺点是跟被代理对象之间是强耦合。看下图1中代理模式的UML，可以看出来为了让代理对象有用并且对被代理对象透明，代理对象通常要实现接口或者是继承已知的超类(facade情况除外)。
+<img src="/images/posts/java_proxy.gif" alt="图1. 代理模式的UML图" /></p></blockquote>
+
+<h2>解决的问题</h2>
+
+<h2>具体使用</h2>
+
+<blockquote><p>动态代理（以下称代理），利用Java的反射技术(Java Reflection)，在运行时创建一个实现某些给定接口的新类（也称“动态代理类”）及其实例（对象）</p>
+
+<p>(Using Java Reflection to create dynamic implementations of interfaces at runtime)。</p>
+
+<p>代理的是接口(Interfaces)，不是类(Class)，更不是抽象类。</p></blockquote>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.lang.reflect.*</span><span class="o">;</span>
+</span><span class='line'><span class="n">Proxy</span><span class="o">.</span><span class="na">newProxyInstance</span><span class="o">(</span><span class="n">ClassLoader</span> <span class="n">loader</span><span class="o">,</span>
+</span><span class='line'>                      <span class="n">Class</span><span class="o">&lt;?&gt;[]</span> <span class="n">interfaces</span><span class="o">,</span>
+</span><span class='line'>                      <span class="n">InvocationHandler</span> <span class="n">h</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个函数的名字直白的反映出了它时产生一个代理实例。它有三个参数：</p>
+
+<ul>
+<li><p>classLoader - the class loader to define the proxy class</p>
+
+<p>  顾名思义就是类的加载器。为什么要传递这个参数，我猜估计是因为jvm生产一个对象，需要专属的加载器。一般都是传递你要代理的接口的loader（ MyInterface.class.getClassLoader() ）。</p></li>
+<li><p>interfaces - the list of interfaces for the proxy class to implement</p>
+
+<p>  这是一个list，列的一组要被实现的接口。这个参数的元素的类型是Class</p></li>
+<li><p>h - the invocation handler to dispatch method invocations to</p>
+
+<p>  实际来组装实现代理接口的地方，其中的invoke是</p></li>
+</ul>
+
+
+<h2>举个例子</h2>
+
+<h2>reference</h2>
+
+<ul>
+<li><a href="http://docs.oracle.com/javase/7/docs/api/java/lang/reflect/Proxy.html">Class Proxy</a></li>
+<li><a href="http://www.javaworld.com/article/2076233/java-se/explore-the-dynamic-proxy-api.html">Explore the Dynamic Proxy API</a></li>
+<li><a href="http://www.importnew.com/11412.html">Explore the Dynamic Proxy API 中文版</a></li>
+<li><a href="http://www.cnblogs.com/techyc/p/3455950.html">Java的动态代理</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/08/03/introduction-to-olap/">Introduction to Olap</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-08-03T15:02:36+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>3</span><span class='date-suffix'>rd</span>, <span class='date-year'>2015</span></span> <span class='time'>3:02 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>现在看完了一本关于讲解数据仓库和数据挖掘的书了，感觉讲的挺不错，现在来写一篇文章。
+首先我们考虑当一家公司从小到大一直发展到amazon的那样，我们叫她ama，数据的会怎么变化。但amazon起初就是小网站的时候肯定大家都一样前端一个购物网页后端放一个给前端操作的数据库即可。那么这个数据库必然是天然适应前端应用操作的一个东西对不对？当然这时候我们也没有别的需求，所以数据库的全世界也就只有这一种啦，你也认识不到还有别的使用数据的地方。
+然后ama不断的发展，突然来了这么一个人，这个人以前是名统计学家，他对公司这么放着一堆“金子”不用而感到惊讶。所她自己挽起袖子，自己发誓要通过科学的方法得出一些结论，让公司的市场方向和运营得到指导和优化。但是面对他从来没在学校见过的不可思议大的已经都“落灰”的数据时候，发现自己仅仅是抽个样本看都难。
+然后他又正好有个前同事是数据库的专家，你貌似知道以前他搞过基因测序，那东西可是比这堆东西更大，而他搞定了，去问问他。
+“Hi，Denise你以前的基因测序是怎么把信息存储起来的同时还能做计算？”
+“Shally，你算问对人了。我现在就在研究最火的大数据方向！不过也许你听大数据这个词已经烦了，不过用它拿科研经费挺好使。平时我们不用这个词。如果要描述数据量非常大，我们用Massive Data（海量数据），如果要描述数据非常多样，我们用Heterogeneous Data（异构数据），如果要描述数据既多样，又量大，我们用Massive Heterogeneous Data（海量异构数据），如果要申请基金忽悠一笔钱，我们用Big Data（大数据）。”
+“别和我说那些有的没的，我作为一个统计学家当然知道怎么使用数据，我最大问题是我现在没办法操作这些数据！”
+“好吧。那我们就来讲讲分析型数据的储存吧！”
+“等等，你刚才讲了分析型数据？这是个什么东西？”
+“嗯，作为统计学家来说你接触到的肯定大部分都是分析型数据，而且你的圈子因为不考虑那些操作型数据，所以并不熟悉这个词。而相对在计算机界，因为都是建立一个一个的应用，背后的数据库都是为了支撑应用操作或者事务（(OLTP &ndash; OnLine transaction processing)）而存在，所以他们反而都会忽视分析型数据。既然说到这里我们就来说说什么是操作型数据和什么分析型数据。他们的定义都很很简单，顾名思义，操作型数据是针对前端应用，并且为了适应这些应用而组织起来。而分析型数据存在的目的就是为了分析（OLAP &ndash; OnLine analytical processing），所以它的组织方式是围绕着怎么支持分析工作的。”
+“嗯，这到底能怎么影响储存呢？”
+“这两种的特性不一样？比如，为了支持基本的网上购买操作或者可以说是事务，你需要设计货品表。货品表为了支持购买操作一般就只保留一个副本，即便是修改了，或者删除了。操作会<strong>立即</strong>同步到表中并被观察到，而且只保留<strong>最近状态</strong>。为了保证修改价格的时候不影响正在购买此商品的用户，还需要复杂的事务机制保证对用户数据是一致，。假想下下单的时候价格是5块，支付时候变成了10块的心情。而且还考虑尽量减少数据的冗余，大量使用数据关联技术（关系型数据库理论的核心——范式）。货品表是个典型的操作型数据。”
+“而分析型数据呢？相对于操作型数据来说，首先它是按时间发生的全局数据。会把所有的操作历史保留。所以数据从一行变成了一块。想想你会为了分析数据搞一套来一条数据运行一遍你的分析过程吗？不会，所以对数据进行批量处理，而且在操作型数据中的那种不能超过1s的严格响应时间，你也不会那么在乎。还有一个操作型数据特别头疼的问题，就是数据的一致性保证机制——事务的处理。这个东西可是个很影响效率的机制。考虑到分析型数据储存都是历史的操作产生的数据，一般是不变的（如果去修改历史，是不是有点自欺欺人）。”
+“好了，到此为止我们来总结下这两种数据的不同。</p>
+
+<p>|特性    | OLTP数据 | OLAP数据|
+|&mdash;&mdash;-|&mdash;&mdash;&mdash;|&mdash;&mdash;&mdash;|
+|操作范围|一行或几行 |一大块或者整表|
+|储存范围|最新状态   |全部状态记录|
+|操作类型|删除，更新，添加，查找|批量加载，批量查询|
+|性能要求|响应要求苛刻| 相对宽松，一些任务跑上好几天都可以|
+|一致性| 支持事务| 几乎不存在这个问题，因为没有修改操作|
+|目的| 面向业务，支持日常操作|面向分析挖掘，<a href="">用处千千万，谈谈大数据的用处</a>|
+|计算|一次数据量小，计算简单|一次数据量大，而且计算复杂|
+”
+“接下来根据上面的特性，我们来说说没啥分析型数据要专门的储存方法。”
+“这个我知道，因为使用现有的操作型数据处理方式，数据取不出来也存不下。”
+“说的太对了，但还有其他的问题，那就是刚才提到的特性中有很多对于系统设计是冲突，你要支持A特性，就别想还能满足B特性。如果你感兴趣我再说说针对这两种数据有发展了那些数据库？”
+“快说吧！”
+“现在你们公司肯定用的是行式储存的数据库。而为了支持分析型数据，现在发展出了很多基于列式的数据库。先说说为啥列式数据更适合于分析型数据。你看以先看看这篇文章哈。”
+听完朋友的讲解，你当天就找到DBA去帮你搭建了他推荐的infobright，开始愉快的操作了。但是渐渐的你发现每次手动导入数据，不仅麻烦还存在数据过期的头疼问题。再加上总是缺少大量相关数据，要到处搜集，收集到的数据还因为各种原因互相冲突。折磨的你快要受不了了。你又找朋友出来，谈你的烦恼。
+&ldquo;嗯，这是一个大坑，因为你还要解决数据的问题。其实你需要的是一个数据仓库。&rdquo;</p>
+
+<h1>Olap技术框架概况</h1>
+
+<h2>数据仓库</h2>
+
+<h2>多维度数据模型</h2>
+
+<h2>Olap是什么</h2>
+
+<h2>为什么要Cube模型</h2>
+
+<h2>常用OLap技术框架</h2>
+
+<h3>数据存储引擎层</h3>
+
+<ul>
+<li>Hive</li>
+<li>Infrobright</li>
+</ul>
+
+
+<h3>多维度模型转化层</h3>
+
+<p>Mondrian</p>
+
+<h3>多维度模型到展现层的连接接口</h3>
+
+<p>Olap4j</p>
+
+<h3>数据展现层</h3>
+
+<p>Saiku</p>
+
+<h3>示例——Saiku + Mondrian + Infrobright</h3>
+
+<h3>数据分析查询示例——怎么正确的拖出正确的数据集合</h3>
+
+<h4>策略实验分析</h4>
+
+<h4>运营投放——效果对比</h4>
+
+<h4>商业分析——长时间短的查询（周，月，年）</h4>
+
+<h4>故障异常排查（小时，天）</h4>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/07/25/concurrent-and-status/">Concurrent_and_status</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-07-25T10:37:35+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>25</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:37 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>并发与状态</h1>
+
+<p>并发也许计算机中最难处理的部分，而且它又无处不在。比如你多个连接同时操作一个数据库；多个进程修改和读取一个文件时；抢火车票时，票不会凭空多出来；同时进行多个取钱操作时，银行保证你不会凭空多取出钱来。(这里也许需要更多、更好的使用发生场景)。If you want your computer run faster, you need paralisment.
+所以我想就想着这里谈谈到底什么是并发，毕竟搞清楚了问题的本质，才能应变问题以及相关问题。</p>
+
+<h2>基础例子</h2>
+
+<p>我们就拿上面的抢火车票来说举例吧！这个例子只要是中国人都应该有经历，所以有共鸣。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>张三（看看还有多少票）---------------&gt;    -----------
+</span><span class='line'>李四（看看还有多少票）---------------&gt;    |北京-上海 |
+</span><span class='line'>。                                     |余票：2     |
+</span><span class='line'>。                                       |         |
+</span><span class='line'>。                                     |         |
+</span><span class='line'>Alice（看看还有多少票）-------------&gt;    -----------</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>张三（有票，赶紧买）---------------&gt;   -----------
+</span><span class='line'>李四（怎么只剩2张）---------------&gt;    |北京-上海 |
+</span><span class='line'>。                                  |余票：2   |
+</span><span class='line'>。                                  |         |
+</span><span class='line'>。                                  |         |
+</span><span class='line'>Alice（我也要买）-------------&gt;      -----------</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从上面看来，买票就的动作可以分成2个阶段，而我们用m来表是此时剩余的票数:</p>
+
+<ol>
+<li>读取当前余票：m &mdash;> read</li>
+<li>如果有，就买票：m-1  &mdash;-> write</li>
+</ol>
+
+
+<p>翻译成程序：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span> <span class="nf">bug_ticket</span><span class="p">(){</span>
+</span><span class='line'>  <span class="n">m</span><span class="o">=</span><span class="n">get_ticket_count</span><span class="p">();</span> <span class="c1">//read 操作</span>
+</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="n">m</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">){</span>
+</span><span class='line'>      <span class="n">buy</span><span class="p">();</span>
+</span><span class='line'>      <span class="n">rewrite_ticket_count</span><span class="p">(</span><span class="n">m</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="c1">//write 操作,票减一张</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>为了简单期间，我们假设只有两个人抢票：A和B。那么所以的动作就有4个：</p>
+
+<p><strong>{A1，A2，B1，B2}</strong>（注意这是集合，是无序。当然我们发现A2在A1前面发生其实是无意义，因为买票肯定会先读取一下现在还有没有余票。同理B1和B2的顺序）</p>
+
+<p>我们理想的买票状况是排队：
+A 操作完A1，然后操作A2。然后B 在操作B1，然后再操作B2。但是现实中你不可能要求A做读取操作，不允许B不能读取吧。抢票关键还是看第二步操作谁快，才公平。所以就会出现这种序列：</p>
+
+<p><strong>[A1，B1，A2，B2]</strong></p>
+
+<p>但是这种我们仔细想想就会出问题：
+A1：A执行get_ticket_count()，发现有m=1张
+B1：B同时执行get_ticket_count()，发现有m=1张
+A2：A抢先执行了buy()并且rewrite_ticket_count(0)
+B2：B已经在B1的时候拿到了余票数，虽然期间被A修改了，但是B并不知道，让然执行buy()并且rewrite_ticket_count(0)</p>
+
+<p>Ops！！发现一张票卖给了两个人。</p>
+
+<p>其实用另一个更简单的例子：计数
+A读取计数器发现现在到了100，同时B也读取计数器发现是100
+A现在对计数器操作，计数器现在是100，加上我自己应该是101，所以重写101到计数器中
+B可能就是慢了1纳秒，但是B还认为计数器才累积到100，所以加上自己应该是101，写入101到计数器中。
+可是计数机本应该是102的，少了1。</p>
+
+<p>发现并发控制不好，数要么莫名的多，要么莫名的少。</p>
+
+<h2>锁</h2>
+
+<p>有了问题，就应该想办法解决问题。<strong>并发问题解决本质就是限制其子原子操作的排列组合顺序,让不该发生的顺序排列不要发生</strong>。例如上面子原子操作的集合是<strong>{A1，A2，B1，B2}</strong>，其中有read操作必须先与write操作的限制条件，即A1先与A2,B1先与B2，其排列有：</p>
+
+<ul>
+<li>[A1，A2，B1，B2]</li>
+<li>[A1，B1，A2，B2]</li>
+<li>[B1，A1，A2，B2]</li>
+<li>[B1，B2，A2，A2]</li>
+<li>[B1，A1，B2，A2]</li>
+</ul>
+
+
+<p>加上读锁，即A或者B执行read的时候不允许其他人read和write直到本人write操作完成。这样做的结果就是:</p>
+
+<ul>
+<li>[A1，A2，B1，B2]</li>
+<li>[A1，B1，A2，B2] &mdash; 被排除</li>
+<li>[B1，A1，A2，B2] &mdash; 被排除</li>
+<li>[B1，B2，A2，A2]</li>
+<li>[B1，A1，B2，A2] &mdash; 被排除</li>
+</ul>
+
+
+<p>加read lock也许是最直接的方法，但是也是最暴力的。比如你在查看余票，就不允许别人同时查看余票，这个估计其他人是要砸桌子了。</p>
+
+<p>通过上面的子原子操作，我们看到并发的同时其实是个概念化的时间，和现实中的同时不是完全的一致。它其实是根据共享数据的状态划分的，状态改变一次算是一个时刻。这种比如你打开一个wikipedia的页面放置了一天没关，而期间也没人更改内容，那么一天后你再去查看内容，前后还是处于同一时刻。但是如果有人期间更改了内容，那么共享的内容的时刻已经前进了，而你一天后的内容就是过时的。</p>
+
+<p>第二种稍好办法就是，加上读取时间，来标识读取的哪个时刻（状态版本）。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/07/24/style-of-programming-1/">Style of Programming 1</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-07-24T18:12:32+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>6:12 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>side effect的疑惑</h1>
+
+<h2>例子</h2>
+
+<p>这个例子是用c++写的。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span> <span class="nf">sort_three_nums</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span><span class="kt">int</span> <span class="n">b</span><span class="p">,</span><span class="kt">int</span> <span class="n">c</span><span class="p">){</span>
+</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">c</span><span class="o">&lt;</span><span class="n">b</span><span class="p">){</span>
+</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="c1">//{b&lt;c}</span>
+</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">b</span><span class="o">&lt;</span><span class="n">a</span><span class="p">){</span>
+</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="c1">//{a&lt;b &amp;&amp; a&lt;c}</span>
+</span><span class='line'>    <span class="c1">//be careful!Swap a,b maybe destory the precondition {b&lt;c}, because the value of b maybe changed</span>
+</span><span class='line'>    <span class="c1">//so you need to compare b and c again!!</span>
+</span><span class='line'>    <span class="c1">//the confusion of side effect</span>
+</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">c</span><span class="o">&lt;</span><span class="n">b</span><span class="p">){</span>
+</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="c1">//{a&lt;b &amp;&amp; b&lt;c &amp;&amp; a&lt;c}</span>
+</span><span class='line'>    <span class="c1">//{a&lt;b&lt;c}</span>
+</span><span class='line'>    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d %d %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这是一个典型的对三个数进行排序的例子，中间需要两次判断b,c导致的原因是在第二次比较中，<code>swap(a,b)</code>可能已经改变了b的值，所以到指第一次的比较结果失效了。像这种在中间就悄悄地改变变量的值，让人防不胜防。而且在命令式编程中也是处处存在，进而导致一些莫名其妙的问题。渐渐地软件开发在人们眼里也变成了一门高不可测且bug百出的学科。</p>
+
+<h2>改进</h2>
+
+<p>上面的代码从表面看令人非常疑惑，特别是那两次表面上一模一样的比较（b&lt;c）。让人看着着实不爽。让我们交换一个比较规则看看。假设我先比较a,b；然后再比较a,c；确保a是最小的数，然后再比较b,c。这样是不是要语义清楚一些呢？</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span> <span class="nf">sort_three_nums</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span><span class="kt">int</span> <span class="n">b</span><span class="p">,</span><span class="kt">int</span> <span class="n">c</span><span class="p">){</span>
+</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">b</span><span class="o">&lt;</span><span class="n">a</span><span class="p">){</span>
+</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="c1">//{a&lt;b}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">c</span><span class="o">&lt;</span><span class="n">a</span><span class="p">){</span>
+</span><span class='line'>      <span class="c1">//{a&lt;b &amp;&amp; c&lt;a}={c&lt;a&lt;b}</span>
+</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
+</span><span class='line'>        <span class="c1">//{a&lt;c&lt;b}=&gt;{a&lt;b &amp;&amp; a&lt;c}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="c1">//{a&lt;b &amp;&amp; a&lt;c}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">c</span><span class="o">&lt;</span><span class="n">b</span><span class="p">){</span>
+</span><span class='line'>      <span class="c1">//{a&lt;b &amp;&amp; a&lt;c &amp;&amp; c&lt;b}={a&lt;c&lt;b}</span>
+</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
+</span><span class='line'>        <span class="c1">//{a&lt;b&lt;b}</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="c1">//{a&lt;b &amp;&amp; a&lt;c &amp;&amp; b&lt;c}={a&lt;b&lt;c}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d %d %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>能不能使用一种中间不要产生side effect的方法？</h2>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/posts/6">&larr; Older</a>
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/posts/4">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/08/04/wordcount-in-mapreduce/">Wordcount in Mapreduce</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/02/synchronise-vs-blocking/">Synchronise vs Blocking</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/07/29/introduce-cap/">Introduce CAP</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/07/24/a-misusing-of-python-logging-lock/">A Misusing of Python Logging Lock</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/07/24/how-to-understand-a-data-system/">如何理解一个数据存储系统</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Wood Carver -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Map | Wood Carver]]></title>
+  <link href="http://woodcarver.github.io/blog/categories/map/atom.xml" rel="self"/>
+  <link href="http://woodcarver.github.io/"/>
+  <updated>2016-08-08T00:01:19+08:00</updated>
+  <id>http://woodcarver.github.io/</id>
+  <author>
+    <name><![CDATA[Wood Carver]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Study Tree]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/03/16/study-tree/"/>
+    <updated>2016-03-16T15:00:42+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/03/16/study-tree</id>
+    <content type="html"><![CDATA[<h1>Java learning</h1>
+
+<ol>
+<li><p>基本语法
+这包括static、final、transient等关键字的作用，foreach循环的原理，volatile等等。今天面试我问你static关键字有哪些作用，如果你答出static修饰变量、修饰方法我会认为你合格，答出静态块，我会认为你不错，答出静态内部类我会认为你很好，答出静态导包我会对你很满意，因为能看出你非常热衷研究技术。</p></li>
+<li><p>数据结构（容器）
+ArrayList、LinkedList、Hashtable、HashMap、ConcurrentHashMap、HashSet的实现原理,掌握CopyOnWrite容器和Queue, 特别是ConcuurentHashMap：
+（1）ConcurrentHashMap的锁分段技术
+（2）ConcurrentHashMap的读是否要加锁，为什么
+（3）ConcurrentHashMap的迭代器是强一致性的迭代器还是弱一致性的迭代器</p></li>
+<li><p>设计模式
+（1）你的项目中用到了哪些设计模式，如何使用
+（2）知道常用设计模式的优缺点
+（3）能画出常用设计模式的UML图</p></li>
+<li><p>多线程
+Thread和Runnable的区别和联系、多次start一个线程会怎么样、线程有哪些状态
+假如有Thread1、Thread2、Thread3、Thread4四条线程分别统计C、D、E、F四个盘的大小，所有线程都统计完毕交给Thread5线程去做汇总，应当如何实现？
+另外，线程池也是比较常问的一块，常用的线程池有几种？这几种线程池之间有什么区别和联系？线程池的实现原理是怎么样的？实际一些的，会给你一些具体的场景，让你回答这种场景该使用什么样的线程池比较合适。
+<a href="http://www.cnblogs.com/xrq730/p/5060921.html">40个java多线程问题总结</a></p></li>
+<li><p>Jdk源码
+（1）List、Map、Set实现类的源代码
+（2）ReentrantLock、AQS的源代码
+（3）AtomicInteger的实现原理，主要能说清楚CAS机制并且AtomicInteger是如何利用CAS</p></li>
+<li><p>Java虚拟机
+（1）Java虚拟机的内存布局
+（2）GC算法及几种垃圾收集器
+（3）类加载机制，也就是双亲委派模型
+（4）Java内存模型
+（5）happens-before规则
+（6）volatile关键字使用规则</p></li>
+</ol>
+
+]]></content>
+  </entry>
+  
+</feed>

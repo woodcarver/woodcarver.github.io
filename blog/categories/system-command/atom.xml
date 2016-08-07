@@ -4,7 +4,7 @@
   <title><![CDATA[Category: System Command | Wood Carver]]></title>
   <link href="http://woodcarver.github.io/blog/categories/system-command/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2016-03-06T18:38:21+08:00</updated>
+  <updated>2016-08-08T00:01:19+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -18,7 +18,16 @@
     <link href="http://woodcarver.github.io/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands/"/>
     <updated>2016-02-17T21:58:48+08:00</updated>
     <id>http://woodcarver.github.io/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands</id>
-    <content type="html"><![CDATA[<h1>Commands about I/O</h1>
+    <content type="html"><![CDATA[<h1>知识地图</h1>
+
+<p>这篇文章整理的是对关于诊断linux系统状况的相关指标和命令。涉及到：
+1. I/O负载状况
+2. 进程控制
+3. cpu负载状况
+4. memory占用情况
+5. disk使用情况</p>
+
+<h1>Commands about I/O</h1>
 
 <ul>
 <li><p>什么是I/O
@@ -66,7 +75,15 @@ dstat -tdD total,sda,sdb,sdc,md1 60</p>
 </ul>
 
 
-<h1>系统状态综合诊断</h1>
+<h1>进程控制</h1>
+
+<ul>
+<li>exec</li>
+<li>source</li>
+<li>kill</li>
+<li>bg,fg,jobs</li>
+</ul>
+
 ]]></content>
   </entry>
   

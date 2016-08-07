@@ -9,7 +9,7 @@
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="java proxy 代理的概念和作用 代理是一个很通用的解决问题的方法。其用处也是无所不在，不管是在网络部署，编程语言、火车票贩售还是澳洲签证办理中。 这一点有篇文章讲的非常好，看详情直接点这里，中文版，或者点这里，原文 代理强制对象方法的调用要间接的通过代理对象， &hellip;">
+  <meta name="description" content="如何管理自己的项目 不管你是Leader or not，都会牵涉到管理自己的项目问题，只是角色不一样而已。我模仿下《布道之道》的结构总结一些模式，然后在分析怎么用这些模式（或者是原则）。如何又快又好的最大化自己的工作成效呢？It&rsquo;s a question. 关键点 项目跟踪 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -58,7 +58,10 @@
 <ul class="main-navigation">
   <li><a href="/">Blog</a></li>
   <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/book-links">Books</a></li>
   <li><a href="/about">About Me</a></li>
+  <li><a href="/start-here">Start Here</a></li>
+  <li><a href="/others-blog">Reading</a></li>
 </ul>
 
 </nav>
@@ -72,7 +75,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2015/08/05/java-proxy/">Java Proxy</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/04/23/how-to-manage-your-work/">How to Manage Your Work</a></h1>
     
     
       <p class="meta">
@@ -81,292 +84,61 @@
 
 
 
-<time class='entry-date' datetime='2015-08-05T17:20:04+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>5:20 pm</span></time>
+<time class='entry-date' datetime='2016-04-23T12:06:20+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>23</span><span class='date-suffix'>rd</span>, <span class='date-year'>2016</span></span> <span class='time'>12:06 pm</span></time>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><h1>java proxy</h1>
+  <div class="entry-content"><h1>如何管理自己的项目</h1>
 
-<h2>代理的概念和作用</h2>
+<p>不管你是Leader or not，都会牵涉到管理自己的项目问题，只是角色不一样而已。我模仿下《布道之道》的结构总结一些模式，然后在分析怎么用这些模式（或者是原则）。如何又快又好的最大化自己的工作成效呢？It&rsquo;s a question.</p>
 
-<p>代理是一个很通用的解决问题的方法。其用处也是无所不在，不管是在网络部署，编程语言、火车票贩售还是澳洲签证办理中。</p>
-
-<p>这一点有篇文章讲的非常好，看详情直接<a href="http://www.importnew.com/11412.html">点这里，中文版</a>，或者<a href="http://www.javaworld.com/article/2076233/java-se/explore-the-dynamic-proxy-api.html">点这里，原文</a></p>
-
-<blockquote><p>代理强制对象方法的调用要间接的通过代理对象，代理对象就扮演了底层实际被代理对象的代理人的角色。代理对象跟普通对象的声明方式一样，因此，客户端对象根本觉察不到它们有代理对象实例。</p>
-
-<p>有一些常见的代理，比如：访问代理，门面(facade)，远程代理和虚拟代理。访问代理用来给服务或者数据对象的访问添加安全策略。门面是给底层的多个对象提供一个单一的上层接口。远程代理让客户端对象感觉不到底层数据实际是在远程。虚拟代理用来给实际对象做延迟或者是及时(just-in-time)初始化。</p>
-
-<p>在编程中，代理是一个很常用的基本的设计模式。但是，它的一个缺点是跟被代理对象之间是强耦合。看下图1中代理模式的UML，可以看出来为了让代理对象有用并且对被代理对象透明，代理对象通常要实现接口或者是继承已知的超类(facade情况除外)。
-<img src="/images/posts/java_proxy.gif" alt="图1. 代理模式的UML图" /></p></blockquote>
-
-<h2>解决的问题</h2>
-
-<h2>具体使用</h2>
-
-<blockquote><p>动态代理（以下称代理），利用Java的反射技术(Java Reflection)，在运行时创建一个实现某些给定接口的新类（也称“动态代理类”）及其实例（对象）</p>
-
-<p>(Using Java Reflection to create dynamic implementations of interfaces at runtime)。</p>
-
-<p>代理的是接口(Interfaces)，不是类(Class)，更不是抽象类。</p></blockquote>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kn">import</span> <span class="nn">java.lang.reflect.*</span><span class="o">;</span>
-</span><span class='line'><span class="n">Proxy</span><span class="o">.</span><span class="na">newProxyInstance</span><span class="o">(</span><span class="n">ClassLoader</span> <span class="n">loader</span><span class="o">,</span>
-</span><span class='line'>                      <span class="n">Class</span><span class="o">&lt;?&gt;[]</span> <span class="n">interfaces</span><span class="o">,</span>
-</span><span class='line'>                      <span class="n">InvocationHandler</span> <span class="n">h</span><span class="o">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这个函数的名字直白的反映出了它时产生一个代理实例。它有三个参数：</p>
-
-<ul>
-<li><p>classLoader - the class loader to define the proxy class</p>
-
-<p>  顾名思义就是类的加载器。为什么要传递这个参数，我猜估计是因为jvm生产一个对象，需要专属的加载器。一般都是传递你要代理的接口的loader（ MyInterface.class.getClassLoader() ）。</p></li>
-<li><p>interfaces - the list of interfaces for the proxy class to implement</p>
-
-<p>  这是一个list，列的一组要被实现的接口。这个参数的元素的类型是Class</p></li>
-<li><p>h - the invocation handler to dispatch method invocations to</p>
-
-<p>  实际来组装实现代理接口的地方，其中的invoke是</p></li>
-</ul>
-
-
-<h2>举个例子</h2>
-
-<h2>reference</h2>
-
-<ul>
-<li><a href="http://docs.oracle.com/javase/7/docs/api/java/lang/reflect/Proxy.html">Class Proxy</a></li>
-<li><a href="http://www.javaworld.com/article/2076233/java-se/explore-the-dynamic-proxy-api.html">Explore the Dynamic Proxy API</a></li>
-<li><a href="http://www.importnew.com/11412.html">Explore the Dynamic Proxy API 中文版</a></li>
-<li><a href="http://www.cnblogs.com/techyc/p/3455950.html">Java的动态代理</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/08/03/introduction-to-olap/">Introduction to Olap</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-08-03T15:02:36+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>3</span><span class='date-suffix'>rd</span>, <span class='date-year'>2015</span></span> <span class='time'>3:02 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h1>Olap技术框架概况</h1>
-
-<h2>数据仓库</h2>
-
-<h2>多维度数据模型</h2>
-
-<h2>Olap是什么</h2>
-
-<h2>常用OLap技术框架</h2>
-
-<h3>数据存储引擎层</h3>
-
-<ul>
-<li>Hive</li>
-<li>Infrobright</li>
-</ul>
-
-
-<h3>多维度模型转化层</h3>
-
-<p>Mondrian</p>
-
-<h3>多维度模型到展现层的连接接口</h3>
-
-<p>Olap4j</p>
-
-<h3>数据展现层</h3>
-
-<p>Saiku</p>
-
-<h3>示例——Saiku + Mondrian + Infrobright</h3>
-
-<h3>数据分析查询示例——怎么正确的拖出正确的数据集合</h3>
-
-<h4>策略实验分析</h4>
-
-<h4>运营投放——效果对比</h4>
-
-<h4>商业分析——长时间短的查询（周，月，年）</h4>
-
-<h4>故障异常排查（小时，天）</h4>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/07/25/concurrent-and-status/">Concurrent_and_status</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-07-25T10:37:35+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>25</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:37 am</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h1>并发与状态</h1>
-
-<p>并发也许计算机中最难处理的部分，而且它又无处不在。比如你多个连接同时操作一个数据库；多个进程修改和读取一个文件时；抢火车票时，票不会凭空多出来；同时进行多个取钱操作时，银行保证你不会凭空多取出钱来。(这里也许需要更多、更好的使用发生场景)。If you want your computer run faster, you need paralisment.
-所以我想就想着这里谈谈到底什么是并发，毕竟搞清楚了问题的本质，才能应变问题以及相关问题。</p>
-
-<h2>基础例子</h2>
-
-<p>我们就拿上面的抢火车票来说举例吧！这个例子只要是中国人都应该有经历，所以有共鸣。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>张三（看看还有多少票）---------------&gt;    -----------
-</span><span class='line'>李四（看看还有多少票）---------------&gt;    |北京-上海 |
-</span><span class='line'>。                                     |余票：2     |
-</span><span class='line'>。                                       |         |
-</span><span class='line'>。                                     |         |
-</span><span class='line'>Alice（看看还有多少票）-------------&gt;    -----------</span></code></pre></td></tr></table></div></figure>
-
-
-
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>张三（有票，赶紧买）---------------&gt;   -----------
-</span><span class='line'>李四（怎么只剩2张）---------------&gt;    |北京-上海 |
-</span><span class='line'>。                                  |余票：2   |
-</span><span class='line'>。                                  |         |
-</span><span class='line'>。                                  |         |
-</span><span class='line'>Alice（我也要买）-------------&gt;      -----------</span></code></pre></td></tr></table></div></figure>
-
-
-<p>从上面看来，买票就的动作可以分成2个阶段，而我们用m来表是此时剩余的票数:</p>
+<h2>关键点</h2>
 
 <ol>
-<li>读取当前余票：m &mdash;> read</li>
-<li>如果有，就买票：m-1  &mdash;-> write</li>
+<li>项目跟踪</li>
+<li>实时有效反馈</li>
+<li>项目预判和重要级划分，时效性估计，特别是针对所谓的紧急任务</li>
+<li>树立合作处理模式和规则，让合作的人可以预测</li>
+<li>项目总结</li>
 </ol>
 
 
-<p>翻译成程序：</p>
+<h1>如何处理一个紧急事务</h1>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span> <span class="nf">bug_ticket</span><span class="p">(){</span>
-</span><span class='line'>  <span class="n">m</span><span class="o">=</span><span class="n">get_ticket_count</span><span class="p">();</span> <span class="c1">//read 操作</span>
-</span><span class='line'>  <span class="k">if</span><span class="p">(</span><span class="n">m</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">){</span>
-</span><span class='line'>      <span class="n">buy</span><span class="p">();</span>
-</span><span class='line'>      <span class="n">rewrite_ticket_count</span><span class="p">(</span><span class="n">m</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span> <span class="c1">//write 操作,票减一张</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
+<h2>事中处理</h2>
 
+<p>可能作为一线员工，接到紧急任务的最常用方法就是，放下手中的工作然后转向紧急任务处理，因为选择安排任务的空间比较小。
+而我们都知道插入任务，必定会导致已有的任务延迟或者将来规划的任务延期。而延期的多长时间就要依赖于处理插入事务的速度了。而唯一能加快处理速度的方法就是以前积累类似case的处理经验。
+所以就要用到P5，一定要注意总结。</p>
 
-<p>为了简单期间，我们假设只有两个人抢票：A和B。那么所以的动作就有4个：</p>
+<h2>事前预防</h2>
 
-<p><strong>{A1，A2，B1，B2}</strong>（注意这是集合，是无序。当然我们发现A2在A1前面发生其实是无意义，因为买票肯定会先读取一下现在还有没有余票。同理B1和B2的顺序）</p>
+<p>这个地方可以采取的措施就很多了。
+第一点就是要弄清楚为什么要做这个任务，如果对公司的业务做够熟悉（这个需要公司业务积累），那么很容易判断出来这个任务到底有没有意义或者有更优化的解决方案，或者根本就不用做了。
+第二点是弄清楚自己能不能接，如果不能接（比如自己有更重要的事情要完成），建议交给别人或者让拒绝对方的无理要求。
+第三点是树立自己的处理事务模式(P4)，让需求方提出需求前有个预测他们的任务会不会被自己拒绝。
+第四点就是分析经历过的项目(P5)，找出模式，做好事先准备。
+第五点，如果公司有很好的反馈机制，知道其他和自己相关的项目正在进行，但是还没有进行到自己这里，这里就需要使用P1，预判什么时候到自己这里，可以做事前准备。再着前置任务延迟，提醒他们延迟的后果，再一定程度上提醒前置任务的速度。</p>
 
-<p>我们理想的买票状况是排队：
-A 操作完A1，然后操作A2。然后B 在操作B1，然后再操作B2。但是现实中你不可能要求A做读取操作，不允许B不能读取吧。抢票关键还是看第二步操作谁快，才公平。所以就会出现这种序列：</p>
+<h2>事后总结</h2>
 
-<p><strong>[A1，B1，A2，B2]</strong></p>
+<p>任务完了，还有很多事要做，才能保证将来的工作成效能提升：
+第一点：还是P5， 这里有业务方向和技术方向两大块。业务方向出来事情的意义还有事情产生的时间模式。</p>
 
-<p>但是这种我们仔细想想就会出问题：
-A1：A执行get_ticket_count()，发现有m=1张
-B1：B同时执行get_ticket_count()，发现有m=1张
-A2：A抢先执行了buy()并且rewrite_ticket_count(0)
-B2：B已经在B1的时候拿到了余票数，虽然期间被A修改了，但是B并不知道，让然执行buy()并且rewrite_ticket_count(0)</p>
+<h1>如何判断一个项目，你能不能接</h1>
 
-<p>Ops！！发现一张票卖给了两个人。</p>
+<p>当一下子来一个大项目，其实一下子估计自己什么时候完成是一个很大的挑战。
+所以采取的方案就是，项目拆分。只有当项目足够小，才能被看清、预估，才能被很好的执行 —— 分冶的思想。</p>
 
-<p>其实用另一个更简单的例子：计数
-A读取计数器发现现在到了100，同时B也读取计数器发现是100
-A现在对计数器操作，计数器现在是100，加上我自己应该是101，所以重写101到计数器中
-B可能就是慢了1纳秒，但是B还认为计数器才累积到100，所以加上自己应该是101，写入101到计数器中。
-可是计数机本应该是102的，少了1。</p>
-
-<p>发现并发控制不好，数要么莫名的多，要么莫名的少。</p>
-
-<h2>锁</h2>
-
-<p>有了问题，就应该想办法解决问题。<strong>并发问题解决本质就是限制其子原子操作的排列组合顺序,让不该发生的顺序排列不要发生</strong>。例如上面子原子操作的集合是<strong>{A1，A2，B1，B2}</strong>，其中有read操作必须先与write操作的限制条件，即A1先与A2,B1先与B2，其排列有：</p>
+<h1>reference</h1>
 
 <ul>
-<li>[A1，A2，B1，B2]</li>
-<li>[A1，B1，A2，B2]</li>
-<li>[B1，A1，A2，B2]</li>
-<li>[B1，B2，A2，A2]</li>
-<li>[B1，A1，B2，A2]</li>
+<li><a href="https://www.livecoding.tv/udm/videos/xYvyp-1dv600-l03-planning-and-managing-projects">planning and managing pojects</a></li>
 </ul>
 
-
-<p>加上读锁，即A或者B执行read的时候不允许其他人read和write直到本人write操作完成。这样做的结果就是:</p>
-
-<ul>
-<li>[A1，A2，B1，B2]</li>
-<li>[A1，B1，A2，B2] &mdash; 被排除</li>
-<li>[B1，A1，A2，B2] &mdash; 被排除</li>
-<li>[B1，B2，A2，A2]</li>
-<li>[B1，A1，B2，A2] &mdash; 被排除</li>
-</ul>
-
-
-<p>加read lock也许是最直接的方法，但是也是最暴力的。比如你在查看余票，就不允许别人同时查看余票，这个估计其他人是要砸桌子了。</p>
-
-<p>通过上面的子原子操作，我们看到并发的同时其实是个概念化的时间，和现实中的同时不是完全的一致。它其实是根据共享数据的状态划分的，状态改变一次算是一个时刻。这种比如你打开一个wikipedia的页面放置了一天没关，而期间也没人更改内容，那么一天后你再去查看内容，前后还是处于同一时刻。但是如果有人期间更改了内容，那么共享的内容的时刻已经前进了，而你一天后的内容就是过时的。</p>
-
-<p>第二种稍好办法就是，加上读取时间，来标识读取的哪个时刻（状态版本）。</p>
 </div>
   
   
@@ -379,7 +151,7 @@ B可能就是慢了1纳秒，但是B还认为计数器才累积到100，所以�
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2015/07/24/style-of-programming-1/">Style of Programming 1</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/04/21/debug-python/">Debug Python</a></h1>
     
     
       <p class="meta">
@@ -388,114 +160,14 @@ B可能就是慢了1纳秒，但是B还认为计数器才累积到100，所以�
 
 
 
-<time class='entry-date' datetime='2015-07-24T18:12:32+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>6:12 pm</span></time>
+<time class='entry-date' datetime='2016-04-21T11:12:30+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>11:12 am</span></time>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><h1>side effect的疑惑</h1>
-
-<h2>例子</h2>
-
-<p>这个例子是用c++写的。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span> <span class="nf">sort_three_nums</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span><span class="kt">int</span> <span class="n">b</span><span class="p">,</span><span class="kt">int</span> <span class="n">c</span><span class="p">){</span>
-</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">c</span><span class="o">&lt;</span><span class="n">b</span><span class="p">){</span>
-</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="c1">//{b&lt;c}</span>
-</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">b</span><span class="o">&lt;</span><span class="n">a</span><span class="p">){</span>
-</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="c1">//{a&lt;b &amp;&amp; a&lt;c}</span>
-</span><span class='line'>    <span class="c1">//be careful!Swap a,b maybe destory the precondition {b&lt;c}, because the value of b maybe changed</span>
-</span><span class='line'>    <span class="c1">//so you need to compare b and c again!!</span>
-</span><span class='line'>    <span class="c1">//the confusion of side effect</span>
-</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">c</span><span class="o">&lt;</span><span class="n">b</span><span class="p">){</span>
-</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="c1">//{a&lt;b &amp;&amp; b&lt;c &amp;&amp; a&lt;c}</span>
-</span><span class='line'>    <span class="c1">//{a&lt;b&lt;c}</span>
-</span><span class='line'>    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d %d %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这是一个典型的对三个数进行排序的例子，中间需要两次判断b,c导致的原因是在第二次比较中，<code>swap(a,b)</code>可能已经改变了b的值，所以到指第一次的比较结果失效了。像这种在中间就悄悄地改变变量的值，让人防不胜防。而且在命令式编程中也是处处存在，进而导致一些莫名其妙的问题。渐渐地软件开发在人们眼里也变成了一门高不可测且bug百出的学科。</p>
-
-<h2>改进</h2>
-
-<p>上面的代码从表面看令人非常疑惑，特别是那两次表面上一模一样的比较（b&lt;c）。让人看着着实不爽。让我们交换一个比较规则看看。假设我先比较a,b；然后再比较a,c；确保a是最小的数，然后再比较b,c。这样是不是要语义清楚一些呢？</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span> <span class="nf">sort_three_nums</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span><span class="kt">int</span> <span class="n">b</span><span class="p">,</span><span class="kt">int</span> <span class="n">c</span><span class="p">){</span>
-</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">b</span><span class="o">&lt;</span><span class="n">a</span><span class="p">){</span>
-</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="c1">//{a&lt;b}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">c</span><span class="o">&lt;</span><span class="n">a</span><span class="p">){</span>
-</span><span class='line'>      <span class="c1">//{a&lt;b &amp;&amp; c&lt;a}={c&lt;a&lt;b}</span>
-</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
-</span><span class='line'>        <span class="c1">//{a&lt;c&lt;b}=&gt;{a&lt;b &amp;&amp; a&lt;c}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="c1">//{a&lt;b &amp;&amp; a&lt;c}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">c</span><span class="o">&lt;</span><span class="n">b</span><span class="p">){</span>
-</span><span class='line'>      <span class="c1">//{a&lt;b &amp;&amp; a&lt;c &amp;&amp; c&lt;b}={a&lt;c&lt;b}</span>
-</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
-</span><span class='line'>        <span class="c1">//{a&lt;b&lt;b}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="c1">//{a&lt;b &amp;&amp; a&lt;c &amp;&amp; b&lt;c}={a&lt;b&lt;c}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d %d %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>能不能使用一种中间不要产生side effect的方法？</h2>
+  <div class="entry-content">
 </div>
   
   
@@ -508,7 +180,7 @@ B可能就是慢了1纳秒，但是B还认为计数器才累积到100，所以�
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2015/07/09/wo-shi-ru-he-da-jian-zhe-ge-bo-ke-de/">我是如何搭建这个博客的</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/04/10/message-delivery-reliability/">Message System</a></h1>
     
     
       <p class="meta">
@@ -517,23 +189,638 @@ B可能就是慢了1纳秒，但是B还认为计数器才累积到100，所以�
 
 
 
-<time class='entry-date' datetime='2015-07-09T16:20:30+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>4:20 pm</span></time>
+<time class='entry-date' datetime='2016-04-10T18:31:31+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>10</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>6:31 pm</span></time>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><h3>参考文章</h3>
+  <div class="entry-content"><p>接触了一些message system的系统（大部分是kafka），对message queue的作用和关键点有了一些了解。这些就谈谈我的认识，和使用注意事项。</p>
+
+<h1>message queue的作用</h1>
+
+<p>查阅了材料发现总结下来，列举的理由有十几条之多，但是直接貌似没有任何联系和组织方式。很是不好理解。我在这里使用模型的变化来阐述我自己的理解：
+<img src="./images/posts/message_system.png" alt="naive" />
+从上面的演化图来看，有了消息队列后的一个本质变化就是把收消息和接消息的任务都扔给了第三方，其实这就是软件行业中最一般的做法如果要获得软件的灵活性和扩展性，那么就开始加中间层。计算机网络是这么做的，同样操作系统也是这么做的。
+而考虑具体的好处这个问题和系统会出现什么问题是手心手背的关系。我们就来一块一块的说。
+我们假设我们要做一个买票系统。数据库使用mysql，前面只有一个售票程序来操作数据。这时候的模型就是第一个模块的样子。初期的时候一切都很完美，这个网站只拥有1万用户，每天只卖500张票。
+后来发现有些背后的mysql总是宕机，导致用户订票总是不成功，所以就想着怎么把用户的订单信息先存下来，然后等mysql恢复后马上继续处理。这时候你就开始想着建立一个消息缓存队列，然后程序自然形成了一个生产者消费者模型。同时你还会发现这个不仅仅有消息缓存的好处，还有发现消息现在是可以被保存了（或者说很便捷和自然的保存了）。以前那些因为程序bug处理失败的消息可以被重复处理了。还有就是哪天突然要在mysql之上加上一层redis，那其实也不必修改上游程序。总结下来：
+1. 缓冲 &ndash; 消息的缓存，当下游处于宕机状态，消息可以被缓存等待重启后继续处理。
+2. 解耦 &ndash; 项目之间解耦，形成各种微服务
+3. 冗余
+4. 送达保证
+5. 顺序保证能实现了</p>
+
+<p>再后来你的系统的用户增加到了100万，而且因为是买的火车票，所以一到过节订单就出现高峰，这时候辛亏你有了消息队列可以帮你缓存。
+6. 消除峰值 &ndash; 即消息均衡，当消息的生产速度差距很大的时候，消息可以被缓存，然后转发其他空闲的服务上或者等待等后续措施。</p>
+
+<p>后来再发现一个消息队列因为不够存储高峰期间储蓄的数据了，这时候再增加下游的消费者处理能力很浪费，因为平时你用不着。这时候发现增加一个消息队列服务的成本去很低，那么开始扩展这里。
+7. 扩展性</p>
+
+<p>其他feature：
+1. 异步通信
+这个是好是坏，全看实际的引用场景。对于实时要求性很高，但是不要求消息全部保证被处理就是无所谓的特性。</p>
+
+<ol>
+<li>附赠的feature(只是更方便吧)
+因为消息缓存的独立，可以对其处理速度监控，从而得知系统的负载能力。</li>
+</ol>
+
+
+<p>从另一个角度再看看消息队列的作用：
+因为从生产者、消费者两方关系衍生到生产者、消息队列、消费者三方之间的关系，所以我们就从3个主题的角度讨论。
+1. 主体一生产者会发生些什么情况：</p>
 
 <ul>
-<li><a href="https://pages.github.com/">如何搭建github pages</a></li>
-<li><a href="http://shengmingzhiqing.com/blog/setup-octopress-with-github-pages.html/#octopress">如何搭建Octopress</a></li>
-<li><a href="http://cn.soulmachine.me/blog/20130401/">如何搭建Octopress 2</a></li>
-<li><a href="http://octopress.org/docs/configuring/">如何配置octopress</a></li>
-<li><a href="http://octopress.org/docs/blogging/">如何编辑发布文章</a></li>
+<li>性能——流量突然增大，或者流量是不均匀的</li>
+<li>部分失效——突然部分生产者挂了。如果没有消息队列，那就意味着部分消费者没有任务消费了，或者消费者自己做了任务自动均衡，这是一件比较麻烦的额事情。</li>
+<li>容错性——都挂了。如果没有消息队列，那么消费者也立即进入休息状态。但是有了消息对立后以前生产的东西还能储存下来，提供消费者消费，然后有个缓冲时间窗口重启</li>
+<li>扩展性——突然要增加生产者的数量，没有消息队列的情况下，意味着需要有一套re-balance的机制在里面，同样时间麻烦的事情。统统都交给消息队列考虑吧。其实这条和部分失效是一样的，都是scaling过程。</li>
+<li><p>复用（解耦）——生产的消息万一不仅仅只有一个消费者，这样还需要一套分发机制。也是件麻烦的事情。有了消息队列，其实消费者和我再也没啥关系了。我爱怎么生成就怎么生产。</p></li>
+<li><p>主体二消费者会发生些什么情况：</p></li>
+<li><p>性能——处理速度万一跟不上呢？</p></li>
+<li>扩展性——同上，消息队列提供了扩展收缩自动均衡的策略。</li>
 </ul>
 
+
+<h1>如果学习一个message queue？</h1>
+
+<h2>消息可达性保证机制</h2>
+
+<p>这个机制或者约定更确切些，就是描述系统到底怎么client进行交互，确保信息是正确的到达了目的地。一般的消息保证机制有：
+1. 至多一次，保证绝对不重复发，但是有丢数据情况。这种情况server处理是最简单的，发完了就不管了，不需要和client交互。</p>
+
+<blockquote><p>at-most-once delivery means that for each message handed to the mechanism, that message is delivered zero or one times; in more casual terms it means that messages may be lost.
+2. 至少一次，保证一定client接收到了信息，如果不能确定client接收到了信息会重复发。做到这点server只要一直发知道接收到了client的ack。
+at-least-once delivery means that for each message handed to the mechanism potentially multiple attempts are made at delivering it, such that at least one succeeds; again, in more casual terms this means that messages may be duplicated but not lost.
+3. 精确的一次，保证不重复发但也不丢数据。exactly-once是最难保证的，因为这涉及到通信中的很多情况。
+exactly-once delivery means that for each message handed to the mechanism exactly one delivery is made to the recipient; the message can neither be lost nor duplicated.</p>
+
+<p>The first one is the cheapest—highest performance, least implementation overhead—because it can be done in a fire-and-forget fashion without keeping state at the sending end or in the transport mechanism. The second one requires retries to counter transport losses, which means keeping state at the sending end and having an acknowledgement mechanism at the receiving end. The third is most expensive—and has consequently worst performance—because in addition to the second it requires state to be kept at the receiving end in order to filter out duplicate deliveries.</p></blockquote>
+
+<h3>为什么保证不了消息发送？</h3>
+
+<ol>
+<li>The message is sent out on the network?</li>
+<li>The message is received by the other host?</li>
+<li>The message is put into the target actor&rsquo;s mailbox?</li>
+<li>The message is starting to be processed by the target actor?</li>
+<li>The message is processed successfully by the target actor?</li>
+</ol>
+
+
+<p>其实就从消息传递从出发到结果的整个过程，状体包括出发、路上、进门、喝茶、出门和回家通报。
+其中在路上需要花多少时间谁都不知道，还有没有万一进门后被真“喝茶”后，不返回通报的你让发送者的家人怎么办？</p>
+
+<h2>消息顺序保证机制</h2>
+
+<ol>
+<li>保证消息一定是顺序到达的，这个地方需要考虑如果是一个kafka的系统，同一个group下的不同consumer之间的顺序怎么保证？</li>
+<li>不保证消息一定顺序到达</li>
+</ol>
+
+
+<h1>reference</h1>
+
+<ol>
+<li><a href="http://doc.akka.io/docs/akka/2.4.3/general/message-delivery-reliability.html">Message Delivery Reliability</a></li>
+<li><a href="http://www.jasongj.com/2015/01/02/Kafka%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/">Kafka深度解析</a></li>
+</ol>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/25/a-bug-tracing/">A Bug Tracing</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-03-25T15:36:20+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>25</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:36 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content">
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/16/study-tree/">Study Tree</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-03-16T15:00:42+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:00 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>Java learning</h1>
+
+<ol>
+<li><p>基本语法
+这包括static、final、transient等关键字的作用，foreach循环的原理，volatile等等。今天面试我问你static关键字有哪些作用，如果你答出static修饰变量、修饰方法我会认为你合格，答出静态块，我会认为你不错，答出静态内部类我会认为你很好，答出静态导包我会对你很满意，因为能看出你非常热衷研究技术。</p></li>
+<li><p>数据结构（容器）
+ArrayList、LinkedList、Hashtable、HashMap、ConcurrentHashMap、HashSet的实现原理,掌握CopyOnWrite容器和Queue, 特别是ConcuurentHashMap：
+（1）ConcurrentHashMap的锁分段技术
+（2）ConcurrentHashMap的读是否要加锁，为什么
+（3）ConcurrentHashMap的迭代器是强一致性的迭代器还是弱一致性的迭代器</p></li>
+<li><p>设计模式
+（1）你的项目中用到了哪些设计模式，如何使用
+（2）知道常用设计模式的优缺点
+（3）能画出常用设计模式的UML图</p></li>
+<li><p>多线程
+Thread和Runnable的区别和联系、多次start一个线程会怎么样、线程有哪些状态
+假如有Thread1、Thread2、Thread3、Thread4四条线程分别统计C、D、E、F四个盘的大小，所有线程都统计完毕交给Thread5线程去做汇总，应当如何实现？
+另外，线程池也是比较常问的一块，常用的线程池有几种？这几种线程池之间有什么区别和联系？线程池的实现原理是怎么样的？实际一些的，会给你一些具体的场景，让你回答这种场景该使用什么样的线程池比较合适。
+<a href="http://www.cnblogs.com/xrq730/p/5060921.html">40个java多线程问题总结</a></p></li>
+<li><p>Jdk源码
+（1）List、Map、Set实现类的源代码
+（2）ReentrantLock、AQS的源代码
+（3）AtomicInteger的实现原理，主要能说清楚CAS机制并且AtomicInteger是如何利用CAS</p></li>
+<li><p>Java虚拟机
+（1）Java虚拟机的内存布局
+（2）GC算法及几种垃圾收集器
+（3）类加载机制，也就是双亲委派模型
+（4）Java内存模型
+（5）happens-before规则
+（6）volatile关键字使用规则</p></li>
+</ol>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/15/how-is-lambda-created/">How Is Lambda Created?</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-03-15T14:16:01+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>15</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>2:16 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content">
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/02/22/notes-for-hadoop-the-defintive-guid/">Hadoop权威指南笔记</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-02-22T15:13:26+08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>3:13 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>阅读 <a href="http://blog.nosqlfan.com/html/744.html">MapReduce: A major step backwards</a></h1>
+
+<p>这个是2014年图灵奖获得者Michael Stonebraker和David J. DeWitt。两位都是数据库界的领军人物。
+下面主要介绍下文章对mapreduce提出的质疑和观点</p>
+
+<h2>mapreduce的理念设计方面</h2>
+
+<ul>
+<li>在数据库Schema(结构和数据的关系)方面，破坏了40年的数据实践条律：
+
+<ul>
+<li>Schemas是有益的——没有schema的存在，数据可以被任意填充，所以会有很多的垃圾数据出现</li>
+<li>将schema和程序分开处理是有益的——指mapreduce把数据结构都埋藏在代码中，非常不便与重复提出和维护</li>
+<li>High-level存取语言是有益的——关系型数据库使用一种声明式存取方法，而不展现出存取的具体算法。而mapreduce直接把整个存取算法过程仍给使用者
+这里主要是说mapreduce中的两个步骤都和应用紧密结合，可以填充任意操作</li>
+</ul>
+</li>
+</ul>
+
+
+<h2>mapreduce的实现方面</h2>
+
+<ul>
+<li>没有索引，所以所有搜索都是暴力的顺序搜索。</li>
+<li>mapreduce的并行特性，早在19世界80年代就有成熟的商业产品，例如Teradata，Gamma等，和这些软件比起来mapreduce并没有特别突出的地方。</li>
+<li>mapreduce的map阶段有数据倾斜的分线（skew，类似于一个二叉树中的非平衡情况，如果特别不平衡直接会使搜索退化成了顺序的）会直接降低并行的计算能力</li>
+<li>mapreduce中的reduce获取map的结果方式使用的是pull（map的结果一般存放在map的本地机器上）,这是一个巨大的性能瓶颈。原文提出使用push paradigm代替pull paradigm，这个具体不太明白？</li>
+</ul>
+
+
+<h2>mapreduce概念一点都不新鲜</h2>
+
+<h2>mapreduce缺乏现有数据库的关键特性,对终端使用者造成了很大困扰</h2>
+
+<ul>
+<li>Bulk loader — to transform input data in files into a desired format and load it into a DBMS</li>
+<li>Indexing — as noted above</li>
+<li>Updates — to change the data in the data base</li>
+<li>Transactions — to support parallel update and recovery from failures during update</li>
+<li>Integrity constraints — to help keep garbage out of the data base</li>
+<li>Referential integrity — again, to help keep garbage out of the data base</li>
+<li>Views — so the schema can change without having to rewrite the application program</li>
+</ul>
+
+
+<h2>mapreduce不兼容现有的DBMS工具</h2>
+
+<ul>
+<li>Report writers (e.g., Crystal reports) to prepare reports for human visualization</li>
+<li>Business intelligence tools (e.g., Business Objects or Cognos) to enable ad-hoc querying of large data warehouses</li>
+<li>Data mining tools (e.g., Oracle Data Mining or IBM DB2 Intelligent Miner) to allow a user to discover structure in large data sets</li>
+<li>Replication tools (e.g., Golden Gate) to allow a user to replicate data from on DBMS to another</li>
+<li>Database design tools (e.g., Embarcadero) to assist the user in constructing a data base.</li>
+</ul>
+
+
+<p>文章最后呼吁mapreduce的开发这了解最近25年内并行数据库文献，放下自以为是的态度，汲取40年的数据库发展经历和各方观点解决上面提出的问题。</p>
+
+<p>这篇文章写的年代比较早，现在已经有了很多基于mapreduce的工具。比如hive，实现了很多现代数据库的很多特性。比如，物理数据结构和logical schame分离；提供方便的查询语言（一种类似SQL语言）；提供了Bulk loader工具。
+当然hive只是在hadoop上建设了一层中间转层，提供了数据的逻辑结构，但是仍然不提供修改数据等功能等。这个和mysql等现有的关系性数据库从数据入库开始就做强约束的策略是不一样的。所以hive在写入文件是没有强约束的，而约束是只发生在读取数据时候。</p>
+
+<h1>阅读 <a href="http://scienceblogs.com/goodmath/2008/01/22/databases-are-hammers-mapreduc/">Databases are hammers; MapReduce is a screwdriver</a></h1>
+
+<p>文章上来就指出关系数据库的拥护者过于痴迷于这种完美的工具，以至于本末倒置的宁愿把螺丝当钉子使用，就因为有这么完美的锤子（指关系型数据库）在手。
+接下来开始列车作者的观点：
+- 关系型数据库不能很好并行运行
+- 不能很好的处理非结构化数据
+- 在处理内嵌结构数据上也背负恶名
+<strong> MapReduce的目的不是用来取代Relation Ddatabase，而是祢补其缺点的，提供一种轻量级并行编程，解决另外一族计算问题。 </strong></p>
+
+<p>这篇文章是回应上面那篇文章的，并一一针对上面的各种观点提出了自己的看法。
+- 没有索引，所以所有搜索都是暴力的顺序搜索 —— 回应是：大多数大规模数据计算是使用不了关系数据模型在单机上进行的，且索引这种中心式结构很容易成为性能瓶颈，还有当计算是密集型的时候，索引是没有用的
+- mapreduce缺乏现有数据库的关键特性 —— 回应是：难道不是关系型就是不好的吗？（两篇文章感觉火药味十足啊！）
+- mapreduce不兼容现有的DBMS工具 —— 回应是：如果继续兼容现有DBMS，就想上面提到的为了使用锤子，而错把螺丝钉当钉子使用</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands/">Linux系统状态命令详解</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-02-17T21:58:48+08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>17</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:58 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>知识地图</h1>
+
+<p>这篇文章整理的是对关于诊断linux系统状况的相关指标和命令。涉及到：
+1. I/O负载状况
+2. 进程控制
+3. cpu负载状况
+4. memory占用情况
+5. disk使用情况</p>
+
+<h1>Commands about I/O</h1>
+
+<ul>
+<li><p>什么是I/O
+再让我们看一眼csapp的那幅经典图
+<img src="/images/posts/computer_organization.png" alt="computer organization" />
+看到所有的设备都是通过I/O bridge把数据移动到Main memory上，然后再主存再和CPU交互进行计算。当CPU有输出时，也是先输出到主存上，然后再输入到设备上。而再计算机中I/O设备就只除去CPU和主存的设备，也成外围设备。
+介绍完I/O设备，那什么是I/O呢？按照《Unix系统内幕》的定义：</p>
+
+<blockquote><p>The I/O subsystem haldes the movement of data between memory and peripheral devices such as disks, printers, and terminals.
+所以I/O就是指I/O设备和memory之间数据移动。</p></blockquote></li>
+<li><p>怎么才算是一次I/O</p>
+
+<h2>iostat</h2>
+
+<h2>top</h2>
+
+top对I/O的描述是用I/O wait这个指标，例如下图：
+<img src="/images/posts/top_command_short.png" alt="top command" />
+其中I/O wait 的定义是：
+
+<blockquote><p>I/O wait is the percentage of time your processors are waiting on the disk.
+I/O wait就是CPU在整个任务处理中等待闲置的时间，举个例子：一个任务一共使用了1s，但是其中从从磁盘中取数据花了700ms，而在磁盘读取数据时CPU是闲置的，所以CPU的等待I/O的时间占了70%，即I/O wait 是70%。
+当然有人指出对多核cpu通过iowait来统计io的负载情况并不准确，<a href="http://veithen.github.io/2013/11/18/iowait-linux.html">详见</a></p></blockquote></li>
+</ul>
+
+
+<p><code>threshold：当I/O wait &gt; 1/CPU_cores 可以判断明显出现了I/O瓶颈(why?)。</code></p>
+
+<h2>sar</h2>
+
+<p>同样使用I/O wait这个指标，每10mini(默认时间间隔，可以调节)纪录一次系统状态值,保留一段时间的历史数据。</p>
+
+<h2>dstat</h2>
+
+<p>发现这个命令组合很有意思
+dstat -tdD total,sda,sdb,sdc,md1 60</p>
+
+<h2>Reference</h2>
+
+<ul>
+<li>[深入理解计算机系统（第二版）]</li>
+<li>[Unix系统内幕]</li>
+<li><a href="http://blog.scoutapp.com/articles/2011/02/10/understanding-disk-i-o-when-should-you-be-worried">understanding disk i/o - when should you be worried?</a></li>
+<li><a href="http://veithen.github.io/2013/11/18/iowait-linux.html">The precise meaning of I/O wait time in Linux</a></li>
+</ul>
+
+
+<h1>进程控制</h1>
+
+<ul>
+<li>exec</li>
+<li>source</li>
+<li>kill</li>
+<li>bg,fg,jobs</li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/01/26/introduce-thrift/">Introduce Thrift</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-01-26T14:46:14+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>2:46 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>History</h2>
+
+<ul>
+<li>诞生于facebook
+facebook开源出的RPC开源框架，现在已经成为Apache的顶级项目。</li>
+</ul>
+
+
+<h2>Why need thrift</h2>
+
+<p>This question can also be instead of another one&ndash;Is RPC service complicated?
+Before I try to know distributed system, I don&rsquo;t know that it need using a book to make PRC clearly and RPC is an absolutly important skill requirement on service developing posistion.
+If you want to know thrift, you must know RPC.</p>
+
+<h2>What is RPC</h2>
+
+<p>RPC的全称是Remote Procedure Call。这种类型的技术专注与格式化客户端和服务端传输，以实现更方便的远程交互，甚至能做到和本地调用无多大区别的程度。
+整个过程是客户端发送RPC请求到服务端，服务端处理后再发结果反馈过来。听这很简单，看着很容易，而且很熟悉。这不就是cs模型吗？但是其中涉及的难点就隐藏在老生常谈的信息通信中。比如消息体的打包，拆分，解读等等。
+目的就是保质保量的让消息正确抵达目的地。
+读过计算机网络的都知道，如果一切都正常的话是最简单的情况，但是旁枝的异常情况和各种因素的权益会让系统复杂n倍。
+涉及到通信就需要考虑到一下几个因素：</p>
+
+<ol>
+<li>时间性</li>
+<li>顺序性</li>
+<li>会发生丢失</li>
+</ol>
+
+
+<p>让我们来仔细列出这个动态系统的主题：</p>
+
+<ol>
+<li>client： 动作——request，receive</li>
+<li>server：动作——process，send</li>
+<li>message：怎么传输——Transport模块和方法</li>
+</ol>
+
+
+<p>一个简单的RPC模型：
+假设有echoNum一个过程，其函数形态是：
+int echoNum(int num);
+从上面可以知道client要发起echoNum过程调用的时候，只需给server端传输一个整形参数即可。而server端接到这个num，直接原数返回。
+开始第一次调用：
+echoNum(1)
+我们分析我们从客户端的角度看，会产生三种结果：1.接收到了1；2.接收到了数据，但是数字不是想要的1；3.没接收到1；</p>
+
+<p>我们再分析下有那些原因会导致这些结果（状态）：</p>
+
+<ul>
+<li>第一种情况：server接收到client请求正常，并且处理正常在一个合理的时间返回了结果。</li>
+<li>第二种情况：数据发生了错误，也许client发送数据就发送错误，或许在传输过程种出错了，又或者server process过程种就错了。总之这个问题可能在图中1～4步骤都都可能。</li>
+<li>第三种情况：client等了“很久”，但是数据就没有来，他也不知道哪里出问题了，所它决定不在等了，返回值设置成失败。</li>
+</ul>
+
+
+<p>从上面看第一种和第三种的一个关键点就在于接收到返回隐含着等待时间的问题，加入client迟迟等不到返回该采用怎样的策略。是一直等着（block），还是我先离开过段时间我再回来（sleep），还是直接永远的离去（exit）？
+再复杂化一点模型，上面只牵涉到一个请求，我们现在加入多个请求：
+echoNum(1)，echoNum(2)，echoNum(3)
+这下我们再分析下client的返回状态有：</p>
+
+<ul>
+<li>1,2,3</li>
+<li>1,3,2</li>
+<li>2,1,3</li>
+<li>2,3,1</li>
+<li>3,1,2</li>
+<li>3,2,1</li>
+</ul>
+
+
+<p>调用全部有返回，只是返回的时间是不确定的，所以接收到的数据也是不确定的</p>
+
+<ul>
+<li>1,2</li>
+<li>1,3</li>
+<li>2,1</li>
+<li>2,3</li>
+<li>3,1</li>
+<li>3,2</li>
+<li>1</li>
+<li>2</li>
+<li>3</li>
+<li>啥也没有接收到</li>
+</ul>
+
+
+<p>发生了数据丢失，上面描述了丢失一个到全部丢失的全部情况。
+根据实际业务需求，上面的一些结果肯定是要被剔除的，这也是RPC的调用设计种的同步和异步问题。</p>
+
+<p>仔细学习什么<a href="http://www.cs.cf.ac.uk/Dave/C/node33.html">RPC</a></p>
+
+<ul>
+<li>RPC的基本模型和解决的问题</li>
+<li>RPC框架需要注意的问题</li>
+<li>RPC框架的天生缺陷和优点</li>
+<li>RPC框架的使用场景和局限性</li>
+<li>和RPC对应的还有那些解决框架？各自的有缺点和应用的普遍情况</li>
+</ul>
+
+
+<h2>thrift的定义中的特性</h2>
+
+<p>thrift的官方定义如下：</p>
+
+<blockquote><p>The Apache Thrift software framework, for scalable cross-language services development, combines a software stack with a code generation engine to build services that work efficiently and seamlessly between C++, Java, Python, PHP, Ruby, Erlang, Perl, Haskell, C#, Cocoa, JavaScript, Node.js, Smalltalk, OCaml and Delphi and other languages.</p></blockquote>
+
+<p>先解释下这个定义都讲了什么。</p>
+
+<ul>
+<li>software framework：本身是一个软件框架，只提供基础的远程通信框架，意味这你自己需要补充其中的业务逻辑</li>
+<li>services development：这个框架是为了辅助开发者开发出自己的一个网络服务c/s软件，而这个服务具备接下来的两个重要特点：
+
+<ul>
+<li><a href="http://www.infoq.com/cn/news/2007/10/whatisscalability">scalable 可伸缩性</a>：？？为啥说是可伸缩的？根据可伸缩的核心特征——处理能力能随这个扩展服务规模而提升。</li>
+<li>cross-language 跨语言：这个可能是thrift的最大特点了，为了实现这个特性，thrift直接为此定义了一套中间语言，并且配备了一个此语言到各种目标语言的编译器。不过说起来跨语言到底指什么呢？其实一句话概括就是服务短和客户端可以是不同语言开发的，比如官方的例子：客户端是python，服务端是java。而这个中间语言就是只定义一遍服务的逻辑语义一次，通过编译器转成各种目标语言多次。从而解决重复编写的问题。</li>
+</ul>
+</li>
+</ul>
+
+
+<h2>需要的知识背景</h2>
+
+<p>thrift的所有技能都在操作系统和计算机网络里可以找到,
+推荐书籍：</p>
+
+<ul>
+<li>计算机网络</li>
+<li>Unix网络编程</li>
+<li>Unix系统内幕</li>
+</ul>
+
+
+<h2>一个简单的开发例子</h2>
+
+<p>thrift包括其他的RPC应用的开发步骤分为下面三个步骤:</p>
+
+<ul>
+<li>定义client和server之间通信协议（protocol），即输入输出约定方式
+以为一个RPC可以通过普通的函数来描述，所以协议中也必须指出函数名称，参数类型还有返回值类型。thrift根据定义好的协议来自动生成整个RPC框架，主要封装了整套的网络传输部分，剩下的部分只是业务逻辑需要开发者自己编写。控制主了远程访问的复杂度，非常棒的设计思路。</li>
+<li>开发client端程序</li>
+<li>开发server端程序</li>
+</ul>
+
+
+<h3></h3>
+
+<h2>通信层次</h2>
+
+<p>因为thrift更根据定义好的thrift接口，自动生成相关结构的通信层次的代码，这可算是给程序员提供了很大的便利，不过有利也有弊，你不了解，也意味着你没办法改变。
+所以当出问题了，你还是需要进行深入。</p>
+
+<h2>Reference</h2>
+
+<ul>
+<li><a href="http://blog.csdn.net/docong/article/details/6028428">thrift 白皮书</a></li>
+<li><a href="https://thrift.apache.org/static/files/thrift-20070401.pdf">thrift white paper</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/01/17/business-dataming-ecosystem-investigation/">Pentaho和Pivotal</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-01-17T13:55:01+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>17</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>1:55 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>接触到的关于数据处理的商业软件基本都处于pentoha和pivotal，或者总是和这两家公司有关系，所以想做个调查，报告如下：</p>
+
+<h1><a href="http://www.pentaho.com/">Pentaho</a></h1>
+
+<h1><a href="https://pivotal.io/">pivotal</a></h1>
 </div>
   
   
@@ -542,6 +829,8 @@ B可能就是慢了1纳秒，但是B还认为计数器才累积到100，所以�
     </article>
   
   <div class="pagination">
+    
+      <a class="prev" href="/posts/4">&larr; Older</a>
     
     <a href="/blog/archives">Blog Archives</a>
     
@@ -556,23 +845,23 @@ B可能就是慢了1纳秒，但是B还认为计数器才累积到100，所以�
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/02/22/notes-for-hadoop-the-defintive-guid/">Hadoop权威指南笔记</a>
+        <a href="/blog/2016/08/04/wordcount-in-mapreduce/">Wordcount in Mapreduce</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands/">Linux系统状态命令详解</a>
+        <a href="/blog/2016/08/02/synchronise-vs-blocking/">Synchronise vs Blocking</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/26/introduce-thrift/">Introduce Thrift</a>
+        <a href="/blog/2016/07/29/introduce-cap/">Introduce CAP</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/18/book-graph/">Book Graph</a>
+        <a href="/blog/2016/07/24/a-misusing-of-python-logging-lock/">A Misusing of Python Logging Lock</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/17/business-dataming-ecosystem-investigation/">Pentaho和Pivotal</a>
+        <a href="/blog/2016/07/24/how-to-understand-a-data-system/">如何理解一个数据存储系统</a>
       </li>
     
   </ul>

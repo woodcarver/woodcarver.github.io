@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Olap | Wood Carver]]></title>
   <link href="http://woodcarver.github.io/blog/categories/olap/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2016-03-06T18:38:21+08:00</updated>
+  <updated>2016-08-08T00:01:19+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -14,17 +14,470 @@
 
   
   <entry>
+    <title type="html"><![CDATA[数据分析利器 —— 列式储存数据库]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/07/18/the-world-about-oriental-column-database/"/>
+    <updated>2016-07-18T11:00:26+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/07/18/the-world-about-oriental-column-database</id>
+    <content type="html"><![CDATA[<h1><a href="https://en.wikipedia.org/wiki/Column-oriented_database">列式数据库</a></h1>
+
+<p>什么是列式数据库？可能大家也才到了，既然有列式数据库，那么肯定就有行式的喽！确实是这样的。也许大多数人并不了解数据库储存模型（storage model 即physical schema）和数据库的数据模型（data model 也叫 logical schema），不过对上层是使用者也没多大关系。不过我们现在讲的列式和行式就是指数据库的storage model，而他们支持同样的data schema，即对data model感知不到storage model的实现区别。
+一个数据库的data model约定可以进行上层数据操作，而storage model决定这些操作的性能。比如，No Sql数据库使用的是data model都是key-value，而储存模型有map结构实现，也可以由tree结构实现。而对于sql数据库，其数据模型是一张二维表，而至于怎么存储这张二维表，很容易就可以想到可以按行存储和按列储存。按行存储就是我们现在常见操作型数据库，而是最大众的数据库，比如MySql、Oracle、……等等你所知道大部分数据库。而按列储存的数据库现在也是很有名，比如Hive、Vertica、Druid、Infobright等。</p>
+
+<h1>为什么要行式数据库又要列式数据库？</h1>
+
+<p>先让让我们想象关于二维表我们有哪些操作？—— select、update、delete和insert。这些操作都会需要找到相应的位置，所以这些操作的基础都是search。
+而基本的算法都是即从时间考虑也是从空间考虑的。我们开始具体举个例子。</p>
+
+<p>在数据库储存作为实际的一堆储存在磁盘上的文件，在设计不得不考虑磁盘的特性。一般的磁盘特性，其实所有的储存都有一个特性就是对于locality良好的存取性能是随机存取的好几倍。我们现在把一块想像成一组固定大小的块，如图： disk logic model 而文件的内容实际会被分开按照磁盘逻辑块来储存，数据库主要任务就是怎么组织这些逻辑块来取得更好的读取性能和便捷性。
+<img src="../images/posts/disk_block.png" alt="" /></p>
+
+<p>在不考虑索引的情况下，所有的磁盘读取都是顺序读取，这意味了要查找一个东西，都需要扫描全表或者部分表。很直观的道理，读取的性能就是取决于扫描的范围。范围越大，速度当然越慢。
+我们先假设我们有一堆如下的数据：</p>
+
+<table>
+<thead>
+<tr>
+<th>RowId</th>
+<th>EmpId  </th>
+<th>Lastname  </th>
+<th>Firstname</th>
+<th> Salary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>001  </td>
+<td>10    </td>
+<td>Smith     </td>
+<td>Joe     </td>
+<td>40000</td>
+</tr>
+<tr>
+<td>002  </td>
+<td>12    </td>
+<td>Jones     </td>
+<td>Mary    </td>
+<td>50000</td>
+</tr>
+<tr>
+<td>003  </td>
+<td>11    </td>
+<td>Johnson   </td>
+<td>Cathy   </td>
+<td>44000</td>
+</tr>
+<tr>
+<td>004  </td>
+<td>22    </td>
+<td>Jones     </td>
+<td>Bob     </td>
+<td>55000</td>
+</tr>
+</tbody>
+</table>
+
+
+<h2>行式储存模型</h2>
+
+<p>好现在我们开始让磁盘里塞，假设我们的磁盘块只能容下5个字段（抽象的，假设我们的这些字段的大小都一样），因为我们是按找行优先的，所以结果就如下：
+<img src="../images/posts/row_oriented.png" alt="row oriented model" /></p>
+
+<p>于是当我们要找Jones的所有信息的工资时候，我们会依次从第一块磁盘块直到扫描到最后（为什么要扫到最后，因为是在找全部叫Jones的信息，所以不扫都最后都不能确定是否会遗漏）。一共需要扫4块，然后取出其第二块和第四块信息，找出其工资的信息。</p>
+
+<p>其实基于行式储存，对于where语句处理都需要处理全表。对于磁盘的不停seek，速度就可想而知。当然一般数据库为了应对这种全数据扫描，找到了建立索引的方法。而索引就是对某个或者某些字段的组合的信息，即取出数据的部分信息，以减少每次扫描从全表到部分信息的扫描的过渡。</p>
+
+<p>这种查询方式很适合于一次取出一个行数据，而对于日常应用系统来说这种方式是非常合适的，因为我们设计应用的时候都是针对一个事务，而我们会把一个事务所有属性存储成一行，使用的时候也是有很大的概率涉及到整行的信息，很利于做缓存。还比如我们经常使用的那些经典sql 语句：</p>
+
+<pre><code class="sql">select * from user where id = 1001;
+select id, user_name, email, address, gender, ... from user where id = 1001;
+</code></pre>
+
+<p>！！还敢不敢列出些更多的字段！！</p>
+
+<h2>列式储存模型</h2>
+
+<p>而列储存就是下图这种按列优先储存。为了方便我们每块只储存了一个一列，没有存满。
+<img src="../images/posts/column_oriented.png" alt="row oriented model" />
+这下我们再考虑上面的查找所有Jones的工资，这下我们只扫描第三个磁盘块，找出Jones都再那些行，然后根据查出来的行号，直接去第五块磁盘（这块对应的式salary列）找出第二、四行的数据，然后输出。一共2次seek。大大小于row－oriented的4次。</p>
+
+<p>这种查询方式的前提就是你就需要这列数据就行了，其前提假设就是查询基本不会使用这个行的其他列数据。显然这种假设对于日常操作系统的围绕着一个主题进行的活动是不合适旳。但是却在分析型数据大显身手。</p>
+
+<p>列式的另一大优势是压缩。因为列的天然凝聚性（比如上面的两个Jones就可以压缩成一个）大大强与行，所以列式储存可以有很高的压缩比，这个进一步使使用的磁盘的数量减少，因为使用的磁盘块少，进一步减少了需要扫描的次数。这方面很利于加快查找速度，但是因为解压缩也是耗时耗内存的过程，所以压缩的控制也是需要一个定平衡点。</p>
+
+<h1>优劣总结</h1>
+
+<p>从上面的例子可以明显看出列式数据库在分析需求（获取特点——每次查询几个维度，通常是）时候，不仅<strong>搜索时间效率</strong>占优势，其<strong>空间效率</strong>也是很明显的。特别是针对动辄按T计算的数据量来说，在分布式环境中能进行压缩处理能节省宝贵的内部带宽，从而提高整个计算任务性能。</p>
+
+<p>关于行式和列式的具体优缺点还有具体的使用场景请看wikipedia。</p>
+
+<h1>再来谈谈储存模型</h1>
+
+<p>从上面看，改变物理储存结构对上层操作效率的提高是如此的巨大！所以我们再深入谈谈这个话题。</p>
+
+<p>在数据模型一定的情况下，储存模型也是有多种选择的（想想各种不同数据结构居然提供同样的操作，比如TreeMap和HashMap。数据模型好比Map支持getKey和getValue。而储存模型就是Tree还是HashTable，而getKey和getValue操作虽然对使用者没有区别，但是底层的组织结构则决定了其效率）。而储存模型在数据库这种复杂系统中有分好多层。我们想想先从最底层说起——文件，数据终归都是储存在磁盘上的。而从下面的表格看出，数据要取出必须先进入到内存，那么这个层次的核心就是面对各种查询、写入、更新和删除，怎么快速把数据从磁盘加载到内存中或者反之怎么把数据从内存中快速的写入到磁盘中。</p>
+
+<table>
+<thead>
+<tr>
+<th>用户界面</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>内存    </td>
+</tr>
+<tr>
+<td>磁盘    </td>
+</tr>
+</tbody>
+</table>
+
+
+<p>所以先谈谈文件储存有哪些类型：<a href="https://www.tutorialcup.com/dbms/file-organization.htm">File Organization in DBMS</a> 这篇文章对于文件组织在DBMS中的意义讲的非常清楚。这里引出其中对文件组织的要点：</p>
+
+<blockquote><p>Storing the files in certain order is called file organization. The main objective of file organization is</p>
+
+<ul>
+<li>Optimal selection of records i.e.; records should be accessed as fast as possible. &ndash; 支持快速的获取</li>
+<li>Any insert, update or delete transaction on records should be easy, quick and should not harm other records. &ndash; 支持快读的插入、更新和删除事务</li>
+<li>No duplicate records should be induced as a result of insert, update or delete &ndash; 支持键值不重复？？？</li>
+<li>Records should be stored efficiently so that cost of storage is minimal. &ndash; 储存占用磁盘空间要小</li>
+</ul>
+</blockquote>
+
+<p>从上面的目的看，大多数不能同时满足，这样就出现了各种各样的组合选择，所以出现多种组织方式：</p>
+
+<ul>
+<li>Sequential File Organization</li>
+<li>Heap File Organization</li>
+<li>Hash/Direct File Organization</li>
+<li>Indexed Sequential Access Method</li>
+<li>B+ Tree File Organization</li>
+<li>Cluster File Organization
+Let us see one by one on clicking the above links</li>
+</ul>
+
+
+<p>Difference between Sequential, heap/Direct, Hash, ISAM, B+ Tree, Cluster file organization in database management system (DBMS) as shown below:</p>
+
+<table>
+<thead>
+<tr>
+<th>          </th>
+<th>Sequential</th>
+<th> Heap/Direct</th>
+<th>Hash </th>
+<th>ISAM </th>
+<th>B+ tree</th>
+<th>Cluster</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Method of storing </td>
+<td>Stored as they come or sorted as they come </td>
+<td>Stored at the end of the file. But the address in the memory is random. </td>
+<td>Stored at the hash address generated</td>
+<td>Address index is appended to the record </td>
+<td>Stored in a tree like structure </td>
+<td>Frequently joined tables are clubbed into one file based on cluster key</td>
+</tr>
+<tr>
+<td>疑问</td>
+<td>如何做到删除的？</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Types </td>
+<td>Pile file and sorted file Method </td>
+<td> </td>
+<td>Static and dynamic hashing </td>
+<td> Dense, Sparse, multilevel </td>
+<td>indexing </td>
+<td>Indexed and Hash</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Design</td>
+<td>Simple Design</td>
+<td>Simplest</td>
+<td>Medium</td>
+<td>Complex</td>
+<td>Complex</td>
+<td>Simple</td>
+</tr>
+<tr>
+<td>Storage Cost</td>
+<td>Cheap (magnetic tapes)</td>
+<td>Cheap</td>
+<td>Medium</td>
+<td>Costlier</td>
+<td>Costlier</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Advantage </td>
+<td>Fast and efficient when there is large volumes of data, Report generation, statistical calculations etc</td>
+<td>  Best suited for bulk insertion, and small files/tables</td>
+<td>Faster Access,No Need to Sort,Handles multiple transactions,Suitable for Online transactions</td>
+<td> Searching records is faster.Suitable for large database.Any of the columns can be used as key column.Searching range of data &amp; partial data are efficient.</td>
+<td> Searching range of data &amp; partial data are efficient.No performance degrades when there is insert / delete / update.Grows and shrinks with data.Works well in secondary storage devices and hence reducing disk I/O.Since all datas are at the leaf node, searching is easy.All data at leaf node are sorted sequential linked list.</td>
+<td>Best suited for frequently joined tables.Suitable for 1:M mappings</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Disadvantage </td>
+<td>Sorting of data each time for insert/delete/ update takes time and makes system slow.  </td>
+<td>Records are scattered in the memory and they are inefficiently used. Hence increases the memory size.  Proper memory management is needed.  Not suitable for large tables. </td>
+<td>Accidental Deletion or updation of Data. Use of Memory is inefficient Searching range of data, partial data, non-hash key column, searching single hash column when multiple hash keys present or frequently updated column as hash key are inefficient. </td>
+<td>Extra cost to maintain index. File reconstruction is needed as insert/update/delete.Does not grow with data.  </td>
+<td>Not suitable for static tables  </td>
+<td>Not suitable for large database. Suitable only for the joins on which clustering is done. Less frequently used joins and 1: 1 Mapping are inefficient.</td>
+</tr>
+</tbody>
+</table>
+
+
+<h1>refernce</h1>
+
+<ul>
+<li><a href="https://www.tutorialcup.com/dbms/file-organization.htm">File Organization in DBMS</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Database_storage_structures">Database storage structures</a></li>
+<li><a href="http://blog.csdn.net/cjfeii/article/details/8884658">关系型数据在磁盘上的存储布局</a></li>
+<li><a href="http://blog.csdn.net/v_july_v/article/details/7526689">从LSM-Tree、COLA-Tree谈到StackOverflow、OSQA</a></li>
+<li><a href="http://www.cnblogs.com/siegfang/archive/2013/01/12/lsm-tree.html">日志结构的合并树 The Log-Structured Merge-Tree</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Introduce OLAP Model]]></title>
+    <link href="http://woodcarver.github.io/blog/2015/10/18/introduce-olap-model/"/>
+    <updated>2015-10-18T15:09:46+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2015/10/18/introduce-olap-model</id>
+    <content type="html"><![CDATA[<h1>Introduce OLAP</h1>
+
+<ul>
+<li>[x] olap 产生的原因</li>
+<li><p>[ ] 数据仓库产生的原因</p></li>
+<li><p>为什么会产生这项技术 &ndash; one intuitive exmaple
+设想一下你开了一个卖书网站，因为懒惰的你只开发面向用户购物的网站。其架构一开始就如下：</p></li>
+</ul>
+
+
+<p>特别反应出数据仓库的异构数据集成、数据清洗和定义处理一致性保证。</p>
+
+<ol>
+<li>介绍其核心命题 —— 后续的分析挖掘工作的基础
+
+<h2>OLAP的诞生</h2>
+
+<p>从上面的例子我们继续发展出一个系统，简单起来就一张用户购买记表吧，比如下面这样：</p></li>
+</ol>
+
+
+<p>|userId | 操作  | 时间      | 商品ID | 价格|
+|&mdash;&mdash;-|&mdash;&mdash;|&mdash;&mdash;&mdash;&ndash;|&mdash;&mdash;-|&mdash;&ndash;|
+|   1   |支付   |2016-06-06 |10001| 100|
+|   2   |添加到购物车|2016-01-06|100002| 50|
+|   3   |生产订单|2016-05-01|100003|60|
+……</p>
+
+<p>看起不来不错是吧！我们现在使用它，假如我们有2个需求：
+一、查找出所有用户购买次数最多的10%
+二、查出那些只注册不够买的用户
+数据小的时候一切都完美，但是有没有发现数据发展到一年或者到1亿条后以上后，mysql已经支撑不了？根据逐渐逐渐的数据使用特性摸索区分出来对立的两大类——OLTP和OLAP。也就是说OLAP这个分支从服务需求中诞生的，属于一个业务推动技术发展的一个例子。
+接下来我们仔细看看OLTP和OLAP具体什么，还有为什么查询数据还有类别之分？先看看定义：</p>
+
+<p>OLTP(On-line Transaction Processing) —— 联机事务处理，即聚焦一个事务的处理，例如一次银行转账、一次用户注册、一次电影票购买等。</p>
+
+<p>OLAP (On-line Analytical Processing) —— 联机分析处理，聚焦历史数据的分析处理，例如全年销售记录按季度、按月按周趋势统计；表现最好的商品类别和区域。</p>
+
+<p>从定义第一反应就是这两种操作类型一个是覆盖点，一个是覆盖面。拿OLTP最典型的例子——一次银行转账，其操作是查询这个银行账户的余额，更新余额，然后更新被转入方的余额。所有过程都只涉及了当前一条或者几条数据。只要知道两个账户的信息即可。但是再看看OLAP要处理的需求涉及的数据什么样的。还是看其典型需求——全年销售记录按季度、按月按周趋势统计，一个稍大规模的企业一年购物涉及的数据少说也要上千万条。所以你确定使用MySQL的Innodb或者MyIsam这种面向OLTP的引擎可以一次查询搞定全年的统计分析？</p>
+
+<p>OLTP查询典型方式：点
+OLAP查询典型方式：面</p>
+
+<p>第二就是对于OLTP来说，一次事务的要求就是数据库理论中的ACID（原子性，一致性，隔离性和持久性），而其中还特别偏重对实时响应速度的要求（能想想一次打开朋友圈耗时5s的情景吗？）。这这种数据库中任何一项特性都需要耗费了大量的数据间协调工作，比如其中的隔离性就有4中级别，也是造成数据库性能的一个瓶颈（这就是为啥SQL一般来说要比NoSQL慢）。而这对于OLAP事务这个东西不在需要，OLAP只需要历史数据的集合就行了，而历史数据不涉及到修改（否则就不叫历史了），只涉及到累加。那么抛开事务，将使数据处理速度大大提升。</p>
+
+<p>从这两点就足以催生出一大批新型的OLAP Database了，比如SQL中的infobright、vertica等一大批面向列式的数据库了，NoSQL中的hadoop等各种生态圈储存系统。我们看看为什么列式数据适合于OLAP系统。</p>
+
+<p>还有很多其他方面的不同，下表依次的列出来，其中每个点都能进一步推动OLAP系统和OLTP系统的分家：
+<a href="http://datawarehouse4u.info/OLTP-vs-OLAP.html">http://datawarehouse4u.info/OLTP-vs-OLAP.html</a>
+| OLTP数据 | OLAP数据|
+|&mdash;&mdash;&mdash;|&mdash;&mdash;&mdash;|
+|</p>
+
+<p><code>建立好了储存和查询的基础后，接下来要革命的地方就是计算了。</code></p>
+
+<h2>OLAP计算技术</h2>
+
+<p>一般OLTP的操作的计算层面都是什么？大家都很熟悉就是不断的自己造轮子来满足各种不同或大或小差别的事务业务。比如银行自己造一套自己的，搜索引擎google自己造另一套。而OLAP却走了另一种，也许是因为分析业务的基础计算都很一致，所以这套系统就有了其基础的模型，那就是cube计算模型。</p>
+
+<h3>维度的计量的概念抽离</h3>
+
+<p>这个特征绝对是核心中的核心。从OLAP的发展历史来看，当OLAP出现的时候，数据库领域几乎都是关系型的，也就意味着你要做分析也是使用关系型模型。而在一张二维表中，如下图：
+<img>
+请问你能一眼看出来这张表中的字段之间的关系吗？
+而cube模型则直接指明了各个字段之间的树状关系。比如下图：
+</img></p>
+
+<p>而再维度和计量概念抽出来后，带来的更顺其自然的操作方式，比如对地里位置这种明显的层级关系操作：
+还有隐藏了所有的链表操作，只需配置一次，不用再关系各种字典表导致巨长的sql，比如：
+也因此在上人机交互上有了更长足的进展，比如基于关系型数据库的人机界面系统怎么开发？而基于cube模型的系统怎么开发？</p>
+
+<p>而从发展的眼光来看，因为cube模型的储存并没有局限在关系型，在现在nosql等储存技术上大爆发的时代，也迸发出来了更大、更快的新轮子。比如：Aapche Kylin、 Driud。
+4. 其中比较有趣的算法</p>
+
+<p>想象一个场景，当你开了一家杂货铺。你打算怎么记账？
+假设你的小点是比较现代的，所有的账目都是有收银机记录。记录的格式如下：
+订单ID 时间 物品 价格</p>
+
+<p>OLAP（Online analytical processing）就是联系分析系统。它是商务智能或者数据挖掘的链条中一个环节。而它的上游是数据仓库，下游就是直接的用户。所以从这几一个环节开始提供了直接的人机互动服务。所以对它的定义就是一个人接互动的工具，主要服务是提供高效的、广泛的多维度数据分析。
+<img src="/images/posts/data_mining_olap.png" alt="olap在数据挖掘中的位置" /></p>
+
+<p>由于OLAP对数据仓库的依赖性很强（公用一个数据模型），所以一般来说这两个一般都放在一起作为一个整体来讨论。</p>
+
+<p>对于一个系统来说，只提供基本通用的定义是不够的，必须明确其必须满足的条件，而且需要解释为什么要满足这些条件（即满足最小集合条件，如果不满足就不应该称它是属于这种系统）。所以到底什么是OLAP的具体明明确的定定义？一种定义：
+按照 W. H. Inmon,一位数据仓库系统构造方面的领头建筑师的说法,“数据仓库是一个面向 主题的、集成的、时变的、非易失的数据集合,支持管理决策制定”[Inm96]
+“A data warehouse is a subject-oriented, integrated, time-variant, and nonvolatile collection of data in support of management’s decision making process”
+ - <strong>面向主题的</strong>:数据仓库围绕一些主题,如顾客、供应商、产品和销售组织。数据仓库关注决策 者的数据建模与分析,而不是构造组织机构的日常操作和事务处理。因此,数据仓库排除对于 决策无用的数据,提供特定主题的简明视图。
+ - <strong>集成的</strong>:通常构造数据仓库是将多个异种数据源,如关系数据库、一般文件和联机事务处理 记录,集成在一起。使用数据清理和数据集成技术,确保命名约定、编码结构、属性度量的一 致性。
+ - <strong>时变的</strong>:数据存储从历史的角度(例如,过去5-10年)提供信息。数据仓库中的关键结构, 隐式或显式地包含时间元素。
+ - <strong>非易失的</strong>:数据仓库总是物理地分离存放数据;这些数据源于操作环境下的应用数据。由于这 种分离,数据仓库不需要事务处理、恢复和并行控制机制。通常,它只需要两种数据访问:数 据的初始化装入和数据访问。</p>
+
+<h2>发现历史</h2>
+
+<p>从上图的演化可以看出，数据仓库的核心命题是解决数据的集成和正确性。那么OLAP的核心命题就是怎么操作这些数据？
+首先再回顾下我们的杂货铺，假如我们决定要扩大市场规模，需要分析些啥东西。
+分析的结论不能转化成决策的话，这个分析活动就是失败的。</p>
+
+<p>每一项技术（应用比较普遍的）的发展都有它的历史路径和其要解决的一个核心问题。如果单看一个技术，也许我们并不知道它有什么作用，但是如果放入了历史中，则会完全不一样。观看历史也可以让我们理解技术的未来的去向。好接下来我们走一遍olap技术的发展历史。</p>
+
+<p>事情从有数据库开始说起，因为所有的数据技术的第一步就是要把数据记下来，第二步是把数据取出来，而这就是数据库被发明的原因。下面是一个简单的年代表：
+- 1960s前期: 原始文件储存
+- 1970s中期: 开始了数据库，当然这时候的属于探索模型，思想也是各种百花齐放，从分层到网状数据模型
+- 1970s:  E. F. Codd提出了关系型数据库概念。其完美的数学模型，清晰的提供各种操作逻辑，加上SQL这种更符合人类认知且表达力超强的声明型语言，让关系型数据迅速夺走了几乎所有的数据库市场，同时让其他的各种数据库都下了地狱。（现在几乎没有程序员知道还有分层到网状数据库的存在，其实这些模型也是有软件成品的，并且也投放使用过）。
+- 1980s: Data analysis方向上的数据处理技术开始被研发，而且Data warehouse、OLAP等技术也一次被提出来
+- 2000s: 关系型数据库的地位终于收到了颠覆。NoSQL技术开始大力发展，从而开始浩浩荡荡的NoSQL 、NewSQL并存的时代
+- 2010s: 数据挖掘、机器学习技术开始彭博发展</p>
+
+<p>1980s Data warehouse、OLAP等技术被研发，因为这时候</p>
+
+<p>着这里中间插入一个小插曲，在我供职的一家公司里，当时我负责产品购买数据的整合。当时产品已经上线了一周了，突然boss砸过来一个分析需求，要求如下：
+1. 每小时购买产品的用户数量
+2. 每小时的购买金额
+&hellip;
+3. 每天的购买用户数量
+这需求看起来很合理是吗？但是再看看这一周的数据，就发现这个需求实在太变态了。因为这个产品一周以内就只产生了10笔订单。最好的分析方法就是直接拉出原始看，一目了然。</p>
+
+<p>经济学中的一个概念就是，进步驱逐滞留。其核心思想是当其中有一些企业创造或者获取到了一些生产效率更高的技术后（这里并不仅仅指生产技术，也包括管理组织方法提高的生产力提升），这个不经意味这家企业的进步，而且同时意味着其他竞争厂商退不了。对于天然的“你死我活”的商业市场来说，也就意味着别的厂家生存概率下降。</p>
+
+<p>从OLTP向OLAP的发展：</p>
+
+<h2>为什么使用cube这种数据模型？</h2>
+
+<p>如果是从基础的web程序员干起，大多数接触的都是关系型数据库，包括大学的数据库课程也全讲的是关系型数据库。我也有很长一段时间以为数据库就这一种关系型，直到后来2013年开始，redis、Hadoop、Bigtable等Nosql数据库开始大火（这也是一场亲眼见证的技术革命吧！真是如火如荼，和现在的机器学习一样，打开技术网站没有不谈的，当让非技术网站也在谈，比如前几天的AlphaGo人机大战。如果能在这些前沿技术大火前就能了解，并且及时行动，绝对能在这个行业处于领先地位。错过当然是追悔莫及，特别是当发现呼哧于你擦肩而过的超速列车时候，心里的感慨是多么的万分）。开始明白了数据模型的细节和魅力。所以就有个问题，为什么数据仓库为基础的olap要选择 cube这种数据模型呢？</p>
+
+<p>首先明确一下什么是数据模型，设计数据模型的目的是什么？那只有一个，就是为了方便、有效的操作数据。所以数据模型就是数据的一种组织方式，其上层提供了各种相应的操作（这个改变和数据结构类似）。然后我们从cube能提供什么，而其他数据模型不能提供？当然也会分析下他的缺点。</p>
+
+<p>cube数据模型做的最大的事情是什么呢？那就是改变数据的获取方式（retrieval），其实每种数据模型的核心命题都是储存和获取。当“方便的”储存达到一个质的变化时候，一个新兴的行业就会诞生（比如hadoop的产生推动了数据使用的一个新的境界）。</p>
+
+<p>接下来我们拿一个例子来对比下使用cube模型和普通的关系型数据模型的区别和各自的优势。</p>
+
+<h2>OLTP、数据仓库和OLAP的关系</h2>
+
+<p>从上面的讨论看，OLTP可以理解为业务数据的产生来源，而数据仓库是OLTP的日志的汇集处，最上层是OLAP来处理分析数据仓库中的数据，得出结论后再通过行为反馈到OLTP系统中。</p>
+
+<h2>概念层次</h2>
+
+<h2>实用技术（MDX）</h2>
+
+<h2>衍生产品</h2>
+
+<h2>一点干活</h2>
+
+<p>前面讲了那么多的水货，接下里给一点小的bonus —— 一个olap技术中的基础算法：</p>
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[Introduction to Olap]]></title>
     <link href="http://woodcarver.github.io/blog/2015/08/03/introduction-to-olap/"/>
     <updated>2015-08-03T15:02:36+08:00</updated>
     <id>http://woodcarver.github.io/blog/2015/08/03/introduction-to-olap</id>
-    <content type="html"><![CDATA[<h1>Olap技术框架概况</h1>
+    <content type="html"><![CDATA[<p>现在看完了一本关于讲解数据仓库和数据挖掘的书了，感觉讲的挺不错，现在来写一篇文章。
+首先我们考虑当一家公司从小到大一直发展到amazon的那样，我们叫她ama，数据的会怎么变化。但amazon起初就是小网站的时候肯定大家都一样前端一个购物网页后端放一个给前端操作的数据库即可。那么这个数据库必然是天然适应前端应用操作的一个东西对不对？当然这时候我们也没有别的需求，所以数据库的全世界也就只有这一种啦，你也认识不到还有别的使用数据的地方。
+然后ama不断的发展，突然来了这么一个人，这个人以前是名统计学家，他对公司这么放着一堆“金子”不用而感到惊讶。所她自己挽起袖子，自己发誓要通过科学的方法得出一些结论，让公司的市场方向和运营得到指导和优化。但是面对他从来没在学校见过的不可思议大的已经都“落灰”的数据时候，发现自己仅仅是抽个样本看都难。
+然后他又正好有个前同事是数据库的专家，你貌似知道以前他搞过基因测序，那东西可是比这堆东西更大，而他搞定了，去问问他。
+“Hi，Denise你以前的基因测序是怎么把信息存储起来的同时还能做计算？”
+“Shally，你算问对人了。我现在就在研究最火的大数据方向！不过也许你听大数据这个词已经烦了，不过用它拿科研经费挺好使。平时我们不用这个词。如果要描述数据量非常大，我们用Massive Data（海量数据），如果要描述数据非常多样，我们用Heterogeneous Data（异构数据），如果要描述数据既多样，又量大，我们用Massive Heterogeneous Data（海量异构数据），如果要申请基金忽悠一笔钱，我们用Big Data（大数据）。”
+“别和我说那些有的没的，我作为一个统计学家当然知道怎么使用数据，我最大问题是我现在没办法操作这些数据！”
+“好吧。那我们就来讲讲分析型数据的储存吧！”
+“等等，你刚才讲了分析型数据？这是个什么东西？”
+“嗯，作为统计学家来说你接触到的肯定大部分都是分析型数据，而且你的圈子因为不考虑那些操作型数据，所以并不熟悉这个词。而相对在计算机界，因为都是建立一个一个的应用，背后的数据库都是为了支撑应用操作或者事务（(OLTP &ndash; OnLine transaction processing)）而存在，所以他们反而都会忽视分析型数据。既然说到这里我们就来说说什么是操作型数据和什么分析型数据。他们的定义都很很简单，顾名思义，操作型数据是针对前端应用，并且为了适应这些应用而组织起来。而分析型数据存在的目的就是为了分析（OLAP &ndash; OnLine analytical processing），所以它的组织方式是围绕着怎么支持分析工作的。”
+“嗯，这到底能怎么影响储存呢？”
+“这两种的特性不一样？比如，为了支持基本的网上购买操作或者可以说是事务，你需要设计货品表。货品表为了支持购买操作一般就只保留一个副本，即便是修改了，或者删除了。操作会<strong>立即</strong>同步到表中并被观察到，而且只保留<strong>最近状态</strong>。为了保证修改价格的时候不影响正在购买此商品的用户，还需要复杂的事务机制保证对用户数据是一致，。假想下下单的时候价格是5块，支付时候变成了10块的心情。而且还考虑尽量减少数据的冗余，大量使用数据关联技术（关系型数据库理论的核心——范式）。货品表是个典型的操作型数据。”
+“而分析型数据呢？相对于操作型数据来说，首先它是按时间发生的全局数据。会把所有的操作历史保留。所以数据从一行变成了一块。想想你会为了分析数据搞一套来一条数据运行一遍你的分析过程吗？不会，所以对数据进行批量处理，而且在操作型数据中的那种不能超过1s的严格响应时间，你也不会那么在乎。还有一个操作型数据特别头疼的问题，就是数据的一致性保证机制——事务的处理。这个东西可是个很影响效率的机制。考虑到分析型数据储存都是历史的操作产生的数据，一般是不变的（如果去修改历史，是不是有点自欺欺人）。”
+“好了，到此为止我们来总结下这两种数据的不同。</p>
+
+<p>|特性    | OLTP数据 | OLAP数据|
+|&mdash;&mdash;-|&mdash;&mdash;&mdash;|&mdash;&mdash;&mdash;|
+|操作范围|一行或几行 |一大块或者整表|
+|储存范围|最新状态   |全部状态记录|
+|操作类型|删除，更新，添加，查找|批量加载，批量查询|
+|性能要求|响应要求苛刻| 相对宽松，一些任务跑上好几天都可以|
+|一致性| 支持事务| 几乎不存在这个问题，因为没有修改操作|
+|目的| 面向业务，支持日常操作|面向分析挖掘，<a href="">用处千千万，谈谈大数据的用处</a>|
+|计算|一次数据量小，计算简单|一次数据量大，而且计算复杂|
+”
+“接下来根据上面的特性，我们来说说没啥分析型数据要专门的储存方法。”
+“这个我知道，因为使用现有的操作型数据处理方式，数据取不出来也存不下。”
+“说的太对了，但还有其他的问题，那就是刚才提到的特性中有很多对于系统设计是冲突，你要支持A特性，就别想还能满足B特性。如果你感兴趣我再说说针对这两种数据有发展了那些数据库？”
+“快说吧！”
+“现在你们公司肯定用的是行式储存的数据库。而为了支持分析型数据，现在发展出了很多基于列式的数据库。先说说为啥列式数据更适合于分析型数据。你看以先看看这篇文章哈。”
+听完朋友的讲解，你当天就找到DBA去帮你搭建了他推荐的infobright，开始愉快的操作了。但是渐渐的你发现每次手动导入数据，不仅麻烦还存在数据过期的头疼问题。再加上总是缺少大量相关数据，要到处搜集，收集到的数据还因为各种原因互相冲突。折磨的你快要受不了了。你又找朋友出来，谈你的烦恼。
+&ldquo;嗯，这是一个大坑，因为你还要解决数据的问题。其实你需要的是一个数据仓库。&rdquo;</p>
+
+<h1>Olap技术框架概况</h1>
 
 <h2>数据仓库</h2>
 
 <h2>多维度数据模型</h2>
 
 <h2>Olap是什么</h2>
+
+<h2>为什么要Cube模型</h2>
 
 <h2>常用OLap技术框架</h2>
 

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Nosql | Wood Carver]]></title>
+  <link href="http://woodcarver.github.io/blog/categories/nosql/atom.xml" rel="self"/>
+  <link href="http://woodcarver.github.io/"/>
+  <updated>2016-08-08T00:01:19+08:00</updated>
+  <id>http://woodcarver.github.io/</id>
+  <author>
+    <name><![CDATA[Wood Carver]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Introduce Redis]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/07/07/introduce-redis/"/>
+    <updated>2016-07-07T21:35:59+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/07/07/introduce-redis</id>
+    <content type="html"><![CDATA[<p>观点一：redis采用结构化数据，打通了代码和储存
+关键技术： event loop， single thread</p>
+]]></content>
+  </entry>
+  
+</feed>

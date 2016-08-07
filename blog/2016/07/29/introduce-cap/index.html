@@ -1,0 +1,240 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Introduce CAP - Wood Carver</title>
+  <meta name="author" content="Wood Carver">
+
+  
+  <meta name="description" content="这篇博文主要是对《CAP理论十二年回顾："规则"变了
+》的个人解读。 CAP到底讲什么，为什么不能同时满足？ 首先明确一点，CAP是一个分布式系统的特性，如果你没有多个服务节点，就不可能发生分区。先解释下概念：
+- C —— 执行的结果能同时反映到所有节点上。等同于所有节点访问同一份最新的数据副本 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://woodcarver.github.io/blog/2016/07/29/introduce-cap/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Wood Carver" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<!-- link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css"-->
+<!-- link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css"-->
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Wood Carver</a></h1>
+  
+    <h2>Find another pool</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="woodcarver.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/book-links">Books</a></li>
+  <li><a href="/about">About Me</a></li>
+  <li><a href="/start-here">Start Here</a></li>
+  <li><a href="/others-blog">Reading</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Introduce CAP</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-07-29T10:04:53+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>29</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:04 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>这篇博文主要是对<a href="http://www.infoq.com/cn/articles/cap-twelve-years-later-how-the-rules-have-changed/">《CAP理论十二年回顾："规则"变了
+》</a>的个人解读。</p>
+
+<h1>CAP到底讲什么，为什么不能同时满足？</h1>
+
+<p>首先明确一点，CAP是一个分布式系统的特性，如果你没有多个服务节点，就不可能发生分区。先解释下概念：
+- C —— 执行的结果能同时反映到所有节点上。等同于所有节点访问同一份最新的数据副本。也许这里需要很多的具体不变性约束，比如主键不能重复。
+- A —— 这个是指访问的节点是正常的，那么就能正常执行请求（所以和P的一个冲突点就是当系统部分失效，这个系统到底是判定为失效还是正常？）
+- P —— 这个特性是说当系统的节点之间通信出现了问题，导致之间不能同步，然后还能继续提供服务。
+其实我第一次读这个概念，就是不明白为啥这三个方面不能全部同时获得。然后看了个这个例子：</p>
+
+<blockquote><p>理解CAP理论的最简单方式是想象两个节点分处分区两侧。允许至少一个节点更新状态会导致数据不一致，即丧失了C性质。如果为了保证数据一致性，将分区一侧的节点设置为不可用，那么又丧失了A性质。除非两个节点可以互相通信，才能既保证C又保证A，这又会导致丧失P性质。一般来说跨区域的系统，设计师无法舍弃P性质，那么就只能在数据一致性和可用性上做一个艰难选择。不确切地说，NoSQL运动的主题其实是创造各种可用性优先、数据一致性其次的方案；而传统数据库坚守ACID特性（原子性、一致性、隔离性、持久性），做的是相反的事情。下文“ACID、BASE、CAP”小节详细说明了它们的差异。</p></blockquote>
+
+<p>上面的例子说的太清楚了，当分布式系统发生了节点之间通信失败，就相当于一个整体的服务发生断裂，分成了几个服务块。从而丢失了其对等性（即从任意一个节点都可以访问到整个系统）。然后这个时候如果其中一部分提供服务，比如写操作通过一节点写入了，但是因为不能通信没有办法复制到其他节点，导致了系统的不一致性。这样就就丢失了C，但是还好保住了A。
+接着如果要追求C，那么只有等节点之间的通信成功才行，那么就需要写入操作延迟或者这个期间拒绝服务。那么都不能服务了，自然就没有了A。</p>
+
+<p>所以来说当没有发生分区的时候，C和A可以完美保持。但是发生了分区，那么要容错，C和A可能就不能同时保持。
+其实这不是一个3选2的问题，因为你没办法选择系统不分区，当通信出问题这个是能选择的吗？这个是故障，你有办法选择故障？所以其实所有的分布式系统都是在C和A之间进行设计权责。</p>
+
+<h1>C和A之间选择不是0和1的选择，而是一种连续式选择</h1>
+
+<p>从上面的例子看，好像选择C就必须放弃A，反之亦然。但是其实所有这些都有中间方案。C和A的定义也有各种灰度定义。
+比如C的定义，最严格的定义就是一个分布式事务结束后，所有的副本在任何时刻都是一致的。但是这个定义可以放宽。时间不在是同时，而是一段时间，给一个时间窗口。或者一阶段内可以不一致，但最终变成一致的。比如上面的例子中，在发生分区的时候，可以暂时不一致，等到通信问题解决了，开始恢复一致性。</p>
+
+<p>而对于A的定义来说，也是有各种层次，在发生分区的时候，可以选择限制部分操作，同时提供一个些事后比较好恢复的操作。</p>
+
+<h1>一种经典的系统设计模式</h1>
+
+<p>因为在分布式系统中，基本是没有办法选择不要分区的，所以为了保证系统的可用性，和一致性的博弈，经典的设计模式就是分情况对待。当不发生分区的时候保证完美的CA，到出现了分区，进入分区模式，等待分区恢复后，恢复系统，最终达到一致性后，再次进入完美CA状态。</p>
+
+<p><img src="../images/posts/CAP1.png" alt="" /></p>
+
+<ul>
+<li>检测到分区开始</li>
+<li>明确进入分区模式，限制某些操作，并且</li>
+<li>当通信恢复后启动分区恢复过程</li>
+</ul>
+
+
+<p>最后一步的目的是恢复一致性，以及补偿在系统分区期间程序产生的错误。</p>
+
+<p>当系统进入到分区模式，它有两种可行的策略。其一是限制部分操作，因此会削弱可用性。其二是额外记录一些有利于后面分区恢复的操作信息。系统可通过持续尝试恢复通信来察觉分区何时结束。</p>
+
+<h1>reference</h1>
+
+<ul>
+<li><a href="https://martin.kleppmann.com/2015/05/11/please-stop-calling-databases-cp-or-ap.html">Please stop calling databases CP or AP</a></li>
+<li><a href="https://www.infoq.com/articles/cap-twelve-years-later-how-the-rules-have-changed">CAP Twelve Years Later: How the &ldquo;Rules&rdquo; Have Changed
+</a></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Wood Carver</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-07-29T10:04:53+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>29</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:04 am</span></time>
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/07/24/a-misusing-of-python-logging-lock/" title="Previous Post: A misusing of python logging lock">&laquo; A misusing of python logging lock</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2016/08/02/synchronise-vs-blocking/" title="Next Post: synchronise vs blocking">synchronise vs blocking &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/08/04/wordcount-in-mapreduce/">Wordcount in Mapreduce</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/02/synchronise-vs-blocking/">Synchronise vs Blocking</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/07/29/introduce-cap/">Introduce CAP</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/07/24/a-misusing-of-python-logging-lock/">A Misusing of Python Logging Lock</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/07/24/how-to-understand-a-data-system/">如何理解一个数据存储系统</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Wood Carver -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

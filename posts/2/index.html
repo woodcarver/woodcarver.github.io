@@ -9,8 +9,8 @@
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="什么是代理 代理在普通生活中的意义就是本来应该你做的事情，你让别人代你做了，那么那个帮你做的人就是你的代理。而在计算机网络中代理的概念差不多，就是本来要客户端要做的网络访问，现在移交给另外一个机器做，那么那个机器就被称为代理服务器，代理服务器帮你来访问。过程如下： 正常情况：
-client & &hellip;">
+  <meta name="description" content="
+">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -59,7 +59,10 @@ client & &hellip;">
 <ul class="main-navigation">
   <li><a href="/">Blog</a></li>
   <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/book-links">Books</a></li>
   <li><a href="/about">About Me</a></li>
+  <li><a href="/start-here">Start Here</a></li>
+  <li><a href="/others-blog">Reading</a></li>
 </ul>
 
 </nav>
@@ -73,7 +76,7 @@ client & &hellip;">
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2016/01/05/nginx-proxy/">Nginx反向代理配置</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/07/07/why-many-data-structrues-have-logn-relative-time-complexity/">Why Many Data Structrues Have Logn Relative Time Complexity</a></h1>
     
     
       <p class="meta">
@@ -82,377 +85,7 @@ client & &hellip;">
 
 
 
-<time class='entry-date' datetime='2016-01-05T22:04:29+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:04 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>什么是代理</h2>
-
-<p>代理在普通生活中的意义就是本来应该你做的事情，你让别人代你做了，那么那个帮你做的人就是你的代理。而在计算机网络中代理的概念差不多，就是本来要客户端要做的网络访问，现在移交给另外一个机器做，那么那个机器就被称为代理服务器，代理服务器帮你来访问。过程如下：</p>
-
-<p>正常情况：
-client &mdash;(send request)&mdash;> server</p>
-
-<p>代理情况：
-client &mdash;(send request)&mdash;> clinet proxy &ndash;(send request)&mdash;> server</p>
-
-<h2>什么又是反向代理</h2>
-
-<p>那什么又是反向代理呢？反向代理可不是说本来代理你事务的人，反过来代理别人。反向代理在计算机网络中是指这么一个过程。一般来说正向代理是客户机找人来代理把自己的请求转发给服务端，但是如果反向代理，找代理的人不再是客户机，而是服务器这边把自己接受的请求转发给背后的其他机器。其主要区别：</p>
-
-<ul>
-<li>正向代理中代理的过程是客户端，代理机器是作为一个访问客户的身份的；而在反向代理中代理机器是作为服务身份。</li>
-<li>正向代理中代理的过程是服务端，服务端对代理的存在无感知；而在反向代理中客户机对代理的存在无感知。</li>
-</ul>
-
-
-<p>反向代理情况：
-clinet &ndash;(send request)&ndash;> server proxy &ndash;(send request)&ndash;>other
-server</p>
-
-<h2>先让我们看看一个示例</h2>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-<span class='line-number'>59</span>
-<span class='line-number'>60</span>
-<span class='line-number'>61</span>
-<span class='line-number'>62</span>
-<span class='line-number'>63</span>
-<span class='line-number'>64</span>
-<span class='line-number'>65</span>
-<span class='line-number'>66</span>
-<span class='line-number'>67</span>
-<span class='line-number'>68</span>
-<span class='line-number'>69</span>
-<span class='line-number'>70</span>
-<span class='line-number'>71</span>
-<span class='line-number'>72</span>
-<span class='line-number'>73</span>
-<span class='line-number'>74</span>
-<span class='line-number'>75</span>
-<span class='line-number'>76</span>
-<span class='line-number'>77</span>
-<span class='line-number'>78</span>
-<span class='line-number'>79</span>
-<span class='line-number'>80</span>
-<span class='line-number'>81</span>
-<span class='line-number'>82</span>
-<span class='line-number'>83</span>
-<span class='line-number'>84</span>
-<span class='line-number'>85</span>
-<span class='line-number'>86</span>
-<span class='line-number'>87</span>
-<span class='line-number'>88</span>
-<span class='line-number'>89</span>
-<span class='line-number'>90</span>
-<span class='line-number'>91</span>
-<span class='line-number'>92</span>
-<span class='line-number'>93</span>
-<span class='line-number'>94</span>
-<span class='line-number'>95</span>
-<span class='line-number'>96</span>
-<span class='line-number'>97</span>
-<span class='line-number'>98</span>
-<span class='line-number'>99</span>
-<span class='line-number'>100</span>
-<span class='line-number'>101</span>
-<span class='line-number'>102</span>
-<span class='line-number'>103</span>
-<span class='line-number'>104</span>
-<span class='line-number'>105</span>
-<span class='line-number'>106</span>
-<span class='line-number'>107</span>
-<span class='line-number'>108</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>#① part start
-</span><span class='line'>#运行nginx进程的账户
-</span><span class='line'>user www;
-</span><span class='line'>#
-</span><span class='line'>worker_process 1;
-</span><span class='line'>error_log /var/log/nginx/error.log
-</span><span class='line'>pid /var/run/nginx.pid;
-</span><span class='line'>
-</span><span class='line'>events{
-</span><span class='line'>  use epoll;
-</span><span class='line'>  worker_connections 1024;
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>http{
-</span><span class='line'>    include       /etc/nginx/mime.types;
-</span><span class='line'>    default_type  application/octet-stream;
-</span><span class='line'>    access_log  /var/log/nginx/access.log  main;
-</span><span class='line'>    #
-</span><span class='line'>    sendfile        on;
-</span><span class='line'>    #
-</span><span class='line'>    keepalive_timeout  65;
-</span><span class='line'>    gzip  on;
-</span><span class='line'>   
-</span><span class='line'>    index   index.html index.htm;
-</span><span class='line'>    include /etc/nginx/conf.d/*.conf;
-</span><span class='line'>    include /etc/nginx/sites-enabled/*;
-</span><span class='line'>    #② part start
-</span><span class='line'>      # 定义上游服务器列表组
-</span><span class='line'>    upstream web1 {
-</span><span class='line'>        server 127.0.0.1:111 weight=1;
-</span><span class='line'>        server 127.0.0.1:222 weight=1;
-</span><span class='line'>    }
-</span><span class='line'>    upstream web2 {
-</span><span class='line'>        server 127.0.0.2:111 weight=1;
-</span><span class='line'>        server 127.0.0.2:222 weight=6;
-</span><span class='line'>        server 127.0.0.2:333 weight=7;
-</span><span class='line'>    }
-</span><span class='line'>    #定义一个服务器，其监听80端口，配置的域名是www.company.com
-</span><span class='line'>    server{
-</span><span class='line'>      listen 80;
-</span><span class='line'>      # using www  domain to access the main website
-</span><span class='line'>      server_name www.company.com;
-</span><span class='line'>      access_log  /var/log/nginx/www.log
-</span><span class='line'>      
-</span><span class='line'>      location / {
-</span><span class='line'>          root /home/website_root;
-</span><span class='line'>          
-</span><span class='line'>      }
-</span><span class='line'>    }
-</span><span class='line'>    #③ part start
-</span><span class='line'>    #定义第二个服务器，其同样监听80端口，但是匹配域名是web.company.com
-</span><span class='line'>    server{
-</span><span class='line'>      listen 80;
-</span><span class='line'>      # using web sub domain to access
-</span><span class='line'>      server_name web.company.com;
-</span><span class='line'>      access_log  /var/log/nginx/web_access.log
-</span><span class='line'>      
-</span><span class='line'>      location / {
-</span><span class='line'>          root /home/web2_root;
-</span><span class='line'>          proxy_pass http://127.0.0.1:8080/web/;
-</span><span class='line'>          proxy_read_timeout 300;
-</span><span class='line'>          proxy_connect_timeout 300;
-</span><span class='line'>          proxy_redirect     off;
-</span><span class='line'>
-</span><span class='line'>          proxy_set_header   X-Forwarded-Proto $scheme;
-</span><span class='line'>          proxy_set_header   Host              $http_host;
-</span><span class='line'>          proxy_set_header   X-Real-IP         $remote_addr;
-</span><span class='line'>      }
-</span><span class='line'>    }
-</span><span class='line'>    #定义第三个服务器，其同样监听80端口，但是匹配域名是web1.company.com，并把请求转发到web1上游服务
-</span><span class='line'>    server{
-</span><span class='line'>      listen 80;
-</span><span class='line'>      # using web1 sub domain to access
-</span><span class='line'>      server_name web1.company.com;
-</span><span class='line'>      access_log  /var/log/nginx/web1_access.log
-</span><span class='line'>      
-</span><span class='line'>      location / {
-</span><span class='line'>          root /home/web1_root;
-</span><span class='line'>          proxy_pass http://web1;
-</span><span class='line'>          proxy_read_timeout 300;
-</span><span class='line'>          proxy_connect_timeout 300;
-</span><span class='line'>          proxy_redirect     off;
-</span><span class='line'>
-</span><span class='line'>          proxy_set_header   X-Forwarded-Proto $scheme;
-</span><span class='line'>          proxy_set_header   Host              $http_host;
-</span><span class='line'>          proxy_set_header   X-Real-IP         $remote_addr;
-</span><span class='line'>      }
-</span><span class='line'>    }
-</span><span class='line'>        #定义第三个服务器，其同样监听80端口，但是匹配域名是web2.company.com，并把请求转发到web2上游服务
-</span><span class='line'>    server{
-</span><span class='line'>      listen 80;
-</span><span class='line'>      # using web2 sub domain to access
-</span><span class='line'>      server_name web2.company.com;
-</span><span class='line'>      access_log  /var/log/nginx/web2_access.log
-</span><span class='line'>      
-</span><span class='line'>      location / {
-</span><span class='line'>          root /home/web2_root;
-</span><span class='line'>          proxy_pass http://web2;
-</span><span class='line'>          proxy_read_timeout 300;
-</span><span class='line'>          proxy_connect_timeout 300;
-</span><span class='line'>          proxy_redirect     off;
-</span><span class='line'>
-</span><span class='line'>          proxy_set_header   X-Forwarded-Proto $scheme;
-</span><span class='line'>          proxy_set_header   Host              $http_host;
-</span><span class='line'>          proxy_set_header   X-Real-IP         $remote_addr;
-</span><span class='line'>      }
-</span><span class='line'>    }
-</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>这个示例都做了什么</h3>
-
-<ol>
-<li>第①部分，定义nginx通用规则，包括运行账户，处理进程个数等</li>
-<li>第②部分，开始定义上游服务器组</li>
-<li>第③部分，定义server，并指定怎么使用第②部分定义的upstream</li>
-</ol>
-
-
-<p>总体来说就是这个提供了4个服务，www，web，web1，web2 4个网站。这个例子很适合只有一台机器，但是有想避免url中携带端口号，统一使用域名的方式访问。4个网站都监听80端口，但是分配不同的二级域名既可以。这就需要nginx的反向代理，把接到的请求转发给背后不同的服务。</p>
-
-<h2>为什么需要方向代理</h2>
-
-<p>为什么要反向代理？作用服务端的代理，自然就是一台服务器处理不过来了，需要转发、分散请求给其他服务器做。下面罗列些适用场景：</p>
-
-<ul>
-<li><p>负载均衡
-上面例子中的web1和web2使用了nginx的负载均衡技术，把请求转向一组服务器。具体转发到哪个服务器，nginx提供了多种负载策略，例子中使用的是加权重的方式，web1 upstream是2个请求中，1个请求给111服务器，1个给222服务器。关于跟多的负载均衡的策略，请参看<a href="http://nginx.org/en/docs/http/load_balancing.html">nginx官方文档-负载均衡</a></p></li>
-<li><p>一个域名，多个网站。在这里反向代理倒不是为了负责存在，而是为了域名和服务的统一部署。例如一个公司的内部网站需要搭建很多服务——代码管理服、wiki服务、oa……，但是只要一个域名。这时候就可以用反向代理把不同的子域名转发到不同的服务上。下面是一个例子：</p></li>
-<li><p>当然反向代理的另一大用处就是隐藏后面的实际服务，以此来达到一定的安全性。</p></li>
-</ul>
-
-
-<h2>仔细讲解每个模块</h2>
-
-<h3>user</h3>
-
-<p>user 设置nginx是以什么用户来运行的，这个非常重要，<strong>确保运行nginx的用户能有权限访问读写网站的文件</strong>,否则会报404 not found等错误。</p>
-
-<h3>events</h3>
-
-<h3><a href="http://nginx.org/cn/docs/http/ngx_http_upstream_module.html">nginx upstream</a></h3>
-
-<p>upstream 直接翻译就是上游，即上游服务，其封装一组服务器列表，这些服务器可以别proxy_pass,fastcgi_pass,uwsgi_pass,scgi_pass和 memcached_pass引用，把接到的请求转发给这些服务器组。
-引用方法就是加行<a href="http://">http://</a>[upstream module name]</p>
-
-<pre><code>&gt; The ngx_http_upstream_module module is used to define groups of servers that can be referenced by the proxy_pass, fastcgi_pass, uwsgi_pass, scgi_pass, and memcached_pass directives.
-</code></pre>
-
-<p>例子：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>upstream  backend {  #①
-</span><span class='line'>    server backend1.example.com       weight=5;
-</span><span class='line'>    server backend2.example.com:8080;
-</span><span class='line'>    server unix:/tmp/backend3;
-</span><span class='line'>
-</span><span class='line'>    server backup1.example.com:8080   backup;
-</span><span class='line'>    server backup2.example.com:8080   backup;
-</span><span class='line'>}
-</span><span class='line'>
-</span><span class='line'>server {
-</span><span class='line'>    location / {
-</span><span class='line'>        proxy_pass http://backend; #②
-</span><span class='line'>    }
-</span><span class='line'>}
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>注意有①，和②行的写法。要引用<strong>backend</strong>模块，只需把它制定成**<a href="http://backend**%E5%B0%B1%E8%A1%8C%E3%80%82">http://backend**%E5%B0%B1%E8%A1%8C%E3%80%82</a></p>
-
-<h3>http 意义和配置</h3>
-
-<p>http就是指配置关于http服务的地方，server等都是http的子模块</p>
-
-<h3>server 配置和匹配规则</h3>
-
-<p>一个http服务可以有多个server，而对server的路径匹配，反向代理都是在这里配置的。</p>
-
-<p>在server中最重要的一项配置：server_name的配置。server_name决定了来了一个url，到底是哪个server处理该请求。nginx会依次找和url配置的第一次出现的server。server_name可以使用通配符，也可以使用正则表达式。而且一个server的server_name可以多个，以空格分隔。更详细的关于server_name匹配规则，<a href="http://nginx.org/en/docs/http/server_names.html">参看这里</a></p>
-
-<h3>location 配置和匹配规则</h3>
-
-<p>server_name是定义域名级别的规则，而location则是url中文件部分的规则的。适应例如会对图片等静态资源做单独处理等需求。</p>
-
-<h2>参考资料</h2>
-
-<ul>
-<li><a href="http://nginx.org/cn/docs/http/ngx_http_upstream_module.html">nginx upstream模块介绍文档1</a></li>
-<li><a href="http://tengine.taobao.org/book/chapter_05.html">nginx upstream模块介绍文档2</a></li>
-<li><a href="http://www.cnblogs.com/xiaogangqq123/archive/2011/03/02/1969006.html">nginx配置例子</a></li>
-<li><a href="http://nginx.org/en/docs/http/load_balancing.html">nginx load balancer</a></li>
-<li><a href="http://nginx.com/blog/nginx-plus-r6-released/?_ga=1.99990941.241485225.1426074750">Enhanced Load Balancing,High Availability, and Monitoring Features</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/01/01/100-open-source-operating-system-papers-for-programmers/">100 Open Source Operating System Papers for Programmers.</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-01-01T18:32:21+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>6:32 pm</span></time>
+<time class='entry-date' datetime='2016-07-07T21:50:55+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>7</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:50 pm</span></time>
         
       </p>
     
@@ -472,7 +105,7 @@ server</p>
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2015/12/28/how-to-learn-a-programming-language/">How to Learn a Programming Language</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/07/07/introduce-redis/">Introduce Redis</a></h1>
     
     
       <p class="meta">
@@ -481,7 +114,37 @@ server</p>
 
 
 
-<time class='entry-date' datetime='2015-12-28T10:20:32+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:20 am</span></time>
+<time class='entry-date' datetime='2016-07-07T21:35:59+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>7</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:35 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>观点一：redis采用结构化数据，打通了代码和储存
+关键技术： event loop， single thread</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/06/22/how-to-desgin-a-thread-pool/">How to Desgin a Thread Pool</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-06-22T23:11:22+08:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>11:11 pm</span></time>
         
       </p>
     
@@ -501,7 +164,7 @@ server</p>
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2015/12/18/i-cant-help/">吐槽时间</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/06/22/how-to-desgin-dataware-house/">How to Desgin Dataware House</a></h1>
     
     
       <p class="meta">
@@ -510,413 +173,7 @@ server</p>
 
 
 
-<time class='entry-date' datetime='2015-12-18T17:11:40+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>5:11 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>我实在是忍不住了，我要吐槽！
-为什么读java代码的这么费劲。一层一层的拨开后发现，他们使用的是接口，然后你就发现如果不向上追踪代码根本不可能知道到底是传递了那个具体类，从而更不知道具体的处理逻辑是什么。何谈修改其中逻辑？《代码大全》里说，如果你使用他们的接口，发现不懂应该要求其作者改动,那是针对使用者来说。但是你是这个接口是新的接手人，要改变具体的逻辑，呵呵，那就等着哭吧！
-每次看代码都有种被骗，被忽悠的感觉。</p>
-
-<ol>
-<li>老板今天要我给系统升级，增加一个显示用户闪亮亮的脑门大小</li>
-<li>找到显示用户信息的function，它调用了一个人类,很简单，我点进去看看人类</li>
-<li>点进去看，发现人类是个interface。好吧，这意味着我向上回滚看showUserProfile()的人类参数是什么时候实现。发现一个createPeople()</li>
-<li>看了五六层，总算找到showUserProfile()里的人类是从那里开始产生的了。为了这个又走了一遍分支。不管怎么着，先看看createPeople()，发现人类又分了凡人，超人和坏人。然后点进凡人看看，发现又是一个接口扩展于人类。算了，那放放，不想再跑其他分支看createPeople()里的凡人到底是那个具体类。那我们再看看超人吧！发现超人和坏人是扩展于凡人的另一接口。。。。［摔桌子了！］</li>
-</ol>
-
-
-<p>看了这么多，又都好像啥都没看到。你以为了解人类，呵呵，其实你不了解任何一种人类。全是浮云。。。
-实在不明白，明明就一个实现类还要用接口干什么？</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/11/30/mondrian-design-dialect-design/">Mondrian 设计于实现:Dialect 设计</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-11-30T22:56:19+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>30</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:56 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Dialect 模块是mondrian属于spi模块，主要作用用于支持跨平台支持各种关系性数据库。其基本设计理念使用了抽象工厂模型（abstract factory）。但是在上层有提供了一层抽象通过配置而不修改代码来实现自动根据加载的驱动来调用相应的Dialect，实现sql的兼容支持。</p>
-
-<p>我觉得如果要描述出来了解其中的机制，更需要回答下面3个问题，其实可以算2个，第一个问题拆开了就是后面那两个。
-为什么这么设计？有什么优点？有什么缺点？</p>
-
-<p>其中涉及到的类有：</p>
-
-<ul>
-<li>mondrian.rolap.RolapConnection</li>
-<li>mondrian.spi.DialectManager</li>
-<li>mondrian.spi.DialectManager.DialectManagerImpl</li>
-<li>mondrian.spi.DialectManager.ChainDialectFactory</li>
-<li>mondrian.util.ServiceDiscovery<T></li>
-<li>mondrian.spi.Dialect</li>
-<li>mondrian.spi.DialectFactory</li>
-<li>mondrian.spi.impl.JdbcDialectFactory</li>
-<li>mondrian.spi.impl.JdbcDialectImpl</li>
-<li>mondrian.spi.impl.VerticaDialect</li>
-</ul>
-
-
-<p>现在辨别其中的参与者的角色：</p>
-
-<ul>
-<li>client
-
-<ul>
-<li>mondrian.rolap.RolapConnection</li>
-</ul>
-</li>
-<li>抽象工厂
-
-<ul>
-<li>mondrian.spi.DialectFactory</li>
-</ul>
-</li>
-<li>具体工厂实现
-
-<ul>
-<li>mondrian.spi.impl.JdbcDialectFactory</li>
-</ul>
-</li>
-<li>产品抽象接口
-
-<ul>
-<li>mondrian.spi.Dialect</li>
-</ul>
-</li>
-<li>具体产品
-
-<ul>
-<li>mondrian.spi.impl.JdbcDialectImpl</li>
-<li>mondrian.spi.impl.VerticaDialect</li>
-</ul>
-</li>
-</ul>
-
-
-<p>这个模型的基本模型中还包括了管理者（mondrian.spi.DialectManager），除此之还有一个特殊支持是并没有给每个具体产品一个具体的工厂实现，而是所有的具体产品公用一个工厂——mondrian.spi.impl.JdbcDialectFactory。其中是通过传递给工厂参数来控制返回那个产品。</p>
-
-<p>公用一个工厂的好处是增大了代码的复用，显然写一大堆createDielact方法，而body中仅仅只是几行代码不同很烦人。而且每增加一个关系性数据库就需要增加一个具体工厂。
-具体步骤：</p>
-
-<ul>
-<li>RolapConnection调用DialectManager.createDialect</li>
-<li>DialectManager通过createDialect方法把任务传递给其私有内部类DialectManagerImpl。在这个类的构造函数中利用ServiceDiscovery类拿到所有的可能的数据库产品列表（读取的是"META-INF/services/mondrian.spi.Dialect文件的列表，注意的代码final List&lt;Class<Dialect>> dialectClasses=ServiceDiscovery.forClass(Dialect.class).getImplementor();）</li>
-<li>而且实际执行方法DialectManagerImpl.createDialect 根据传进来的dialectClassName来是实例化factory，如果dialectClassName为null，而默认是初始化一个CachingDialectFactory</li>
-<li>ChainDialectFactory内部实际由ServiceDiscovery传递过来的factory列表，最终轮询数据库设备列表调用JdbcDialectFactory直到找到合适的Dialect</li>
-<li>JdbcDialectFactory根据dataSource和connection的属性再透过JdbcDialectImpl来生层一个具体xxxDialect</li>
-</ul>
-
-
-<p>作为一个现在还没有“习惯Java编程”的初学者而言，mondrian源码中有许多我非常看不惯的设计。比如下面的循环调用：</p>
-
-<ul>
-<li>mondrian.spi.impl.JdbcDialectFactory.createDialectHelper()</li>
-<li>mondrian.spi.impl.JdbcDialectFactory.createDialect()</li>
-</ul>
-
-
-<h2>使用</h2>
-
-<p>通过上面的步骤很清楚的知道怎么去扩展一个数据库了。</p>
-
-<ul>
-<li>修改META-INF/services/mondrian.spi.Dialect，添加要支持的数据库的驱动（注意打包的时候一定要把META_INF放进去）</li>
-<li>在mondrian.spi包下添加的Dialect</li>
-<li>JdbcDialectImpl.getProduct()增加对应关系（该产品的JDBC 的metaDate.getDatabaseProductName返回的名称和Dialect 的databaeProduct的对应关系必须在JdbcDialectImpl.getProduct(productName, productVersion)定义）</li>
-<li>然后重新编译，部署就完成了</li>
-</ul>
-
-
-<h2>子模块设计</h2>
-
-<h3>输出类型控制（guessType的实现）</h3>
-
-<h2>吐槽时间</h2>
-
-<p>这两个函数居然是互相引用的，一开始看源代码根部搞不清楚到底在到底谁是入口，谁是中间过程。我贴出这两个函数的源代码：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-<span class='line-number'>59</span>
-<span class='line-number'>60</span>
-<span class='line-number'>61</span>
-<span class='line-number'>62</span>
-<span class='line-number'>63</span>
-<span class='line-number'>64</span>
-<span class='line-number'>65</span>
-<span class='line-number'>66</span>
-<span class='line-number'>67</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="n">Dialect</span> <span class="nf">createDialectHelper</span><span class="o">(</span>
-</span><span class='line'>        <span class="n">DialectFactory</span> <span class="n">factory</span><span class="o">,</span>
-</span><span class='line'>        <span class="n">DataSource</span> <span class="n">dataSource</span><span class="o">)</span>
-</span><span class='line'><span class="o">{</span>
-</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">dataSource</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>        <span class="k">throw</span> <span class="k">new</span> <span class="nf">IllegalArgumentException</span><span class="o">(</span>
-</span><span class='line'>                <span class="s">&quot;Must specify either dataSource or connection&quot;</span><span class="o">);</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>    <span class="n">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
-</span><span class='line'>    <span class="k">try</span> <span class="o">{</span>
-</span><span class='line'>        <span class="n">connection</span> <span class="o">=</span> <span class="n">dataSource</span><span class="o">.</span><span class="na">getConnection</span><span class="o">();</span>
-</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>            <span class="c1">// DataSource.getConnection does not return null. But</span>
-</span><span class='line'>            <span class="c1">// a null value here would cause infinite recursion, so</span>
-</span><span class='line'>            <span class="c1">// let&#39;s be cautious.</span>
-</span><span class='line'>            <span class="k">throw</span> <span class="k">new</span> <span class="nf">IllegalArgumentException</span><span class="o">();</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>        <span class="kd">final</span> <span class="n">Dialect</span> <span class="n">dialect</span> <span class="o">=</span>
-</span><span class='line'>            <span class="n">factory</span><span class="o">.</span><span class="na">createDialect</span><span class="o">(</span><span class="n">dataSource</span><span class="o">,</span> <span class="n">connection</span><span class="o">);</span>
-</span><span class='line'>
-</span><span class='line'>        <span class="c1">// Close the connection in such a way that if there is a</span>
-</span><span class='line'>        <span class="c1">// SQLException,</span>
-</span><span class='line'>        <span class="c1">// (a) we propagate the exception,</span>
-</span><span class='line'>        <span class="c1">// (b) we don&#39;t try to close the connection again.</span>
-</span><span class='line'>        <span class="n">Connection</span> <span class="n">connection2</span> <span class="o">=</span> <span class="n">connection</span><span class="o">;</span>
-</span><span class='line'>        <span class="n">connection</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
-</span><span class='line'>        <span class="n">connection2</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
-</span><span class='line'>        <span class="k">return</span> <span class="n">dialect</span><span class="o">;</span>
-</span><span class='line'>    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">SQLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>        <span class="k">throw</span> <span class="n">Util</span><span class="o">.</span><span class="na">newError</span><span class="o">(</span>
-</span><span class='line'>                <span class="n">e</span><span class="o">,</span>
-</span><span class='line'>                <span class="s">&quot;Error while creating dialect&quot;</span><span class="o">);</span>
-</span><span class='line'>    <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
-</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>            <span class="k">try</span> <span class="o">{</span>
-</span><span class='line'>                <span class="n">connection</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
-</span><span class='line'>            <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">SQLException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>                <span class="c1">// ignore</span>
-</span><span class='line'>            <span class="o">}</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'><span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="kd">public</span> <span class="n">Dialect</span> <span class="nf">createDialect</span><span class="o">(</span><span class="n">DataSource</span> <span class="n">dataSource</span><span class="o">,</span> <span class="n">Connection</span> <span class="n">connection</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>    <span class="c1">// If connection is null, create a temporary connection and</span>
-</span><span class='line'>    <span class="c1">// recursively call this method.</span>
-</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="nf">createDialectHelper</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">dataSource</span><span class="o">);</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">assert</span> <span class="n">connection</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">;</span>
-</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">acceptsConnection</span><span class="o">(</span><span class="n">connection</span><span class="o">))</span> <span class="o">{</span>
-</span><span class='line'>        <span class="k">try</span> <span class="o">{</span>
-</span><span class='line'>            <span class="k">return</span> <span class="n">constructor</span><span class="o">.</span><span class="na">newInstance</span><span class="o">(</span><span class="n">connection</span><span class="o">);</span>
-</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">InstantiationException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>            <span class="k">throw</span> <span class="n">Util</span><span class="o">.</span><span class="na">newError</span><span class="o">(</span>
-</span><span class='line'>                    <span class="n">e</span><span class="o">,</span> <span class="s">&quot;Error while instantiating dialect&quot;</span><span class="o">);</span>
-</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">IllegalAccessException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>            <span class="k">throw</span> <span class="n">Util</span><span class="o">.</span><span class="na">newError</span><span class="o">(</span>
-</span><span class='line'>                    <span class="n">e</span><span class="o">,</span> <span class="s">&quot;Error while instantiating dialect&quot;</span><span class="o">);</span>
-</span><span class='line'>        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">InvocationTargetException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>            <span class="k">throw</span> <span class="n">Util</span><span class="o">.</span><span class="na">newError</span><span class="o">(</span>
-</span><span class='line'>                    <span class="n">e</span><span class="o">,</span> <span class="s">&quot;Error while instantiating dialect&quot;</span><span class="o">);</span>
-</span><span class='line'>        <span class="o">}</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>去掉异常等处理，只看主干，变成下面的样子：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="n">Dialect</span> <span class="nf">createDialectHelper</span><span class="o">(</span>
-</span><span class='line'>        <span class="n">DialectFactory</span> <span class="n">factory</span><span class="o">,</span>
-</span><span class='line'>        <span class="n">DataSource</span> <span class="n">dataSource</span><span class="o">)</span>
-</span><span class='line'><span class="o">{</span>
-</span><span class='line'>    <span class="n">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">connection</span> <span class="o">=</span> <span class="n">dataSource</span><span class="o">.</span><span class="na">getConnection</span><span class="o">();</span>
-</span><span class='line'>    <span class="n">Dialect</span> <span class="n">dialect</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="na">createDialect</span><span class="o">(</span><span class="n">dataSource</span><span class="o">,</span> <span class="n">connection</span><span class="o">);</span>
-</span><span class='line'>    <span class="k">return</span> <span class="n">dialect</span><span class="o">;</span>
-</span><span class='line'><span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="kd">public</span> <span class="n">Dialect</span> <span class="nf">createDialect</span><span class="o">(</span><span class="n">DataSource</span> <span class="n">dataSource</span><span class="o">,</span> <span class="n">Connection</span> <span class="n">connection</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="nf">createDialectHelper</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">dataSource</span><span class="o">);</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">assert</span> <span class="n">connection</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">;</span>
-</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">acceptsConnection</span><span class="o">(</span><span class="n">connection</span><span class="o">))</span> <span class="o">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="n">constructor</span><span class="o">.</span><span class="na">newInstance</span><span class="o">(</span><span class="n">connection</span><span class="o">);</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>先从createDialect（他的名字最像是入口）入手看，发现他先检查connection，如果是null，那么调用createDialectHelperi，并且返回其返回值。如果connection不为null，再检查其是不是系统可接受（acceptsConnection），然后构造一个具体Dialect类。so far,so good。 再细入看createDialectHelper，发现居然又调用了createDialect，这是坑人吧！createDialect刚把任务交给createDialectHelper没多久，又被扔回来了。这隐藏着深深恶意迂回的递归是怎么回事。能直接点吗？createDialectHelper其实不就是生成了connection递给createDialect，这用得着递归逻辑吗？直接改成下面这种逻辑不就行了嘛，还用递归？</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="n">Dialect</span> <span class="nf">createDialectHelper</span><span class="o">(</span>
-</span><span class='line'>        <span class="n">DialectFactory</span> <span class="n">factory</span><span class="o">,</span>
-</span><span class='line'>        <span class="n">DataSource</span> <span class="n">dataSource</span><span class="o">)</span>
-</span><span class='line'><span class="o">{</span>
-</span><span class='line'>    <span class="n">Connection</span> <span class="n">connection</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">connection</span> <span class="o">=</span> <span class="n">dataSource</span><span class="o">.</span><span class="na">getConnection</span><span class="o">();</span>
-</span><span class='line'>    <span class="n">Dialect</span> <span class="n">dialect</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="na">createDialect</span><span class="o">(</span><span class="n">dataSource</span><span class="o">,</span> <span class="n">connection</span><span class="o">);</span>
-</span><span class='line'>    <span class="k">return</span> <span class="n">dialect</span><span class="o">;</span>
-</span><span class='line'><span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="kd">public</span> <span class="n">Dialect</span> <span class="nf">createDialect</span><span class="o">(</span><span class="n">DataSource</span> <span class="n">dataSource</span><span class="o">,</span> <span class="n">Connection</span> <span class="n">connection</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">connection</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>        <span class="n">connection</span> <span class="o">=</span> <span class="n">dataSource</span><span class="o">.</span><span class="na">getConnection</span><span class="o">();</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">assert</span> <span class="n">connection</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">;</span>
-</span><span class='line'>    <span class="k">if</span> <span class="o">(</span><span class="n">acceptsConnection</span><span class="o">(</span><span class="n">connection</span><span class="o">))</span> <span class="o">{</span>
-</span><span class='line'>        <span class="k">return</span> <span class="n">constructor</span><span class="o">.</span><span class="na">newInstance</span><span class="o">(</span><span class="n">connection</span><span class="o">);</span>
-</span><span class='line'>    <span class="o">}</span>
-</span><span class='line'>    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这样的线性关系比循环调用好理解多了。</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/11/11/what-is-model-of-data/">What Is Model of Data</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-11-11T22:08:08+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>11</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:08 pm</span></time>
+<time class='entry-date' datetime='2016-06-22T22:35:06+08:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>10:35 pm</span></time>
         
       </p>
     
@@ -936,7 +193,7 @@ server</p>
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2015/10/24/aha-analysis-of-algorithms/">Aha! Analysis of Algorithms</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/06/12/online-advertisement/">Online Advertisement</a></h1>
     
     
       <p class="meta">
@@ -945,172 +202,16 @@ server</p>
 
 
 
-<time class='entry-date' datetime='2015-10-24T15:15:46+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>3:15 pm</span></time>
+<time class='entry-date' datetime='2016-06-12T17:01:20+08:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>12</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>5:01 pm</span></time>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><h1>[跨越性发明]算法复杂度分析技术</h1>
+  <div class="entry-content"><h1>ad in facebook</h1>
 
-<p>关于算法分析技术的介绍，我看到最精彩的文章出自于Robert Sadgewick的《算法》。本书在第一章的介绍性文章给了一些很精彩的算法案例和程序代码后提出让我很震惊的问题:“怎么判断一个算法跑的快不快？”,而且这个问题从头到尾不断重复。我很震惊的原因是我认为既然都知道算法过程，其他的类似与计算步骤这种“附属问题”难道还需要考虑？然后真被问到后，我发现我还真不会。不信，假装大家都事先不知道分析技术，我们来看下面的例子：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include &lt;stdio.h&gt;</span>
-</span><span class='line'><span class="cp">#include &lt;types.h&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">size_t</span> <span class="nf">binary_search</span><span class="p">(</span><span class="kt">int</span> <span class="o">*</span><span class="n">arr</span><span class="p">,</span> <span class="kt">int</span> <span class="n">len</span><span class="p">,</span> <span class="kt">int</span> <span class="n">target</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">left</span><span class="p">,</span><span class="n">right</span><span class="p">,</span><span class="n">middle</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">right</span><span class="o">=</span><span class="n">len</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">while</span><span class="p">(</span><span class="n">left</span><span class="o">&lt;=</span><span class="n">right</span><span class="p">){</span>
-</span><span class='line'>        <span class="n">middle</span><span class="o">=</span><span class="p">(</span><span class="n">left</span><span class="o">+</span><span class="n">right</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">;</span>
-</span><span class='line'>        <span class="k">if</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="n">target</span><span class="p">]</span><span class="o">==</span><span class="n">arr</span><span class="p">[</span><span class="n">middle</span><span class="p">]){</span>
-</span><span class='line'>            <span class="k">return</span> <span class="n">middle</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>        <span class="k">if</span> <span class="k">else</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="n">target</span><span class="p">]</span><span class="o">&lt;</span><span class="n">arr</span><span class="p">[</span><span class="n">middle</span><span class="p">]){</span>
-</span><span class='line'>            <span class="n">right</span><span class="o">=</span><span class="n">middle</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>        <span class="k">else</span><span class="p">{</span>
-</span><span class='line'>            <span class="n">left</span><span class="o">=</span><span class="n">middle</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>上面的二分查找法，让我们来分析运行时间。
-首先反应就是实际运行一下，统计时间不就出来了。好，就这么办。不过当开始动手的时候就发现自己要构建输入，而构建个什么样的输入呢？arr的包括数据长度可以从10个整数到100000整数到无穷大……。从这个问题我们就会强烈的意识到算法的运行时间和输入数据大小直接相关。我们下记下来这条：</p>
-
-<blockquote><p>运行时间和输入数据大小直接相关</p></blockquote>
-
-<p>用更简介的纪录方法：</p>
-
-<blockquote><p>运行时间 ~ 输入数据大小</p></blockquote>
-
-<p>还是不够方便，我们用一种数据方法来记录，这种思想来自于波利亚的<a href="http://www.amazon.cn/%E6%80%8E%E6%A0%B7%E8%A7%A3%E9%A2%98-%E6%95%B0%E5%AD%A6%E6%80%9D%E7%BB%B4%E7%9A%84%E6%96%B0%E6%96%B9%E6%B3%95-%E6%B3%A2%E5%88%A9%E4%BA%9A/dp/B0011F6OGM/ref=sr_1_1?ie=UTF8&amp;qid=1445674579&amp;sr=8-1&amp;keywords=%E6%80%8E%E4%B9%88%E8%A7%A3%E9%A2%98">怎么解题</a>或者数据建模，这种数学化一个实际问题是我发现找到结果的最强大的工具。T来表示运行时间,arr_len作为时间函数的一个自变量</p>
-
-<blockquote><p>T=f(arr_len)</p></blockquote>
-
-<p>构建完第一参数，我们来构建第二个参数，查那个数呢？Oh，my god!又发现target同样影响查询效率。因为查中间的位置，比查第一个和最后一个元素的时间长多了。这时我们再加一个自变量：tar_pos(target_pos)。</p>
-
-<blockquote><p>T=f(arr_len,tar_pos)</p></blockquote>
-
-<p>后来又因为我开启了一个耗资源的游戏，这个程序居然在同样的参数下跑的慢了。突然有想到了，原来机器的资源不同也是个大因素，这里包括机器拥有的cpu、内存、磁盘等。这时又需要加参数进入我们的函数了。我们叫machine envrionment，简称m_env.</p>
-
-<blockquote><p>T=f(arr_len,tar_pos,m_env)</p></blockquote>
-
-<p>看上面的问题，我们发现要精确进算运行速度，简直是不可能的事，因为有一个非常不容易控制而且我们也不关心的自变量那就是m_env。我们的算法要成功，必须在任何机器上都需要有良好的性能。所以我们开始<strong>简化模型</strong>,那就是开始构建理想机器，其资源全部资源都给我们关心的程序。<code>且假设一个statment所用的时间都是1（没有单位）</code>.这样我们算时间就转化成了算程序使用了多少statment。</p>
-
-<blockquote><p>T=f(arr_len,tar_pos), assumpte every statment takes one time</p></blockquote>
-
-<p>现在基本确定了自变量（怎么知道考虑的自变量够了呢？），我们来细化关系式。
-T= 1+1+while里面的步骤。while里面的步骤怎么计算？
-假如我们的输入是：0 1 2 3 4 5。那么每个位置对应的运行次数如下图：</p>
-
-<p><img src="/images/posts/binary_search_tree.jpg" alt="bianry_search_tree" /></p>
-
-<p>上图给出的是n=6的情况。树的高hight=log(6)+1=3, t&lt;=hight(todo:能给出t＝f(k)的具体公式吗？参照平衡二叉树的性质)。</p>
-
-<p>给出了这个公式，我们就可以衡量任意参数的时间了。但是如果要对比算优良，就主要看在同样的参数下，谁更快了。现在我们拿出一个顺序查找来对比，我们都知道顺序查找的时间公式：T=tar_pos, 0&lt;=tar_pos&lt;6。 我们从第一个到k位置开始对比，下面列出个表格：</p>
-
-<table>
-<thead>
-<tr>
-<th>算法      </th>
-<th>0 </th>
-<th>1</th>
-<th>2</th>
-<th>3</th>
-<th>4</th>
-<th>5</th>
-<th>6</th>
-<th>avg</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>顺序查找法 </td>
-<td>0 </td>
-<td>1</td>
-<td>2</td>
-<td>3</td>
-<td>4</td>
-<td>5</td>
-<td>6</td>
-<td>3</td>
-</tr>
-<tr>
-<td>二分法    </td>
-<td>3 </td>
-<td>2</td>
-<td>3</td>
-<td>1</td>
-<td>3</td>
-<td>2</td>
-<td>3</td>
-<td>2.4</td>
-</tr>
-</tbody>
-</table>
-
-
-<p>对于上面的长度为6的数组查找我们还能一一列举出来，<code>但是当扩展到任意长度n后呢</code>？我们怎么比较呢？这里又是一个很跨越性的思想——概率统计：比较一组数时，我们使用</p>
-
-<blockquote><p>mean＝∑(k)*t,p(k)指被查找数在k位置的概率，t是该位置耗费的查找时间。</p></blockquote>
-
-<p>而且假定在没有任何前提下，所有位置的概率一样，即p(k)=1/n.</p>
-
-<p>然后具列出具体位置的式子：</p>
-
-<ul>
-<li>顺序查找法:t=k/n,mean=(1+n)/2</li>
-<li>二分法:t&lt;=log(n)+1,mean&lt;=log(n)+1 (太难精确计算了，所以用了不等式来表示)</li>
-</ul>
-
-
-<p>所以我们来比较t1=(1+n)/2 和 t2=ceil(log(n))+1,发现当n>=8后，t2开始超过t1,而且随着n的增大，他们的差距越来越大。（todo:需要张函数图才能直观说明啊）</p>
-
-<p>而8是个非常小的数，所以对于日常来说，我们大多数都是遇到大于8的情况，所以我们可以直觉判断二分法优于顺序查找法。</p>
-
-<p>从上面我们进步衍生出一个思想，<code>*不断扩充n的范围来观察时间效率的变化</code>。在这里我再插入一个故事：</p>
-
-<p>马上就到北邮的校庆了，北邮人很开心。但是一个北邮人想一个清华的吐槽，我们学校的年龄才是清华的一半。然后另一个北邮人又说了一句：“现在是北邮的年龄是清华的一半，100后是3/4，然后无限年后这两个学校的年龄就相等了。”
-这里有个故事蕴含着一个重要的思想就是极限。起始值和常数值会被快增长的部分迅速磨平。</p>
-
-<p>极限思想应用在算法分析中，一个天才的想法就诞生了。在这里产生了一个运算符O。就是一种抛弃增长慢部分的技术。</p>
-
-<blockquote><p>定义：如果存在常数c0和n0，对于所有n>n0,有g(n)&lt;c0f(n),则称函数g(n)是O(f(n))的。</p></blockquote>
-
-<p>即用g(n)来代替f(n)来比较衡量大小。</p>
-
-<h1>可计算问题和不可计算问题</h1>
-
-<p>上面讨论到计算的复杂度增长问题，</p>
+<p><a href="https://zhuanlan.zhihu.com/p/20596989?refer=donglaoshi">https://zhuanlan.zhihu.com/p/20596989?refer=donglaoshi</a></p>
 </div>
   
   
@@ -1123,7 +224,7 @@ T= 1+1+while里面的步骤。while里面的步骤怎么计算？
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2015/10/19/mondrian-and-multithread/">Mondrian中的线程模型使用情况</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/05/30/why-connection-need-3-way-handshake-while-disconnection-need-4-way-in-tcp/">Why Connection Need 3-way Handshake While Disconnection Need 4-way in Tcp?</a></h1>
     
     
       <p class="meta">
@@ -1132,7 +233,100 @@ T= 1+1+while里面的步骤。while里面的步骤怎么计算？
 
 
 
-<time class='entry-date' datetime='2015-10-19T14:50:09+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>2:50 pm</span></time>
+<time class='entry-date' datetime='2016-05-30T11:30:53+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>30</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>11:30 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>reference</h1>
+
+<ul>
+<li><a href="http://baike.baidu.com/link?url=8_DsYi4pjWpNRFrSX10jiGxe0PLruypbRhv4o56eXOi07tQPokeFgnt1_leXVDy7ELc-uR4_E1cr1NfV3lJUYK">http://baike.baidu.com/link?url=8_DsYi4pjWpNRFrSX10jiGxe0PLruypbRhv4o56eXOi07tQPokeFgnt1_leXVDy7ELc-uR4_E1cr1NfV3lJUYK</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/05/14/important-number-in-software-system-designing/">操作系统中的各种尝试参数</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-05-14T17:48:06+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>14</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>5:48 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>各种储存设备的速度量级</h1>
+
+<p>时间单位是cpu cycles。
+| 储存类型    | 缓存的内容 | 储存的媒介| 处理速度| 被谁管理
+|&mdash;&mdash;&mdash;&mdash;-|&mdash;&mdash;&mdash;&mdash;|&mdash;&mdash;&mdash;&ndash;|&mdash;&mdash;&mdash;|&mdash;&mdash;&mdash;
+|cpu register| 4~8 byte word | 寄存器| 0| 编译器
+|TLB | Address translations| On-chip TLB| 0| Hardware MMU
+|L1 cache | 64-byte block| On-chip L1 cache| 1| Hardware
+|L2 cache | 64-byte block| On-chip L2 cache| 10| Hardware
+|L3 cache | 64-byte block| On-chip L3 cache| 30| Hardware
+|Virtual memory| 4-KB page| main memory| 100| Hardware + OS
+|Buffer cache| Parts of files| main memory| 100| OS
+|Disk cache| Disk sectors| Disk controller| 100,00| Controller firmware
+|Network cache| Parts of files| Local disk| 10,000,000| AFS/NFS client
+|Browser cache| Web pages| Local disk| 10,000,000| Web browser
+|Web cache    | Web pages| Remote server disks| 1,000,000,000| Web proxy server</p>
+
+<p>从上面看到，内存的访问速度是磁盘的1万倍（不过也要看是什么磁盘，比如固态磁盘访问速度是）
+固态磁盘(ssd)的读写速度：
+读            |写
+&mdash;&mdash;&mdash;&mdash;&ndash;|&mdash;-
+顺序：250MB/s |顺序：170MB/s
+随机：140MB/s |顺序：14MB/s
+固态磁盘(ssd)的读写速度大概是普通磁盘的10倍。</p>
+
+<h1>reference</h1>
+
+<ul>
+<li><a href="http://www.directionsmag.com/entry/ram-is-100-thousand-times-faster-than-disk-for-database-access/123964">ram-is-100-thousand-times-faster disk</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/04/28/algorithms-summary/">Algorithms Summary</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-04-28T10:53:35+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:53 am</span></time>
         
       </p>
     
@@ -1152,7 +346,7 @@ T= 1+1+while里面的步骤。while里面的步骤怎么计算？
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2015/10/19/mondrian-in-the-perspective-of-code-complete/">Mondrian in a Perspective of Code Complete</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/04/24/talk-about-hash-functions/">Talk About Hash Functions</a></h1>
     
     
       <p class="meta">
@@ -1161,15 +355,14 @@ T= 1+1+while里面的步骤。while里面的步骤怎么计算？
 
 
 
-<time class='entry-date' datetime='2015-10-19T14:42:12+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>2:42 pm</span></time>
+<time class='entry-date' datetime='2016-04-24T22:32:57+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:32 pm</span></time>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>看mondrian代码非常痛了，代码经常是绕来绕去的，特别是一些假递归比比皆是。还有A调用B，B再调用A，来回折腾，其中有些是用的单利，有些没有。
-比如：RolapConnection调用RolapSchema，RolapSchema内部又实例化另一个RolapConnection，这样来回折腾</p>
+  <div class="entry-content">
 </div>
   
   
@@ -1182,7 +375,7 @@ T= 1+1+while里面的步骤。while里面的步骤怎么计算？
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2015/10/18/introduce-olap-model/">Introduce OLAP Model</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/04/24/introduce-mapreduce/">Introduce MapReduce</a></h1>
     
     
       <p class="meta">
@@ -1191,35 +384,14 @@ T= 1+1+while里面的步骤。while里面的步骤怎么计算？
 
 
 
-<time class='entry-date' datetime='2015-10-18T15:09:46+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>3:09 pm</span></time>
+<time class='entry-date' datetime='2016-04-24T19:16:20+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>7:16 pm</span></time>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><h1>Introduce OLAP</h1>
-
-<p>OLAP（Online analytical processing）就是联系分析系统。它是商务智能或者数据挖掘的链条中一个环节。而它的上游是数据仓库，下游就是直接的用户。所以从这几一个环节开始提供了直接的人机互动服务。所以对它的定义就是一个人接互动的工具，主要服务是提供高效的、广泛的多维度数据分析。
-<img src="/images/posts/data_mining_olap.png" alt="olap在数据挖掘中的位置" /></p>
-
-<p>由于OLAP对数据仓库的依赖性很强（公用一个数据模型），所以一般来说这两个一般都放在一起作为一个整体来讨论。</p>
-
-<p>对于一个系统来说，只提供基本通用的定义是不够的，必须明确其必须满足的条件，而且需要解释为什么要满足这些条件（即满足最小集合条件，如果不满足就不应该称它是属于这种系统）。所以到底什么是OLAP的具体明明确的定定义？一种定义：
-按照 W. H. Inmon,一位数据仓库系统构造方面的领头建筑师的说法,“数据仓库是一个面向 主题的、集成的、时变的、非易失的数据集合,支持管理决策制定”[Inm96]
-“A data warehouse is a subject-oriented, integrated, time-variant, and nonvolatile collection of data in support of management’s decision making process”
- - <strong>面向主题的</strong>:数据仓库围绕一些主题,如顾客、供应商、产品和销售组织。数据仓库关注决策 者的数据建模与分析,而不是构造组织机构的日常操作和事务处理。因此,数据仓库排除对于 决策无用的数据,提供特定主题的简明视图。
- - <strong>集成的</strong>:通常构造数据仓库是将多个异种数据源,如关系数据库、一般文件和联机事务处理 记录,集成在一起。使用数据清理和数据集成技术,确保命名约定、编码结构、属性度量的一 致性。
- - <strong>时变的</strong>:数据存储从历史的角度(例如,过去5-10年)提供信息。数据仓库中的关键结构, 隐式或显式地包含时间元素。
- - <strong>非易失的</strong>:数据仓库总是物理地分离存放数据;这些数据源于操作环境下的应用数据。由于这 种分离,数据仓库不需要事务处理、恢复和并行控制机制。通常,它只需要两种数据访问:数 据的初始化装入和数据访问。</p>
-
-<h2>发现历史</h2>
-
-<h2>概念层次</h2>
-
-<h2>实用技术（MDX）</h2>
-
-<h2>衍生产品</h2>
+  <div class="entry-content"><h1>mapreduce 的各个阶段解释</h1>
 </div>
   
   
@@ -1244,23 +416,23 @@ T= 1+1+while里面的步骤。while里面的步骤怎么计算？
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/02/22/notes-for-hadoop-the-defintive-guid/">Hadoop权威指南笔记</a>
+        <a href="/blog/2016/08/04/wordcount-in-mapreduce/">Wordcount in Mapreduce</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands/">Linux系统状态命令详解</a>
+        <a href="/blog/2016/08/02/synchronise-vs-blocking/">Synchronise vs Blocking</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/26/introduce-thrift/">Introduce Thrift</a>
+        <a href="/blog/2016/07/29/introduce-cap/">Introduce CAP</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/18/book-graph/">Book Graph</a>
+        <a href="/blog/2016/07/24/a-misusing-of-python-logging-lock/">A Misusing of Python Logging Lock</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/01/17/business-dataming-ecosystem-investigation/">Pentaho和Pivotal</a>
+        <a href="/blog/2016/07/24/how-to-understand-a-data-system/">如何理解一个数据存储系统</a>
       </li>
     
   </ul>

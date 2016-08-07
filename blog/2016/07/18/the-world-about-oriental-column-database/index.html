@@ -1,0 +1,449 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>数据分析利器 —— 列式储存数据库 - Wood Carver</title>
+  <meta name="author" content="Wood Carver">
+
+  
+  <meta name="description" content="列式数据库 什么是列式数据库？可能大家也才到了，既然有列式数据库，那么肯定就有行式的喽！确实是这样的。也许大多数人并不了解数据库储存模型（storage model 即physical schema）和数据库的数据模型（data model 也叫 logical schema）， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://woodcarver.github.io/blog/2016/07/18/the-world-about-oriental-column-database/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Wood Carver" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<!-- link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css"-->
+<!-- link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css"-->
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Wood Carver</a></h1>
+  
+    <h2>Find another pool</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="woodcarver.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/book-links">Books</a></li>
+  <li><a href="/about">About Me</a></li>
+  <li><a href="/start-here">Start Here</a></li>
+  <li><a href="/others-blog">Reading</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">数据分析利器 —— 列式储存数据库</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-07-18T11:00:26+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>11:00 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h1><a href="https://en.wikipedia.org/wiki/Column-oriented_database">列式数据库</a></h1>
+
+<p>什么是列式数据库？可能大家也才到了，既然有列式数据库，那么肯定就有行式的喽！确实是这样的。也许大多数人并不了解数据库储存模型（storage model 即physical schema）和数据库的数据模型（data model 也叫 logical schema），不过对上层是使用者也没多大关系。不过我们现在讲的列式和行式就是指数据库的storage model，而他们支持同样的data schema，即对data model感知不到storage model的实现区别。
+一个数据库的data model约定可以进行上层数据操作，而storage model决定这些操作的性能。比如，No Sql数据库使用的是data model都是key-value，而储存模型有map结构实现，也可以由tree结构实现。而对于sql数据库，其数据模型是一张二维表，而至于怎么存储这张二维表，很容易就可以想到可以按行存储和按列储存。按行存储就是我们现在常见操作型数据库，而是最大众的数据库，比如MySql、Oracle、……等等你所知道大部分数据库。而按列储存的数据库现在也是很有名，比如Hive、Vertica、Druid、Infobright等。</p>
+
+<h1>为什么要行式数据库又要列式数据库？</h1>
+
+<p>先让让我们想象关于二维表我们有哪些操作？—— select、update、delete和insert。这些操作都会需要找到相应的位置，所以这些操作的基础都是search。
+而基本的算法都是即从时间考虑也是从空间考虑的。我们开始具体举个例子。</p>
+
+<p>在数据库储存作为实际的一堆储存在磁盘上的文件，在设计不得不考虑磁盘的特性。一般的磁盘特性，其实所有的储存都有一个特性就是对于locality良好的存取性能是随机存取的好几倍。我们现在把一块想像成一组固定大小的块，如图： disk logic model 而文件的内容实际会被分开按照磁盘逻辑块来储存，数据库主要任务就是怎么组织这些逻辑块来取得更好的读取性能和便捷性。
+<img src="../images/posts/disk_block.png" alt="" /></p>
+
+<p>在不考虑索引的情况下，所有的磁盘读取都是顺序读取，这意味了要查找一个东西，都需要扫描全表或者部分表。很直观的道理，读取的性能就是取决于扫描的范围。范围越大，速度当然越慢。
+我们先假设我们有一堆如下的数据：</p>
+
+<table>
+<thead>
+<tr>
+<th>RowId</th>
+<th>EmpId  </th>
+<th>Lastname  </th>
+<th>Firstname</th>
+<th> Salary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>001  </td>
+<td>10    </td>
+<td>Smith     </td>
+<td>Joe     </td>
+<td>40000</td>
+</tr>
+<tr>
+<td>002  </td>
+<td>12    </td>
+<td>Jones     </td>
+<td>Mary    </td>
+<td>50000</td>
+</tr>
+<tr>
+<td>003  </td>
+<td>11    </td>
+<td>Johnson   </td>
+<td>Cathy   </td>
+<td>44000</td>
+</tr>
+<tr>
+<td>004  </td>
+<td>22    </td>
+<td>Jones     </td>
+<td>Bob     </td>
+<td>55000</td>
+</tr>
+</tbody>
+</table>
+
+
+<h2>行式储存模型</h2>
+
+<p>好现在我们开始让磁盘里塞，假设我们的磁盘块只能容下5个字段（抽象的，假设我们的这些字段的大小都一样），因为我们是按找行优先的，所以结果就如下：
+<img src="../images/posts/row_oriented.png" alt="row oriented model" /></p>
+
+<p>于是当我们要找Jones的所有信息的工资时候，我们会依次从第一块磁盘块直到扫描到最后（为什么要扫到最后，因为是在找全部叫Jones的信息，所以不扫都最后都不能确定是否会遗漏）。一共需要扫4块，然后取出其第二块和第四块信息，找出其工资的信息。</p>
+
+<p>其实基于行式储存，对于where语句处理都需要处理全表。对于磁盘的不停seek，速度就可想而知。当然一般数据库为了应对这种全数据扫描，找到了建立索引的方法。而索引就是对某个或者某些字段的组合的信息，即取出数据的部分信息，以减少每次扫描从全表到部分信息的扫描的过渡。</p>
+
+<p>这种查询方式很适合于一次取出一个行数据，而对于日常应用系统来说这种方式是非常合适的，因为我们设计应用的时候都是针对一个事务，而我们会把一个事务所有属性存储成一行，使用的时候也是有很大的概率涉及到整行的信息，很利于做缓存。还比如我们经常使用的那些经典sql 语句：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">select</span> <span class="o">*</span> <span class="k">from</span> <span class="k">user</span> <span class="k">where</span> <span class="n">id</span> <span class="o">=</span> <span class="mi">1001</span><span class="p">;</span>
+</span><span class='line'><span class="k">select</span> <span class="n">id</span><span class="p">,</span> <span class="n">user_name</span><span class="p">,</span> <span class="n">email</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">gender</span><span class="p">,</span> <span class="p">...</span> <span class="k">from</span> <span class="k">user</span> <span class="k">where</span> <span class="n">id</span> <span class="o">=</span> <span class="mi">1001</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>！！还敢不敢列出些更多的字段！！</p>
+
+<h2>列式储存模型</h2>
+
+<p>而列储存就是下图这种按列优先储存。为了方便我们每块只储存了一个一列，没有存满。
+<img src="../images/posts/column_oriented.png" alt="row oriented model" />
+这下我们再考虑上面的查找所有Jones的工资，这下我们只扫描第三个磁盘块，找出Jones都再那些行，然后根据查出来的行号，直接去第五块磁盘（这块对应的式salary列）找出第二、四行的数据，然后输出。一共2次seek。大大小于row－oriented的4次。</p>
+
+<p>这种查询方式的前提就是你就需要这列数据就行了，其前提假设就是查询基本不会使用这个行的其他列数据。显然这种假设对于日常操作系统的围绕着一个主题进行的活动是不合适旳。但是却在分析型数据大显身手。</p>
+
+<p>列式的另一大优势是压缩。因为列的天然凝聚性（比如上面的两个Jones就可以压缩成一个）大大强与行，所以列式储存可以有很高的压缩比，这个进一步使使用的磁盘的数量减少，因为使用的磁盘块少，进一步减少了需要扫描的次数。这方面很利于加快查找速度，但是因为解压缩也是耗时耗内存的过程，所以压缩的控制也是需要一个定平衡点。</p>
+
+<h1>优劣总结</h1>
+
+<p>从上面的例子可以明显看出列式数据库在分析需求（获取特点——每次查询几个维度，通常是）时候，不仅<strong>搜索时间效率</strong>占优势，其<strong>空间效率</strong>也是很明显的。特别是针对动辄按T计算的数据量来说，在分布式环境中能进行压缩处理能节省宝贵的内部带宽，从而提高整个计算任务性能。</p>
+
+<p>关于行式和列式的具体优缺点还有具体的使用场景请看wikipedia。</p>
+
+<h1>再来谈谈储存模型</h1>
+
+<p>从上面看，改变物理储存结构对上层操作效率的提高是如此的巨大！所以我们再深入谈谈这个话题。</p>
+
+<p>在数据模型一定的情况下，储存模型也是有多种选择的（想想各种不同数据结构居然提供同样的操作，比如TreeMap和HashMap。数据模型好比Map支持getKey和getValue。而储存模型就是Tree还是HashTable，而getKey和getValue操作虽然对使用者没有区别，但是底层的组织结构则决定了其效率）。而储存模型在数据库这种复杂系统中有分好多层。我们想想先从最底层说起——文件，数据终归都是储存在磁盘上的。而从下面的表格看出，数据要取出必须先进入到内存，那么这个层次的核心就是面对各种查询、写入、更新和删除，怎么快速把数据从磁盘加载到内存中或者反之怎么把数据从内存中快速的写入到磁盘中。</p>
+
+<table>
+<thead>
+<tr>
+<th>用户界面</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>内存    </td>
+</tr>
+<tr>
+<td>磁盘    </td>
+</tr>
+</tbody>
+</table>
+
+
+<p>所以先谈谈文件储存有哪些类型：<a href="https://www.tutorialcup.com/dbms/file-organization.htm">File Organization in DBMS</a> 这篇文章对于文件组织在DBMS中的意义讲的非常清楚。这里引出其中对文件组织的要点：</p>
+
+<blockquote><p>Storing the files in certain order is called file organization. The main objective of file organization is</p>
+
+<ul>
+<li>Optimal selection of records i.e.; records should be accessed as fast as possible. &ndash; 支持快速的获取</li>
+<li>Any insert, update or delete transaction on records should be easy, quick and should not harm other records. &ndash; 支持快读的插入、更新和删除事务</li>
+<li>No duplicate records should be induced as a result of insert, update or delete &ndash; 支持键值不重复？？？</li>
+<li>Records should be stored efficiently so that cost of storage is minimal. &ndash; 储存占用磁盘空间要小</li>
+</ul>
+</blockquote>
+
+<p>从上面的目的看，大多数不能同时满足，这样就出现了各种各样的组合选择，所以出现多种组织方式：</p>
+
+<ul>
+<li>Sequential File Organization</li>
+<li>Heap File Organization</li>
+<li>Hash/Direct File Organization</li>
+<li>Indexed Sequential Access Method</li>
+<li>B+ Tree File Organization</li>
+<li>Cluster File Organization
+Let us see one by one on clicking the above links</li>
+</ul>
+
+
+<p>Difference between Sequential, heap/Direct, Hash, ISAM, B+ Tree, Cluster file organization in database management system (DBMS) as shown below:</p>
+
+<table>
+<thead>
+<tr>
+<th>          </th>
+<th>Sequential</th>
+<th> Heap/Direct</th>
+<th>Hash </th>
+<th>ISAM </th>
+<th>B+ tree</th>
+<th>Cluster</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Method of storing </td>
+<td>Stored as they come or sorted as they come </td>
+<td>Stored at the end of the file. But the address in the memory is random. </td>
+<td>Stored at the hash address generated</td>
+<td>Address index is appended to the record </td>
+<td>Stored in a tree like structure </td>
+<td>Frequently joined tables are clubbed into one file based on cluster key</td>
+</tr>
+<tr>
+<td>疑问</td>
+<td>如何做到删除的？</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Types </td>
+<td>Pile file and sorted file Method </td>
+<td> </td>
+<td>Static and dynamic hashing </td>
+<td> Dense, Sparse, multilevel </td>
+<td>indexing </td>
+<td>Indexed and Hash</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Design</td>
+<td>Simple Design</td>
+<td>Simplest</td>
+<td>Medium</td>
+<td>Complex</td>
+<td>Complex</td>
+<td>Simple</td>
+</tr>
+<tr>
+<td>Storage Cost</td>
+<td>Cheap (magnetic tapes)</td>
+<td>Cheap</td>
+<td>Medium</td>
+<td>Costlier</td>
+<td>Costlier</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Advantage </td>
+<td>Fast and efficient when there is large volumes of data, Report generation, statistical calculations etc</td>
+<td>  Best suited for bulk insertion, and small files/tables</td>
+<td>Faster Access,No Need to Sort,Handles multiple transactions,Suitable for Online transactions</td>
+<td> Searching records is faster.Suitable for large database.Any of the columns can be used as key column.Searching range of data &amp; partial data are efficient.</td>
+<td> Searching range of data &amp; partial data are efficient.No performance degrades when there is insert / delete / update.Grows and shrinks with data.Works well in secondary storage devices and hence reducing disk I/O.Since all datas are at the leaf node, searching is easy.All data at leaf node are sorted sequential linked list.</td>
+<td>Best suited for frequently joined tables.Suitable for 1:M mappings</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Disadvantage </td>
+<td>Sorting of data each time for insert/delete/ update takes time and makes system slow.  </td>
+<td>Records are scattered in the memory and they are inefficiently used. Hence increases the memory size.  Proper memory management is needed.  Not suitable for large tables. </td>
+<td>Accidental Deletion or updation of Data. Use of Memory is inefficient Searching range of data, partial data, non-hash key column, searching single hash column when multiple hash keys present or frequently updated column as hash key are inefficient. </td>
+<td>Extra cost to maintain index. File reconstruction is needed as insert/update/delete.Does not grow with data.  </td>
+<td>Not suitable for static tables  </td>
+<td>Not suitable for large database. Suitable only for the joins on which clustering is done. Less frequently used joins and 1: 1 Mapping are inefficient.</td>
+</tr>
+</tbody>
+</table>
+
+
+<h1>refernce</h1>
+
+<ul>
+<li><a href="https://www.tutorialcup.com/dbms/file-organization.htm">File Organization in DBMS</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Database_storage_structures">Database storage structures</a></li>
+<li><a href="http://blog.csdn.net/cjfeii/article/details/8884658">关系型数据在磁盘上的存储布局</a></li>
+<li><a href="http://blog.csdn.net/v_july_v/article/details/7526689">从LSM-Tree、COLA-Tree谈到StackOverflow、OSQA</a></li>
+<li><a href="http://www.cnblogs.com/siegfang/archive/2013/01/12/lsm-tree.html">日志结构的合并树 The Log-Structured Merge-Tree</a></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Wood Carver</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-07-18T11:00:26+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>11:00 am</span></time>
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/07/18/how-to-develop-your-own-jdbc-application/" title="Previous Post: how to develop your own jdbc application">&laquo; how to develop your own jdbc application</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2016/07/20/why-need-runnable-while-we-already-have-thread-in-java/" title="Next Post: java里为什么有了Thread还要设置一个Runnable？">java里为什么有了Thread还要设置一个Runnable？ &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/08/04/wordcount-in-mapreduce/">Wordcount in Mapreduce</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/02/synchronise-vs-blocking/">Synchronise vs Blocking</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/07/29/introduce-cap/">Introduce CAP</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/07/24/a-misusing-of-python-logging-lock/">A Misusing of Python Logging Lock</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/07/24/how-to-understand-a-data-system/">如何理解一个数据存储系统</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Wood Carver -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

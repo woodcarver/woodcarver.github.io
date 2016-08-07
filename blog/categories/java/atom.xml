@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Java | Wood Carver]]></title>
   <link href="http://woodcarver.github.io/blog/categories/java/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2016-03-06T18:38:21+08:00</updated>
+  <updated>2016-08-08T00:01:19+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -12,6 +12,418 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[java里为什么有了Thread还要设置一个Runnable？]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/07/20/why-need-runnable-while-we-already-have-thread-in-java/"/>
+    <updated>2016-07-20T21:36:45+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/07/20/why-need-runnable-while-we-already-have-thread-in-java</id>
+    <content type="html"><![CDATA[<p>我学习多线程疑惑，为什么会有这种代码出现：</p>
+
+<pre><code class="java">public static void main(String[] args) {
+    Thread t = new Thread(new Runnable() {
+            public void run() {
+               System.out.println("this is a runnable");
+            }
+        }
+    );
+    t.start();
+}
+</code></pre>
+
+<p>不是有个更简便的方法吗？</p>
+
+<pre><code class="java">Thread t = new Thread() {
+    public void run() {
+        System.out.println("this is a thread");
+    }
+};
+t.start();
+</code></pre>
+
+<p>虽然很容易知道Runnable是个接口，而Thread是Runnable的一个具体实现。但是既然concurrent包中只有Thread一个类实现，那些Runnable这个接口到底有什么用？
+答案就是用户可能会使用到多类继承，但是这在java中是禁止，只能用interface实现。比如我想设计一个任务队列，然后这个任务可以随时开启一个线程运行。</p>
+
+<pre><code class="java">class TaskQueue &lt;T&gt; extends LinkedList&lt;T&gt; implements Runnable {
+    @Override
+    public void run() {
+        //...
+    }
+}
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[How to Develop Your Own Jdbc Application]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/07/18/how-to-develop-your-own-jdbc-application/"/>
+    <updated>2016-07-18T10:54:05+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/07/18/how-to-develop-your-own-jdbc-application</id>
+    <content type="html"><![CDATA[<p>刚接触java的小朋友们是不是都发现jdbc这个东西挺好用？所有的数据引擎都完全一致的采用jdbc来连接，这种一致性简直太爽了。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Producer-consumer Problem]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/07/15/producer-consumer-problem/"/>
+    <updated>2016-07-15T23:55:14+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/07/15/producer-consumer-problem</id>
+    <content type="html"><![CDATA[<p>最近在学习多线程编程，周末的时候用java写了一个生产者消费模型，这里做一些记录和总结。</p>
+
+<h2>基本模板</h2>
+
+<pre><code>Producer
+  while(true)
+    data = generateData()
+    queue.enqueue(data)
+
+Consumer
+  while(true)
+    data = queue.dequeue()
+
+main
+  sharedQueue = new Queue()
+  producer1, producer2 ...
+  consumer1, consumer2 ...
+  start producer1, producer2 ...
+  start consumer1, consumer2 ...
+  stop producer1, producer2 ...
+  stop consumer1, consumer2 ...
+</code></pre>
+
+<h2>各种错误版</h2>
+
+<h3>最简单版</h3>
+
+<p>这个程序中工作任务很简单就是生产者不断放入一些随机数到队列中，而消费者就是不断取出这些数并打印。</p>
+
+<pre><code class="java">public class ProducerConsumer {
+    private static Queue&lt;Integer&gt; queue;
+    public static void main(String[] args) {
+        queue = new LinkedList&lt;Integer&gt;();
+
+        int producerNum = 1;
+        Producer[] producers = new Producer[producerNum];
+        for (int i = 0; i &lt; producerNum; i++) {
+            producers[i] = new Producer(queue);
+            producers[i].start();
+        }
+
+        int consumerNum = 2;
+        Consumer[] consumers = new Consumer[consumerNum];
+        for (int j = 0; j &lt; consumerNum; j++) {
+            consumers[j] = new Consumer(queue);
+            consumers[j].start();
+        }
+
+        try {
+            Thread.sleep(2 * 1000);
+            System.out.println("Main thread is awaken now!");
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        // stopping all producers and consumers
+        for (int i = 0; i &lt; producerNum; i++) {
+            producers[i].stopLoop();
+        }
+        for (int j = 0; j &lt; consumerNum; j++) {
+            consumers[j].stopLoop();
+        }
+        // make sure all threads are stopped
+        for (int i = 0; i &lt; producerNum; i++) {
+            try {
+                producers[i].join();
+                System.out.println("Producer: " + producers[i].getId() + " is stopped!");
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        for (int j = 0; j &lt; consumerNum; j++) {
+            try {
+                consumers[j].join();
+                System.out.println("Consumer: " + consumers[j].getId() + " is stopped!");
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+    }
+}
+
+class Producer extends Thread {
+    private Queue&lt;Integer&gt; queue;
+    private boolean running = true;
+    private long threadId; // 因为每次run之后，才会进入到新的thread
+    private static Lock lock = new ReentrantLock();
+    public Producer(Queue&lt;Integer&gt; queue) {
+        this.queue = queue;
+    }
+    @Override
+    public void run() {
+        threadId = Thread.currentThread().getId();
+        while (running) {
+            try {
+                double item = Math.random() * 100;
+                lock.lock(); // 这里为什么加锁？因为queue我们使用的是LinkedList，所以offer操作不是同步的，不能让不同的生产者互相争抢
+                queue.offer((int)item);
+                System.out.println("Produce:" + threadId + "--" + item);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                lock.unlock(); // 放在finally中，保证程序不会中途出错而导致解锁步骤不运行
+            }
+        }
+    }
+    public void stopLoop() {
+        System.out.println("Stopping Producer -- " + threadId);
+        running = false;
+    }
+}
+class Consumer extends Thread {
+    /**
+     * 这版开始加锁，不再出现NullPointerException错误
+     * 消费的过程中其实和生产的过程没有冲突，所以只要消费者之间共享一把锁就行了
+     * 让queue.peek 和 poll绑定，使之检查是有效的
+     */
+    private Queue&lt;Integer&gt; queue;
+    private boolean running = true;
+    private static Lock lock = new ReentrantLock();
+    private long threadId;
+    public Consumer(Queue&lt;Integer&gt; queue) {
+        this.queue = queue;
+    }
+    @Override
+    public void run() {
+        threadId = Thread.currentThread().getId();
+        while (running) {
+        if (queue.peek() != null) {
+          try {
+                lock.lock(); // 加锁第一是因为poll非同步，还有peek和poll之间非原子性，不加锁会导致peek检查很容易失效
+                    if (queue.peek() != null) { // double check
+                        int item = queue.poll();
+                        System.out.println("Consume:" + threadId +" -- " + item);
+                    } else {
+                        System.out.println("Consume:" + threadId +" -- empty");
+                    }
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          } finally {
+            lock.unlock();
+          }
+        }
+        }
+    }
+    public void stopLoop() {
+        System.out.println("Stopping Consumer: " + threadId);
+        running = false;
+    }
+}
+</code></pre>
+
+<p>开始点评这个版本：
+- 巨大的缺点就是queue是无界的，很容易造成queue被爆掉
+- running这个变量非同步，所以在主线程中调用stopLoop虽然可能生效，但是按照java的内存模型来说，没有同步的变量在不同线程中可能不能被互相观察到，这导致consumer的线程都观察不到running已经被主线程设置为false了。从而导致程序停不下来（查看<a href="https://www.amazon.cn/Sun-%E5%85%AC%E5%8F%B8%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B8%9B%E4%B9%A6-Effective-Java%E4%B8%AD%E6%96%87%E7%89%88-Joshua-Bloch/dp/B001PTGR52/ref=sr_1_1?ie=UTF8&amp;qid=1468729174&amp;sr=8-1&amp;keywords=effective+java">Effective java的66条</a>）。解决这个问题有两种方法，一种是使用synchronized修饰的方法来封装running的读写，一种是把running秀事成volatile（参看<a href="https://www.amazon.cn/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA-JVM%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7%E4%B8%8E%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5-%E5%91%A8%E5%BF%97%E6%98%8E/dp/B00D2ID4PK/ref=sr_1_1?ie=UTF8&amp;qid=1468728884&amp;sr=8-1&amp;keywords=jvm">深入理解Java虚拟机:JVM高级特性与最佳实践</a>）。</p>
+
+<h3>queue实现有界版</h3>
+
+<p>自己利用LinkedList实现了一个BlockQueue，当然java中本身就有个这个而数据结构，这个造轮子只是为了理解其中的原理。
+这次这个程序稍微复杂一些，存取的不在是随机数，而是一个个log。</p>
+
+<pre><code class="java">/**
+ * 1、第一版的时候我们只用了linkedlist来模拟queu，但是让出现producer特别慢，但是consumer又总是再探测浪费资源？
+ * 2、还有就是producer产生速度过去快，难道就让它把内存挤爆吗？
+ * 3、所以我们需要blockingQueue，第一是限制queue的大小，第二是协调两方的生产和消费速度。
+ * @author xiedandan
+ *
+ * 疑问点：使用monitor来设计一个blocking Queue
+ * 1. 不对queue进行synchronize，会爆出IllegalMonitorException
+ * 2. 然后开始不断调整synchronize位置，比如在while(running)外边，在while(running)里面
+ * 3. 然后就开了怎么都唤不醒consumer的bug
+ */
+public class ProducerConsumerBlockingQueue {
+    private static SudoBlockingQueue&lt;Log&gt; queue;
+    public static void main(String[] args) {
+      // 和格版本一致
+  }
+}
+/* mimic a bin-log restore system.
+ * Producer to produce operating logs and consumer to read the logs and try to restore the record.
+ * log schema: transactionId, operatingType, dataValue(before current operation)
+ *
+ * version 1: Suppose we only have one row record in whole table and only add operation,
+ *            so the log order is not important.
+ */
+class ProducerLog extends Thread {
+    private SudoBlockingQueue&lt;Log&gt; queue;
+    private boolean volatile running = true;
+    private long threadId;
+    // private Lock lock; // 1. 为啥在这里我们不用lock呢？因为都封装在queue自身中了。
+    public ProducerLog(SudoBlockingQueue&lt;Log&gt; queue) {
+        this.queue = queue;
+    }
+    @Override
+    public void run() {
+        threadId = Thread.currentThread().getId();
+        while(running) {
+            try {
+                synchronized(queue) { // 2. 试试把这句话取掉会产生结果？
+        //          1.if (queue.isFull()) { // 3. 为什么不能使用if，而要使用while？
+                    while (queue.isFull()) {
+                        System.out.println("Proudce:" + threadId + "--- wait");
+                        queue.wait();
+                    }
+                    boolean e = queue.isEmpty();
+                    Log log = new Log(1, 1, (int)(Math.random() * 100));
+                    System.out.println("Proudce:" + threadId + "---" + log);
+                    queue.offer(log);
+                    if (e) {
+                        System.out.println("Proudce:" + threadId + "--- notify all");
+                        queue.notifyAll();
+                    }
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    public void stopLoop() {
+        System.out.println("Stopping Prouder:" + threadId);
+        running = false;
+        queue.syncNotifyAll(); // 4. 为啥这里还有再次notifyall一次呢？
+    }
+}
+class ConsumerLog extends Thread {
+    private SudoBlockingQueue&lt;Log&gt; queue;
+    private boolean running = true;
+    private long threadId;
+    public ConsumerLog(SudoBlockingQueue&lt;Log&gt; queue) {
+        this.queue = queue;
+    }
+    @Override
+    public void run() {
+        threadId = Thread.currentThread().getId();
+        while(running) {
+            try {
+                synchronized(queue) {
+                    while (running &amp;&amp; queue.isEmpty()) {
+                        System.out.println("Consumer:" + threadId + "--wait");
+                        queue.wait();
+                    }
+                    boolean f = queue.isFull();
+                    Log log = queue.poll();
+                    System.out.println("Consumer:" + threadId + "--" + log);
+                    if (f) {
+                        System.out.println("Consumer:" + threadId + "--notify");
+                        queue.notifyAll();
+                    }
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    public void stopLoop() {
+        System.out.println("Stopping Consumer -- " + threadId);
+        running = false;
+        queue.syncNotifyAll();
+    }
+}
+class Log {
+    public int tranId;
+    public int operaType;
+    public int data;
+    public Log(int tranId, int operaType, int data) {
+        this.tranId = tranId;
+        this.operaType = operaType;
+        this.data = data;
+    }
+    @Override
+    public String toString() {
+        return "TranId:" + tranId + ",OperaType:" + operaType + ",Data" + data;
+    }
+}
+class SudoBlockingQueue &lt;T&gt; extends LinkedList&lt;T&gt; {
+    private static final long serialVersionUID = 13344L;
+    private final int CAPACITY;
+    public SudoBlockingQueue(int capacity) {
+        CAPACITY = capacity;
+    }
+    boolean isFull() {
+        return super.size() == CAPACITY;
+    }
+    int getCapacity() {
+        return CAPACITY;
+    }
+    public synchronized void syncNotifyAll() {
+        this.notifyAll();
+    }
+    public synchronized void syncWait() {
+        try {
+            this.wait();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+
+<p>回答上面的问题：</p>
+
+<ol>
+<li>为什么要对queue进行同步呢？原因之一是是前一个例子一样lock的作用，同步offer的。还有一个重要的原因是queue.wait()和queue.notify()必须在拥有当前queue的控制权时候才能进行。不然会报IllegalMonitorStateException(关于为什么会产生这个异常，参看<a href="http://www.cnblogs.com/techyc/p/3272321.html">Java的wait(), notify()和notifyAll()使用小结</a>)。</li>
+<li>为什么不能使用if，而要使用while？原因是为了double check，想想有3个消费者，其生产的消费速度远远大于生产速度。当一个任务被生产出来，唤醒了全部的consumers，这时候多个consumer准备结束queue.wait()。但是只有一个consumer能抢到资源，其他的consumer如果不再次做isEmpty检查就会误以为任务，继续走下去，结果发生错误。一定参看这篇文章：<a href="http://www.importnew.com/16453.html">如何在 Java 中正确使用 wait, notify 和 notifyAll – 以生产者消费者模型为例</a></li>
+<li>为啥这里还有再次notifyAll一次呢？因为当stop的时候有些线程正处于wait装填，必须唤醒才能从while(running)跳出来。因为notifyAll需要保证获得queue的控制权，所以需要synchronized。</li>
+</ol>
+
+
+<p>这个版本设计的也比较糟糕，因为需要调用多次的stopLoop，可以把running设计成static，只用调用一次stopLoop即可。</p>
+
+<h2>关于 wait(), notify() and notifyAll()的一些理解</h2>
+
+<ul>
+<li>这些是都是一个Monitor同步模型的一些具体操作。<a href="http://www.javamadesoeasy.com/2015/03/why-wait-notify-and-notifyall-are-in.html">下面引用这篇文章</a></li>
+<li>Every Object has a monitor, acquiring that monitors allow thread to hold lock on object. But Thread class does not have any monitors.</li>
+<li><p>wait(), notify() and notifyAll() are called on objects only > When wait() method is called on object by thread it waits for another thread on that object to release object monitor by calling notify() or notifyAll() method on that object.
+When notify() method is called on object by thread it notifies all the threads which are waiting for that object monitor that object monitor is available now.
+So, this shows that wait(), notify() and notifyAll() are called on objects only.
+Now, Straight forward question that comes to mind is how thread acquires object lock by acquiring object monitor? Let’s try to understand this basic concept in detail?</p></li>
+<li><p>Wait(), notify() and notifyAll() method being in Object class allows all the threads created on that object to communicate with other.  [As multiple threads may exist on same object].</p></li>
+<li><p>As multiple threads exists on same object. Only one thread can hold object monitor at a time. As a result thread can notify other threads of same object that lock is available now. But, thread having these methods does not make any sense because multiple threads exists on object it&rsquo;s not other way around (i.e. multiple objects exists on thread).</p></li>
+<li><p>Now let’s discuss one hypothetical scenario, what will happen if Thread class contains wait(), notify() and notifyAll() methods?
+Having wait(), notify() and notifyAll() methods means Thread class also must have their monitor.
+Every thread having their monitor will create few problems -</p>
+
+<blockquote><p>Thread communication problem.
+Synchronization on object won’t be possible- Because object has monitor, one object can have multiple threads and thread hold lock on object by holding object monitor. But if each thread will have monitor, we won’t have any way of achieving synchronization.
+Inconsistency in state of object (because synchronization won&rsquo;t be possible).</p></blockquote></li>
+</ul>
+
+
+<h2>写正确一个并发程序真实不容易，特别容易遇到各种死锁而结束不了程序。学会并发编程：</h2>
+
+<ol>
+<li><a href="./">生产者消费模型</a></li>
+<li><a href="./">线程池</a></li>
+<li><a href="./">进程池</a></li>
+</ol>
+
+
+<h3>refenrence</h3>
+
+<ul>
+<li><a href="http://www.importnew.com/10173.html">notify和notifyAll的一段代码分析</a></li>
+<li><a href="http://stackoverflow.com/questions/20110013/implement-your-own-blocking-queue-in-java">implement-your-own blocking queue in java</a></li>
+<li><a href="http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/locks/Condition.html">Interface Condition</a></li>
+<li><a href="http://www.importnew.com/16453.html">如何在 Java 中正确使用 wait, notify 和 notifyAll – 以生产者消费者模型为例</a></li>
+<li><a href="http://www.cnblogs.com/techyc/p/3272321.html">Java的wait(), notify()和notifyAll()使用小结</a></li>
+<li><a href="http://www.ticmy.com/?p=219"></a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Java 项目构建过程]]></title>

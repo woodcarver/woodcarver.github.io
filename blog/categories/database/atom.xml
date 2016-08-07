@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Database | Wood Carver]]></title>
   <link href="http://woodcarver.github.io/blog/categories/database/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2016-03-06T18:38:21+08:00</updated>
+  <updated>2016-08-08T00:01:19+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -12,6 +12,273 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[数据分析利器 —— 列式储存数据库]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/07/18/the-world-about-oriental-column-database/"/>
+    <updated>2016-07-18T11:00:26+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/07/18/the-world-about-oriental-column-database</id>
+    <content type="html"><![CDATA[<h1><a href="https://en.wikipedia.org/wiki/Column-oriented_database">列式数据库</a></h1>
+
+<p>什么是列式数据库？可能大家也才到了，既然有列式数据库，那么肯定就有行式的喽！确实是这样的。也许大多数人并不了解数据库储存模型（storage model 即physical schema）和数据库的数据模型（data model 也叫 logical schema），不过对上层是使用者也没多大关系。不过我们现在讲的列式和行式就是指数据库的storage model，而他们支持同样的data schema，即对data model感知不到storage model的实现区别。
+一个数据库的data model约定可以进行上层数据操作，而storage model决定这些操作的性能。比如，No Sql数据库使用的是data model都是key-value，而储存模型有map结构实现，也可以由tree结构实现。而对于sql数据库，其数据模型是一张二维表，而至于怎么存储这张二维表，很容易就可以想到可以按行存储和按列储存。按行存储就是我们现在常见操作型数据库，而是最大众的数据库，比如MySql、Oracle、……等等你所知道大部分数据库。而按列储存的数据库现在也是很有名，比如Hive、Vertica、Druid、Infobright等。</p>
+
+<h1>为什么要行式数据库又要列式数据库？</h1>
+
+<p>先让让我们想象关于二维表我们有哪些操作？—— select、update、delete和insert。这些操作都会需要找到相应的位置，所以这些操作的基础都是search。
+而基本的算法都是即从时间考虑也是从空间考虑的。我们开始具体举个例子。</p>
+
+<p>在数据库储存作为实际的一堆储存在磁盘上的文件，在设计不得不考虑磁盘的特性。一般的磁盘特性，其实所有的储存都有一个特性就是对于locality良好的存取性能是随机存取的好几倍。我们现在把一块想像成一组固定大小的块，如图： disk logic model 而文件的内容实际会被分开按照磁盘逻辑块来储存，数据库主要任务就是怎么组织这些逻辑块来取得更好的读取性能和便捷性。
+<img src="../images/posts/disk_block.png" alt="" /></p>
+
+<p>在不考虑索引的情况下，所有的磁盘读取都是顺序读取，这意味了要查找一个东西，都需要扫描全表或者部分表。很直观的道理，读取的性能就是取决于扫描的范围。范围越大，速度当然越慢。
+我们先假设我们有一堆如下的数据：</p>
+
+<table>
+<thead>
+<tr>
+<th>RowId</th>
+<th>EmpId  </th>
+<th>Lastname  </th>
+<th>Firstname</th>
+<th> Salary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>001  </td>
+<td>10    </td>
+<td>Smith     </td>
+<td>Joe     </td>
+<td>40000</td>
+</tr>
+<tr>
+<td>002  </td>
+<td>12    </td>
+<td>Jones     </td>
+<td>Mary    </td>
+<td>50000</td>
+</tr>
+<tr>
+<td>003  </td>
+<td>11    </td>
+<td>Johnson   </td>
+<td>Cathy   </td>
+<td>44000</td>
+</tr>
+<tr>
+<td>004  </td>
+<td>22    </td>
+<td>Jones     </td>
+<td>Bob     </td>
+<td>55000</td>
+</tr>
+</tbody>
+</table>
+
+
+<h2>行式储存模型</h2>
+
+<p>好现在我们开始让磁盘里塞，假设我们的磁盘块只能容下5个字段（抽象的，假设我们的这些字段的大小都一样），因为我们是按找行优先的，所以结果就如下：
+<img src="../images/posts/row_oriented.png" alt="row oriented model" /></p>
+
+<p>于是当我们要找Jones的所有信息的工资时候，我们会依次从第一块磁盘块直到扫描到最后（为什么要扫到最后，因为是在找全部叫Jones的信息，所以不扫都最后都不能确定是否会遗漏）。一共需要扫4块，然后取出其第二块和第四块信息，找出其工资的信息。</p>
+
+<p>其实基于行式储存，对于where语句处理都需要处理全表。对于磁盘的不停seek，速度就可想而知。当然一般数据库为了应对这种全数据扫描，找到了建立索引的方法。而索引就是对某个或者某些字段的组合的信息，即取出数据的部分信息，以减少每次扫描从全表到部分信息的扫描的过渡。</p>
+
+<p>这种查询方式很适合于一次取出一个行数据，而对于日常应用系统来说这种方式是非常合适的，因为我们设计应用的时候都是针对一个事务，而我们会把一个事务所有属性存储成一行，使用的时候也是有很大的概率涉及到整行的信息，很利于做缓存。还比如我们经常使用的那些经典sql 语句：</p>
+
+<pre><code class="sql">select * from user where id = 1001;
+select id, user_name, email, address, gender, ... from user where id = 1001;
+</code></pre>
+
+<p>！！还敢不敢列出些更多的字段！！</p>
+
+<h2>列式储存模型</h2>
+
+<p>而列储存就是下图这种按列优先储存。为了方便我们每块只储存了一个一列，没有存满。
+<img src="../images/posts/column_oriented.png" alt="row oriented model" />
+这下我们再考虑上面的查找所有Jones的工资，这下我们只扫描第三个磁盘块，找出Jones都再那些行，然后根据查出来的行号，直接去第五块磁盘（这块对应的式salary列）找出第二、四行的数据，然后输出。一共2次seek。大大小于row－oriented的4次。</p>
+
+<p>这种查询方式的前提就是你就需要这列数据就行了，其前提假设就是查询基本不会使用这个行的其他列数据。显然这种假设对于日常操作系统的围绕着一个主题进行的活动是不合适旳。但是却在分析型数据大显身手。</p>
+
+<p>列式的另一大优势是压缩。因为列的天然凝聚性（比如上面的两个Jones就可以压缩成一个）大大强与行，所以列式储存可以有很高的压缩比，这个进一步使使用的磁盘的数量减少，因为使用的磁盘块少，进一步减少了需要扫描的次数。这方面很利于加快查找速度，但是因为解压缩也是耗时耗内存的过程，所以压缩的控制也是需要一个定平衡点。</p>
+
+<h1>优劣总结</h1>
+
+<p>从上面的例子可以明显看出列式数据库在分析需求（获取特点——每次查询几个维度，通常是）时候，不仅<strong>搜索时间效率</strong>占优势，其<strong>空间效率</strong>也是很明显的。特别是针对动辄按T计算的数据量来说，在分布式环境中能进行压缩处理能节省宝贵的内部带宽，从而提高整个计算任务性能。</p>
+
+<p>关于行式和列式的具体优缺点还有具体的使用场景请看wikipedia。</p>
+
+<h1>再来谈谈储存模型</h1>
+
+<p>从上面看，改变物理储存结构对上层操作效率的提高是如此的巨大！所以我们再深入谈谈这个话题。</p>
+
+<p>在数据模型一定的情况下，储存模型也是有多种选择的（想想各种不同数据结构居然提供同样的操作，比如TreeMap和HashMap。数据模型好比Map支持getKey和getValue。而储存模型就是Tree还是HashTable，而getKey和getValue操作虽然对使用者没有区别，但是底层的组织结构则决定了其效率）。而储存模型在数据库这种复杂系统中有分好多层。我们想想先从最底层说起——文件，数据终归都是储存在磁盘上的。而从下面的表格看出，数据要取出必须先进入到内存，那么这个层次的核心就是面对各种查询、写入、更新和删除，怎么快速把数据从磁盘加载到内存中或者反之怎么把数据从内存中快速的写入到磁盘中。</p>
+
+<table>
+<thead>
+<tr>
+<th>用户界面</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>内存    </td>
+</tr>
+<tr>
+<td>磁盘    </td>
+</tr>
+</tbody>
+</table>
+
+
+<p>所以先谈谈文件储存有哪些类型：<a href="https://www.tutorialcup.com/dbms/file-organization.htm">File Organization in DBMS</a> 这篇文章对于文件组织在DBMS中的意义讲的非常清楚。这里引出其中对文件组织的要点：</p>
+
+<blockquote><p>Storing the files in certain order is called file organization. The main objective of file organization is</p>
+
+<ul>
+<li>Optimal selection of records i.e.; records should be accessed as fast as possible. &ndash; 支持快速的获取</li>
+<li>Any insert, update or delete transaction on records should be easy, quick and should not harm other records. &ndash; 支持快读的插入、更新和删除事务</li>
+<li>No duplicate records should be induced as a result of insert, update or delete &ndash; 支持键值不重复？？？</li>
+<li>Records should be stored efficiently so that cost of storage is minimal. &ndash; 储存占用磁盘空间要小</li>
+</ul>
+</blockquote>
+
+<p>从上面的目的看，大多数不能同时满足，这样就出现了各种各样的组合选择，所以出现多种组织方式：</p>
+
+<ul>
+<li>Sequential File Organization</li>
+<li>Heap File Organization</li>
+<li>Hash/Direct File Organization</li>
+<li>Indexed Sequential Access Method</li>
+<li>B+ Tree File Organization</li>
+<li>Cluster File Organization
+Let us see one by one on clicking the above links</li>
+</ul>
+
+
+<p>Difference between Sequential, heap/Direct, Hash, ISAM, B+ Tree, Cluster file organization in database management system (DBMS) as shown below:</p>
+
+<table>
+<thead>
+<tr>
+<th>          </th>
+<th>Sequential</th>
+<th> Heap/Direct</th>
+<th>Hash </th>
+<th>ISAM </th>
+<th>B+ tree</th>
+<th>Cluster</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Method of storing </td>
+<td>Stored as they come or sorted as they come </td>
+<td>Stored at the end of the file. But the address in the memory is random. </td>
+<td>Stored at the hash address generated</td>
+<td>Address index is appended to the record </td>
+<td>Stored in a tree like structure </td>
+<td>Frequently joined tables are clubbed into one file based on cluster key</td>
+</tr>
+<tr>
+<td>疑问</td>
+<td>如何做到删除的？</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Types </td>
+<td>Pile file and sorted file Method </td>
+<td> </td>
+<td>Static and dynamic hashing </td>
+<td> Dense, Sparse, multilevel </td>
+<td>indexing </td>
+<td>Indexed and Hash</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Design</td>
+<td>Simple Design</td>
+<td>Simplest</td>
+<td>Medium</td>
+<td>Complex</td>
+<td>Complex</td>
+<td>Simple</td>
+</tr>
+<tr>
+<td>Storage Cost</td>
+<td>Cheap (magnetic tapes)</td>
+<td>Cheap</td>
+<td>Medium</td>
+<td>Costlier</td>
+<td>Costlier</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Advantage </td>
+<td>Fast and efficient when there is large volumes of data, Report generation, statistical calculations etc</td>
+<td>  Best suited for bulk insertion, and small files/tables</td>
+<td>Faster Access,No Need to Sort,Handles multiple transactions,Suitable for Online transactions</td>
+<td> Searching records is faster.Suitable for large database.Any of the columns can be used as key column.Searching range of data &amp; partial data are efficient.</td>
+<td> Searching range of data &amp; partial data are efficient.No performance degrades when there is insert / delete / update.Grows and shrinks with data.Works well in secondary storage devices and hence reducing disk I/O.Since all datas are at the leaf node, searching is easy.All data at leaf node are sorted sequential linked list.</td>
+<td>Best suited for frequently joined tables.Suitable for 1:M mappings</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Disadvantage </td>
+<td>Sorting of data each time for insert/delete/ update takes time and makes system slow.  </td>
+<td>Records are scattered in the memory and they are inefficiently used. Hence increases the memory size.  Proper memory management is needed.  Not suitable for large tables. </td>
+<td>Accidental Deletion or updation of Data. Use of Memory is inefficient Searching range of data, partial data, non-hash key column, searching single hash column when multiple hash keys present or frequently updated column as hash key are inefficient. </td>
+<td>Extra cost to maintain index. File reconstruction is needed as insert/update/delete.Does not grow with data.  </td>
+<td>Not suitable for static tables  </td>
+<td>Not suitable for large database. Suitable only for the joins on which clustering is done. Less frequently used joins and 1: 1 Mapping are inefficient.</td>
+</tr>
+</tbody>
+</table>
+
+
+<h1>refernce</h1>
+
+<ul>
+<li><a href="https://www.tutorialcup.com/dbms/file-organization.htm">File Organization in DBMS</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Database_storage_structures">Database storage structures</a></li>
+<li><a href="http://blog.csdn.net/cjfeii/article/details/8884658">关系型数据在磁盘上的存储布局</a></li>
+<li><a href="http://blog.csdn.net/v_july_v/article/details/7526689">从LSM-Tree、COLA-Tree谈到StackOverflow、OSQA</a></li>
+<li><a href="http://www.cnblogs.com/siegfang/archive/2013/01/12/lsm-tree.html">日志结构的合并树 The Log-Structured Merge-Tree</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[介绍vertica]]></title>
@@ -61,6 +328,10 @@ select node_name,wos_row_count,ros_row_count from projection_storage where ancho
 <p>到底使用分区比较好呢？还是用purage_table比较好呢？
 果断构建partition好，因为如果用purage对于已经转移好的ros数据块（到底会怎么样？解释不清楚了吧！）速度会很慢。<a href="https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/PURGE_TABLE.htm">https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/PURGE_TABLE.htm</a></p>
 
+<h3>如何查看当前liencese的使用情况</h3>
+
+<p>SELECT GET_COMPLIANCE_STATUS();</p>
+
 <h3>索引到底是个什么鬼</h3>
 
 <h3>查看执行的任务，类似于mysql的show processlist</h3>
@@ -71,6 +342,90 @@ select node_name,wos_row_count,ros_row_count from projection_storage where ancho
 
 <p>在vertica中除了对int的定义不同，相比其他储存引擎，vertica的所有整形都是用64bit的，包括tinyint。
 在vertica主意使用char的问题，发现当定义char(200),不满200长度的字段，会自动补全空白，这样改变了数据的内容，对于精确搜索时，这是个坑。最好改成varchar，但现在还不明白这个的性能有什么差别。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Introduction to Olap]]></title>
+    <link href="http://woodcarver.github.io/blog/2015/08/03/introduction-to-olap/"/>
+    <updated>2015-08-03T15:02:36+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2015/08/03/introduction-to-olap</id>
+    <content type="html"><![CDATA[<p>现在看完了一本关于讲解数据仓库和数据挖掘的书了，感觉讲的挺不错，现在来写一篇文章。
+首先我们考虑当一家公司从小到大一直发展到amazon的那样，我们叫她ama，数据的会怎么变化。但amazon起初就是小网站的时候肯定大家都一样前端一个购物网页后端放一个给前端操作的数据库即可。那么这个数据库必然是天然适应前端应用操作的一个东西对不对？当然这时候我们也没有别的需求，所以数据库的全世界也就只有这一种啦，你也认识不到还有别的使用数据的地方。
+然后ama不断的发展，突然来了这么一个人，这个人以前是名统计学家，他对公司这么放着一堆“金子”不用而感到惊讶。所她自己挽起袖子，自己发誓要通过科学的方法得出一些结论，让公司的市场方向和运营得到指导和优化。但是面对他从来没在学校见过的不可思议大的已经都“落灰”的数据时候，发现自己仅仅是抽个样本看都难。
+然后他又正好有个前同事是数据库的专家，你貌似知道以前他搞过基因测序，那东西可是比这堆东西更大，而他搞定了，去问问他。
+“Hi，Denise你以前的基因测序是怎么把信息存储起来的同时还能做计算？”
+“Shally，你算问对人了。我现在就在研究最火的大数据方向！不过也许你听大数据这个词已经烦了，不过用它拿科研经费挺好使。平时我们不用这个词。如果要描述数据量非常大，我们用Massive Data（海量数据），如果要描述数据非常多样，我们用Heterogeneous Data（异构数据），如果要描述数据既多样，又量大，我们用Massive Heterogeneous Data（海量异构数据），如果要申请基金忽悠一笔钱，我们用Big Data（大数据）。”
+“别和我说那些有的没的，我作为一个统计学家当然知道怎么使用数据，我最大问题是我现在没办法操作这些数据！”
+“好吧。那我们就来讲讲分析型数据的储存吧！”
+“等等，你刚才讲了分析型数据？这是个什么东西？”
+“嗯，作为统计学家来说你接触到的肯定大部分都是分析型数据，而且你的圈子因为不考虑那些操作型数据，所以并不熟悉这个词。而相对在计算机界，因为都是建立一个一个的应用，背后的数据库都是为了支撑应用操作或者事务（(OLTP &ndash; OnLine transaction processing)）而存在，所以他们反而都会忽视分析型数据。既然说到这里我们就来说说什么是操作型数据和什么分析型数据。他们的定义都很很简单，顾名思义，操作型数据是针对前端应用，并且为了适应这些应用而组织起来。而分析型数据存在的目的就是为了分析（OLAP &ndash; OnLine analytical processing），所以它的组织方式是围绕着怎么支持分析工作的。”
+“嗯，这到底能怎么影响储存呢？”
+“这两种的特性不一样？比如，为了支持基本的网上购买操作或者可以说是事务，你需要设计货品表。货品表为了支持购买操作一般就只保留一个副本，即便是修改了，或者删除了。操作会<strong>立即</strong>同步到表中并被观察到，而且只保留<strong>最近状态</strong>。为了保证修改价格的时候不影响正在购买此商品的用户，还需要复杂的事务机制保证对用户数据是一致，。假想下下单的时候价格是5块，支付时候变成了10块的心情。而且还考虑尽量减少数据的冗余，大量使用数据关联技术（关系型数据库理论的核心——范式）。货品表是个典型的操作型数据。”
+“而分析型数据呢？相对于操作型数据来说，首先它是按时间发生的全局数据。会把所有的操作历史保留。所以数据从一行变成了一块。想想你会为了分析数据搞一套来一条数据运行一遍你的分析过程吗？不会，所以对数据进行批量处理，而且在操作型数据中的那种不能超过1s的严格响应时间，你也不会那么在乎。还有一个操作型数据特别头疼的问题，就是数据的一致性保证机制——事务的处理。这个东西可是个很影响效率的机制。考虑到分析型数据储存都是历史的操作产生的数据，一般是不变的（如果去修改历史，是不是有点自欺欺人）。”
+“好了，到此为止我们来总结下这两种数据的不同。</p>
+
+<p>|特性    | OLTP数据 | OLAP数据|
+|&mdash;&mdash;-|&mdash;&mdash;&mdash;|&mdash;&mdash;&mdash;|
+|操作范围|一行或几行 |一大块或者整表|
+|储存范围|最新状态   |全部状态记录|
+|操作类型|删除，更新，添加，查找|批量加载，批量查询|
+|性能要求|响应要求苛刻| 相对宽松，一些任务跑上好几天都可以|
+|一致性| 支持事务| 几乎不存在这个问题，因为没有修改操作|
+|目的| 面向业务，支持日常操作|面向分析挖掘，<a href="">用处千千万，谈谈大数据的用处</a>|
+|计算|一次数据量小，计算简单|一次数据量大，而且计算复杂|
+”
+“接下来根据上面的特性，我们来说说没啥分析型数据要专门的储存方法。”
+“这个我知道，因为使用现有的操作型数据处理方式，数据取不出来也存不下。”
+“说的太对了，但还有其他的问题，那就是刚才提到的特性中有很多对于系统设计是冲突，你要支持A特性，就别想还能满足B特性。如果你感兴趣我再说说针对这两种数据有发展了那些数据库？”
+“快说吧！”
+“现在你们公司肯定用的是行式储存的数据库。而为了支持分析型数据，现在发展出了很多基于列式的数据库。先说说为啥列式数据更适合于分析型数据。你看以先看看这篇文章哈。”
+听完朋友的讲解，你当天就找到DBA去帮你搭建了他推荐的infobright，开始愉快的操作了。但是渐渐的你发现每次手动导入数据，不仅麻烦还存在数据过期的头疼问题。再加上总是缺少大量相关数据，要到处搜集，收集到的数据还因为各种原因互相冲突。折磨的你快要受不了了。你又找朋友出来，谈你的烦恼。
+&ldquo;嗯，这是一个大坑，因为你还要解决数据的问题。其实你需要的是一个数据仓库。&rdquo;</p>
+
+<h1>Olap技术框架概况</h1>
+
+<h2>数据仓库</h2>
+
+<h2>多维度数据模型</h2>
+
+<h2>Olap是什么</h2>
+
+<h2>为什么要Cube模型</h2>
+
+<h2>常用OLap技术框架</h2>
+
+<h3>数据存储引擎层</h3>
+
+<ul>
+<li>Hive</li>
+<li>Infrobright</li>
+</ul>
+
+
+<h3>多维度模型转化层</h3>
+
+<p>Mondrian</p>
+
+<h3>多维度模型到展现层的连接接口</h3>
+
+<p>Olap4j</p>
+
+<h3>数据展现层</h3>
+
+<p>Saiku</p>
+
+<h3>示例——Saiku + Mondrian + Infrobright</h3>
+
+<h3>数据分析查询示例——怎么正确的拖出正确的数据集合</h3>
+
+<h4>策略实验分析</h4>
+
+<h4>运营投放——效果对比</h4>
+
+<h4>商业分析——长时间短的查询（周，月，年）</h4>
+
+<h4>故障异常排查（小时，天）</h4>
 ]]></content>
   </entry>
   
