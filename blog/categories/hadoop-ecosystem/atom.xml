@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Hadoop Ecosystem | Wood Carver]]></title>
+  <link href="http://woodcarver.github.io/blog/categories/hadoop-ecosystem/atom.xml" rel="self"/>
+  <link href="http://woodcarver.github.io/"/>
+  <updated>2016-08-08T21:56:31+08:00</updated>
+  <id>http://woodcarver.github.io/</id>
+  <author>
+    <name><![CDATA[Wood Carver]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[使用kafka]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/02/29/introduce-kafka/"/>
+    <updated>2016-02-29T15:16:17+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/02/29/introduce-kafka</id>
+    <content type="html"><![CDATA[<h1>kafka是什么，解决了什么问题</h1>
+
+<p>本质上kafka是一个消息订阅发布系统，当然这种系统设计的实现已经有千千万，kafka也只是其中的一个。所以要了解kafka，我们先看看什么消息订阅发布系统和这种设计是针对解决什么问题发被发明出来的。
+消息发送模式一般有两种——点对点，广播，而相应的技术是队列和订阅发布。消息队列。
+当然这里再提到关于一种消息队列也是数据库的观点（message queue is database too）， 所以从kafka的设计逻辑上它实际也是一个种管理数据获取和写入的系统。所以也可以从逻辑结构和储存结构两个方面来理解系统。参看<a href="./2016-07-24-how-to-understand-d-data-system">如何理解一个数据存储系统</a>。</p>
+
+<p>而kafka的创始人则对kafka作为data pipeline中的一个real-time stream centre bus来设定，增加了分布式的特性(扩展性和容错性)，同时以低延迟高可用为一个重要设计目标。</p>
+
+<p>还有一个特点，那就是kafka的写入和读取都是采用batch的模型。</p>
+
+<h2>设计消息订阅发布系统的关键点在哪里？，参看<a href="./2016-04-10-message-delivery-reliability">如何理解一个消息系统</a></h2>
+
+<h1>kafka处在hadoop生态圈的什么位置</h1>
+
+<h1>kafka基本模型和优缺点</h1>
+
+<ul>
+<li>基于日志</li>
+</ul>
+
+
+<h1>如何生产消息</h1>
+
+<p>关键词：topic, group, partition, offset
+所有的消息系统在设计消息生产的时候都要考虑消息的<strong>时序性和可达性</strong>。
+在时序方面，kafka在这方面保证在partition内是写入顺序。
+对可达性而言，所有的可达性都需要客户端的配合才能形式要求的特性（at -most-once, at-least-once and exactly-once）。</p>
+
+<p>现在有个大大的问题 —— 消息到底写没写成功？假如现在对消息的写入成功要求非常高，一定需要这件事情。所以客户端需要有个信号告诉这件事情，所以如果kafka告诉客户端写成功了，客户端就认为写成功了，然后进行下一条消息操作。</p>
+
+<p>大多数人想想的都是这样的：</p>
+
+<p><img src="./images/posts/kafka_producer1.png" alt="normal" />
+这是最理想的情况，最麻烦就是出现异常情况，我们首先来列下那些异常会出现：</p>
+
+<p>至少涉及到消息都会有两种状态，到达了和超时。</p>
+
+<table>
+<thead>
+<tr>
+<th> 情况  </th>
+<th> 消息发送</th>
+<th> 确认（ack）发送</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>接收到反馈，反馈是成功</td>
+<td>完事了</td>
+<td> 完事</td>
+</tr>
+<tr>
+<td>接收到反馈，反馈是失败</td>
+<td>重写  </td>
+<td> 重写</td>
+</tr>
+<tr>
+<td>超时</td>
+<td>？</td>
+<td>？</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>假如接收到反馈，反馈是失败，那么也很简单，那就是再重写一遍。
+但是最复杂的情况就是ack超时的情况，以为超时可能有下面几种可能造成的：
+<img src="./images/posts/kafka_producer2.png" alt="message loss" />
+如果是信息丢失了，我可以重写如一遍嘛，好解决。但是如果是ack丢失了，按照上面添加的规则，<strong>信息重复了</strong>！重点还是这两种情况对于客户端来说是没办法区分的。这可以容忍吗就要看具体业务了？</p>
+
+<p>从kafka的API看出，其消息是通过异步的Future类实现。要怎么处理消息的可达性其实完全交给了用户自己决定。包括storm也是这么做的。</p>
+
+<p><img src="./images/posts/kafka_producer3.png" alt="message loss" /></p>
+
+<h1>如何消费消息</h1>
+
+<p>关键词：topic, group, partition, offset</p>
+
+<p>同样所有的消息系统在设计消息消费的时候都要考虑消息的<strong>时序性和可达性</strong>。而kafka的时序性则表现在<strong>partition内保持有序的，partition之间无序</strong>，这样也就是意味着一个partition在一个group只能被一个consumer消费。而不会出现一个partition对应多个consumer的现象。这个特性配合上producer可以指定写入partition的规则，能做很多序列化的事情。下面的图展示的是partition的数量和consumer数量各种情况下的模型：</p>
+
+<ol>
+<li><p>partition数量大于consumer数量：
+<img src="./images/posts/kafka_consumer1.png" alt="naive" /></p></li>
+<li><p>partition数量等于consumer数量：
+<img src="./images/posts/kafka_consumer2.png" alt="naive" /></p></li>
+<li><p>partition数量小于consumer数量：
+<img src="./images/posts/kafka_consumer3.png" alt="naive" />
+看见有consumer开始轮空了。这个就是为了保证一个partition内的时序性。所以在扩展的时候需要保证partition数量大于consumer数量的，否则有些consumer就浪费了。</p></li>
+</ol>
+
+
+<p>讲完时序性，现在开始讲可达性。</p>
+
+<p>既然partition和consumer数量都是不限制的，那就会涉及到系统设计的核心问题——rescale(rebalance)。</p>
+
+<h1>How to scale kafka?</h1>
+
+<p>我们都知道在分布式储存系统是为了能够并行，必须做两件事情，一个是partition or sharding， 另一个是replica。当然kafka都做了，并且还提供了partition的显示调度接口。所以这个小节来看看kafka是怎么做parition的。</p>
+
+<h1>消息本身 ——  消息的格式</h1>
+
+<p>kafa的消息格式是规定好的二进制协议的，这点和redis的策略一样。所以客户端只要传输二进制流给服务端即可。因为这和语言无关，所以客户端可以采用任何一种语言，而不仅仅限于java。</p>
+
+<blockquote><p>Kafka has a binary wire protocol. This means that it is possible for applications to read messages from Kafka or write messages to Kafka simply by sending the cor‐ rect byte sequences to Kafka’s network port. There are multiple cli‐ ents that implement Kafka’s wire protocol in different programming language, giving simple ways to use Kafka not just in Java applications but also in languages like C++, Python, Go and many more. Those clients are not part of Apache Kafka project, but a list of those is maintained in the project wiki 1. The wire protocol and the external clients are outside the scope of the chapter.</p></blockquote>
+
+<h1>reference</h1>
+]]></content>
+  </entry>
+  
+</feed>

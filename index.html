@@ -9,8 +9,9 @@
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="问题 统计一个文件出现的词的词频。 单机版 多机版 问题在哪里？ 使用mapreduce 使用storm 总结 各种计算模型的对比。
-">
+  <meta name="description" content="这篇博文主要是对《CAP理论十二年回顾："规则"变了
+》的个人解读。 CAP到底讲什么，为什么不能同时满足？ 首先明确一点，CAP是一个分布式系统的特性，如果你没有多个服务节点，就不可能发生分区。先解释下概念：
+- C —— 执行的结果能同时反映到所有节点上。等同于所有节点访问同一份最新的数据副本 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -70,80 +71,6 @@
     <div id="content">
       <div class="blog-index">
   
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/08/04/wordcount-in-mapreduce/">Wordcount in Mapreduce</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-08-04T13:42:24+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>1:42 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h1>问题</h1>
-
-<p>统计一个文件出现的词的词频。</p>
-
-<h2>单机版</h2>
-
-<h2>多机版</h2>
-
-<h2>问题在哪里？</h2>
-
-<h2>使用mapreduce</h2>
-
-<h2>使用storm</h2>
-
-<h2>总结</h2>
-
-<p>各种计算模型的对比。</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/08/02/synchronise-vs-blocking/">Synchronise vs Blocking</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-08-02T10:49:56+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>2</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>10:49 am</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
-</div>
-  
-  
-
-
-    </article>
   
   
     <article>
@@ -217,35 +144,6 @@
 </a></li>
 </ul>
 
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/07/24/a-misusing-of-python-logging-lock/">A Misusing of Python Logging Lock</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-07-24T23:13:47+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>11:13 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
 </div>
   
   
@@ -1430,6 +1328,94 @@ Inconsistency in state of object (because synchronization won&rsquo;t be possibl
 
     </article>
   
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/07/07/why-many-data-structrues-have-logn-relative-time-complexity/">Why Many Data Structrues Have Logn Relative Time Complexity</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-07-07T21:50:55+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>7</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:50 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content">
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/07/07/introduce-redis/">Introduce Redis</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-07-07T21:35:59+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>7</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:35 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>观点一：redis采用结构化数据，打通了代码和储存
+关键技术： event loop， single thread</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/06/22/how-to-desgin-a-thread-pool/">How to Desgin a Thread Pool</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-06-22T23:11:22+08:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>11:11 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content">
+</div>
+  
+  
+
+
+    </article>
+  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -1445,23 +1431,23 @@ Inconsistency in state of object (because synchronization won&rsquo;t be possibl
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/08/04/wordcount-in-mapreduce/">Wordcount in Mapreduce</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/08/02/synchronise-vs-blocking/">Synchronise vs Blocking</a>
-      </li>
-    
-      <li class="post">
         <a href="/blog/2016/07/29/introduce-cap/">Introduce CAP</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/24/a-misusing-of-python-logging-lock/">A Misusing of Python Logging Lock</a>
+        <a href="/blog/2016/07/24/how-to-understand-a-data-system/">如何理解一个数据存储系统</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/24/how-to-understand-a-data-system/">如何理解一个数据存储系统</a>
+        <a href="/blog/2016/07/23/introduce-infobright/">Introduce Infobright</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/07/20/why-need-runnable-while-we-already-have-thread-in-java/">java里为什么有了Thread还要设置一个Runnable？</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/07/18/the-world-about-oriental-column-database/">数据分析利器 —— 列式储存数据库</a>
       </li>
     
   </ul>
