@@ -1,0 +1,328 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>How to Use Jmock - Wood Carver</title>
+  <meta name="author" content="Wood Carver">
+
+  
+  <meta name="description" content="jmock官网 测试框架 1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+public void testSomeAction() { ... set up ... context.checking(new Expectations() ... expectations go here &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://woodcarver.github.io/blog/2016/08/14/how-to-use-jmock/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Wood Carver" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/libs/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<!-- link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css"-->
+<!-- link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css"-->
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Wood Carver</a></h1>
+  
+    <h2>Find another pool</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="woodcarver.github.io">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/book-links">Books</a></li>
+  <li><a href="/about">About Me</a></li>
+  <li><a href="/start-here">Start Here</a></li>
+  <li><a href="/others-blog">Reading</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">How to Use Jmock</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-08-14T14:35:32+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>14</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>2:35 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><a href="http://www.jmock.org/expectations.html">jmock官网</a></p>
+
+<h1>测试框架</h1>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>public void testSomeAction() {
+</span><span class='line'>    ... set up ...
+</span><span class='line'>
+</span><span class='line'>    context.checking(new Expectations()
+</span><span class='line'>        ... expectations go here ...
+</span><span class='line'>    );
+</span><span class='line'>
+</span><span class='line'>    ... code being tested ...
+</span><span class='line'>
+</span><span class='line'>    context.assertIsSatisfied();
+</span><span class='line'>
+</span><span class='line'>    ... other assertions ...
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其中最重要的一个步骤就是context.checking。这个方法中定义的expectation就是需要关注的。也就是你要模拟的方法的输入和输出。
+其他格式是这样的：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>invocation-count (mock-object).method(argument-constraints);
+</span><span class='line'>    inSequence(sequence-name);
+</span><span class='line'>    when(state-machine.is(state-name));
+</span><span class='line'>    will(action);
+</span><span class='line'>    then(state-machine.is(new-state-name));</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其每个短语的具体意思如下：</p>
+
+<table>
+<thead>
+<tr>
+<th>one    </th>
+<th>The invocation is expected once and once only.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>exactly(n).of</td>
+<td> The invocation is expected exactly n times. Note: one is a convenient shorthand for exactly(1).</td>
+</tr>
+<tr>
+<td>atLeast(n).of </td>
+<td>The invocation is expected at least n times.</td>
+</tr>
+<tr>
+<td>atMost(n).of   </td>
+<td>The invocation is expected at most n times.</td>
+</tr>
+<tr>
+<td>between(min, max).of   </td>
+<td>The invocation is expected at least min times and at most max times.</td>
+</tr>
+<tr>
+<td>allowing   </td>
+<td>The invocation is allowed any number of times but does not have to happen.</td>
+</tr>
+<tr>
+<td>ignoring   </td>
+<td>The same as allowing. Allowing or ignoring should be chosen to make the test code clearly express intent.</td>
+</tr>
+<tr>
+<td>never  </td>
+<td>The invocation is not expected at all. This is used to make tests more explicit and so easier to understand.</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>所有的函数都是可以选的，例如你可以如下组合你的exception。</p>
+
+<h1>例子</h1>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>public void testReturnsCachedObjectWithinTimeout() {
+</span><span class='line'>    context.checking(new Expectations()
+</span><span class='line'>        oneOf (clock).time(); will(returnValue(loadTime));
+</span><span class='line'>        oneOf (clock).time(); will(returnValue(fetchTime));
+</span><span class='line'>
+</span><span class='line'>        allowing (reloadPolicy).shouldReload(loadTime, fetchTime); will(returnValue(false));
+</span><span class='line'>
+</span><span class='line'>        oneOf (loader).load(KEY); will(returnValue(VALUE));
+</span><span class='line'>    );
+</span><span class='line'>
+</span><span class='line'>    Object actualValueFromFirstLookup = cache.lookup(KEY);
+</span><span class='line'>    Object actualValueFromSecondLookup = cache.lookup(KEY);
+</span><span class='line'>
+</span><span class='line'>    context.assertIsSatisfied();
+</span><span class='line'>    assertSame("should be loaded object", VALUE, actualValueFromFirstLookup);
+</span><span class='line'>    assertSame("should be cached object", VALUE, actualValueFromSecondLookup);
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Wood Carver</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-08-14T14:35:32+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>14</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>2:35 pm</span></time>
+    </p>
+    
+      <div class="sharing">
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/07/29/introduce-cap/" title="Previous Post: introduce CAP">&laquo; introduce CAP</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2016/08/14/how-to-manipulate-binary-stream/" title="Next Post: How to manipulate binary stream">How to manipulate binary stream &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/09/06/scheduling-strategy/">Scheduling Strategy</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/09/04/data-file-organization/">Data File Organization</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/31/introduce-hive/">Introduce Hive</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/22/design-pattern/">Design Pattern</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/08/14/how-to-manipulate-binary-stream/">How to Manipulate Binary Stream</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Wood Carver -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

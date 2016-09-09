@@ -113,15 +113,27 @@
 <h1>如何生产消息</h1>
 
 <p>关键词：topic, group, partition, offset
-所有的消息系统在设计消息生产的时候都要考虑消息的<strong>时序性和可达性</strong>。
-在时序方面，kafka在这方面保证在partition内是写入顺序。
-对可达性而言，所有的可达性都需要客户端的配合才能形式要求的特性（at -most-once, at-least-once and exactly-once）。</p>
+所有的消息系统在设计消息生产的时候都要考虑消息的<strong>时序性和可达性</strong>。</p>
+
+<h2>在时序方面</h2>
+
+<p>kafka在这方面保证在partition内是写入顺序。其中新接口给出了partition的指派自定义规则，一种是自己定义（Partitioner接口），另一种是通过其定义了一个消息体类ProducerRecord，是一个key-value格式，就是为了保证同样的key会被放入同样的parition上（注意这可能导致数据倾斜）。如果key被设置为null，那么parition指派规则就使用 default partitioner 规则—— Round-robin，随机分配。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ProducerRecord&lt;String, String&gt; record = new ProducerRecord&lt;String, String&gt;("Country", "Precision Products", "France");</span></code></pre></td></tr></table></div></figure>
+
+
+<p>至于当摸个partition突然失效，那么相应的key的message会怎么办？这个就是设计到了kafka的容错机制——replication and availability.</p>
+
+<h2>可达性而言</h2>
+
+<p>所有的可达性都需要客户端的配合才能形式要求的特性（at -most-once, at-least-once and exactly-once）。</p>
 
 <p>现在有个大大的问题 —— 消息到底写没写成功？假如现在对消息的写入成功要求非常高，一定需要这件事情。所以客户端需要有个信号告诉这件事情，所以如果kafka告诉客户端写成功了，客户端就认为写成功了，然后进行下一条消息操作。</p>
 
 <p>大多数人想想的都是这样的：</p>
 
-<p><img src="./images/posts/kafka_producer1.png" alt="normal" />
+<p><img src="https://img3.doubanio.com/view/photo/photo/public/p2375588550.jpg" alt="normal" />
 这是最理想的情况，最麻烦就是出现异常情况，我们首先来列下那些异常会出现：</p>
 
 <p>至少涉及到消息都会有两种状态，到达了和超时。</p>
@@ -156,12 +168,22 @@
 
 <p>假如接收到反馈，反馈是失败，那么也很简单，那就是再重写一遍。
 但是最复杂的情况就是ack超时的情况，以为超时可能有下面几种可能造成的：
-<img src="./images/posts/kafka_producer2.png" alt="message loss" />
-如果是信息丢失了，我可以重写如一遍嘛，好解决。但是如果是ack丢失了，按照上面添加的规则，<strong>信息重复了</strong>！重点还是这两种情况对于客户端来说是没办法区分的。这可以容忍吗就要看具体业务了？</p>
+<img src="https://img3.doubanio.com/view/photo/photo/public/p2375588551.jpg" alt="message loss" />
+如果是信息丢失了，我可以重写如一遍嘛，好解决。但是如果是ack丢失了，按照上面添加的规则，<strong>信息重复了</strong>！重点还是这两种情况对于客户端来说是没办法区分的。这可以容忍就要看具体业务了？</p>
 
-<p>从kafka的API看出，其消息是通过异步的Future类实现。要怎么处理消息的可达性其实完全交给了用户自己决定。包括storm也是这么做的。</p>
+<p>从kafka的API看出，其消息是通过异步的Future类实现。要怎么处理消息的可达性的自主权其实完全交给了用户自己决定。包括storm也是这么做的。</p>
 
-<p><img src="./images/posts/kafka_producer3.png" alt="message loss" /></p>
+<p><img src="https://img3.doubanio.com/view/photo/photo/public/p2375588553.jpg" alt="message loss" /></p>
+
+<p>具体实现方式通过kafka的Producer的配置：</p>
+
+<ol>
+<li><p>acks：描述接收broker的确认信息的机制。这个是一个int型，其数量描述的是有多少replica响应的acks（和replica的leader模型有关系）。当值为0的时候，表示不接受确认直接返回，也就是说不确认信息是否怎的写入了broker。意味着at-most-once模型。当然这种也是发送吞吐量最高的模型。
+当acks=1时候，接收leader的acks响应。当然这种也有丢失数据的风险，当leader crash了或者当新leader被选中但是却没有这个消息的副本。
+当acks = all，接收所有replica的确认信息。</p></li>
+<li><p>retries：描述producer发送失败的时候，重试的次数。</p></li>
+</ol>
+
 
 <h1>如何消费消息</h1>
 
@@ -169,18 +191,33 @@
 
 <p>同样所有的消息系统在设计消息消费的时候都要考虑消息的<strong>时序性和可达性</strong>。而kafka的时序性则表现在<strong>partition内保持有序的，partition之间无序</strong>，这样也就是意味着一个partition在一个group只能被一个consumer消费。而不会出现一个partition对应多个consumer的现象。这个特性配合上producer可以指定写入partition的规则，能做很多序列化的事情。下面的图展示的是partition的数量和consumer数量各种情况下的模型：</p>
 
+<h2>时序性</h2>
+
 <ol>
 <li><p>partition数量大于consumer数量：
-<img src="./images/posts/kafka_consumer1.png" alt="naive" /></p></li>
+<img src="https://img3.doubanio.com/view/photo/photo/public/p2375588545.jpg" alt="naive" /></p></li>
 <li><p>partition数量等于consumer数量：
-<img src="./images/posts/kafka_consumer2.png" alt="naive" /></p></li>
+<img src="https://img1.doubanio.com/view/photo/photo/public/p2375588547.jpg" alt="naive" /></p></li>
 <li><p>partition数量小于consumer数量：
-<img src="./images/posts/kafka_consumer3.png" alt="naive" />
+<img src="https://img1.doubanio.com/view/photo/photo/public/p2375588548.jpg" alt="naive" />
 看见有consumer开始轮空了。这个就是为了保证一个partition内的时序性。所以在扩展的时候需要保证partition数量大于consumer数量的，否则有些consumer就浪费了。</p></li>
 </ol>
 
 
-<p>讲完时序性，现在开始讲可达性。</p>
+<h2>讲完时序性，现在开始讲可达性。</h2>
+
+<p>kafka的消息可达性保证是通过committed offset这个机制实现的。什么是committed offset呢？</p>
+
+<blockquote><p>We call the action of updating the current position in the partition a commit.</p></blockquote>
+
+<p> 那就是在一个共享的地方更新每个partition的处理位置。即读的过程中告诉某个人（其实是通过__consumer_offsets这个特殊的topic实现的？怎么实现的？）我读到哪里了。但是这里有个问题就是回报和实现处理的步调可能不一致，然后到底怎么选择就看实际业务需求了。kafka提供了自动commit机制——定时回报offset，明显是异步。同时又提供了同步和异步commit的接口供使用。</p>
+
+<ol>
+<li>使用auto commit</li>
+<li>使用同步commit</li>
+<li>使用异步commit</li>
+</ol>
+
 
 <p>既然partition和consumer数量都是不限制的，那就会涉及到系统设计的核心问题——rescale(rebalance)。</p>
 
@@ -193,6 +230,52 @@
 <p>kafa的消息格式是规定好的二进制协议的，这点和redis的策略一样。所以客户端只要传输二进制流给服务端即可。因为这和语言无关，所以客户端可以采用任何一种语言，而不仅仅限于java。</p>
 
 <blockquote><p>Kafka has a binary wire protocol. This means that it is possible for applications to read messages from Kafka or write messages to Kafka simply by sending the cor‐ rect byte sequences to Kafka’s network port. There are multiple cli‐ ents that implement Kafka’s wire protocol in different programming language, giving simple ways to use Kafka not just in Java applications but also in languages like C++, Python, Go and many more. Those clients are not part of Apache Kafka project, but a list of those is maintained in the project wiki 1. The wire protocol and the external clients are outside the scope of the chapter.</p></blockquote>
+
+<h1>Replica设计</h1>
+
+<p>kafka的replica的单元是partition而不是topic，而每个partition有一个leader和0到多个的followers。</p>
+
+<p>As with most distributed systems automatically handling failures requires having a precise definition of what it means for a node to be &ldquo;alive&rdquo;. For Kafka node liveness has two conditions</p>
+
+<ol>
+<li>A node must be able to maintain its session with ZooKeeper (via ZooKeeper&rsquo;s heartbeat mechanism)</li>
+<li>If it is a slave it must replicate the writes happening on the leader and not fall &ldquo;too far&rdquo; behind</li>
+</ol>
+
+
+<p>Kafka will remain available in the presence of node failures after a short fail-over period, but may not remain available in the presence of network partitions.</p>
+
+<h1>设计巧妙的地方？</h1>
+
+<ul>
+<li><p>partition的设计非常巧妙</p>
+
+<ol>
+<li>和key绑定，相当于Bigtable中的raw key ，可以自由选择如何sharding数据。</li>
+<li>partition内的时序性保证，解决了一些不能乱序的消息</li>
+<li>rebalance（committed offset管理）, 当parition增加和减少的时候，如果rebalance consumer，当然如何rebalance producer（can？）？</li>
+</ol>
+</li>
+<li><p>group的设计</p>
+
+<ol>
+<li>能够轻松的并行，并随意的扩展</li>
+</ol>
+</li>
+<li><p>offset管理</p>
+
+<ol>
+<li>committed offset</li>
+</ol>
+</li>
+<li><p>batch模式</p>
+
+<ol>
+<li>当然是为了加速</li>
+</ol>
+</li>
+</ul>
+
 
 <h1>reference</h1>
 </div>
@@ -240,23 +323,23 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/07/29/introduce-cap/">Introduce CAP</a>
+        <a href="/blog/2016/09/06/scheduling-strategy/">Scheduling Strategy</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/24/how-to-understand-a-data-system/">如何理解一个数据存储系统</a>
+        <a href="/blog/2016/09/04/data-file-organization/">Data File Organization</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/23/introduce-infobright/">Introduce Infobright</a>
+        <a href="/blog/2016/08/31/introduce-hive/">Introduce Hive</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/20/why-need-runnable-while-we-already-have-thread-in-java/">java里为什么有了Thread还要设置一个Runnable？</a>
+        <a href="/blog/2016/08/22/design-pattern/">Design Pattern</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/18/the-world-about-oriental-column-database/">数据分析利器 —— 列式储存数据库</a>
+        <a href="/blog/2016/08/14/how-to-manipulate-binary-stream/">How to Manipulate Binary Stream</a>
       </li>
     
   </ul>

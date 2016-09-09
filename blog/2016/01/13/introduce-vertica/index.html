@@ -140,16 +140,157 @@ select node_name,wos_row_count,ros_row_count from projection_storage where ancho
 
 <p>SELECT GET_COMPLIANCE_STATUS();</p>
 
+<h3>查看每个表大小情况</h3>
+
+<p><a href="http://woothon.iteye.com/blog/2211252">http://woothon.iteye.com/blog/2211252</a>
+SELECT SUM(used_bytes) FROM   V_MONITOR.projection_storage</p>
+
 <h3>索引到底是个什么鬼</h3>
+
+<h2>任务控制</h2>
 
 <h3>查看执行的任务，类似于mysql的show processlist</h3>
 
-<p>SELECT * FROM SESSIONS;</p>
+<p>SELECT session_id,statement_start,current_statement FROM SESSIONS
+<a href="https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/CLOSE_SESSION.htm">https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/CLOSE_SESSION.htm</a>
+SELECT * FROM SESSIONS;</p>
+
+<h3>杀死执行的任务，类似于mysql的kill</h3>
+
+<p>SELECT CLOSE_SESSION(&lsquo;stress05-27944:0xc1a&rsquo;);
+SELECT CLOSE_ALL_SESSIONS();</p>
 
 <h3>数据类型</h3>
 
 <p>在vertica中除了对int的定义不同，相比其他储存引擎，vertica的所有整形都是用64bit的，包括tinyint。
 在vertica主意使用char的问题，发现当定义char(200),不满200长度的字段，会自动补全空白，这样改变了数据的内容，对于精确搜索时，这是个坑。最好改成varchar，但现在还不明白这个的性能有什么差别。</p>
+
+<h2>当数据量巨大的时候，如何进行优化？如何正确的使用vertica？</h2>
+
+<ul>
+<li>建立索引？</li>
+<li>建立projections <a href="https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Statements/CREATEPROJECTION.htm">https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Statements/CREATEPROJECTION.htm</a></li>
+</ul>
+
+
+<p>查看projection，使用下面命令：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>\dj</span></code></pre></td></tr></table></div></figure>
+
+
+<p>删除projection，使用</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>drop projection &lt;projection_name&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>创建projection，使用</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>create projection &lt;projection_name&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Projection是作为vertica物理储存的概念，其大概相当于oracle的物化视图。核心概念就是对同一份数据集合做颗粒度分别储存，把一些经常使用的计算结果预先储存起来，以此来提高查询效率。
+其中到底有什么奥妙，我们现在来看看：
+先讲讲vertica的数据组织的logical model和physical model。</p>
+
+<p>其中提到了很多种PROJECTION，但是建立方式都一样的，都是通过create project关键词。现在介绍下这几种类型：</p>
+
+<ol>
+<li>Superprojections</li>
+</ol>
+
+
+<p>这种是对细粒度的projection，涵盖所有列。这个projection是随着你建立表的时候，自动建立。且这也是vertica对projection最小数据要求。 （物理是怎么储存这些projections的呢？，怎么sharding的？怎么replicating？）</p>
+
+<ol>
+<li>Query-Specific Projections</li>
+</ol>
+
+
+<p>这中projection仅仅包含table的一部分列，能大幅度提高查询效率</p>
+
+<ol>
+<li>Pre-Join Projections</li>
+</ol>
+
+
+<p>这种projection包含表的PK/FK（主键和外键）的inner joins查询。能大幅度增加连接操作的查询时间。此外这种projection可以让你给经常查询的sql定义有序序列。</p>
+
+<ol>
+<li>Anchor Projections</li>
+</ol>
+
+
+<blockquote><p>An anchor projection is the physical storage for the anchor table data.</p></blockquote>
+
+<p>官网的这句话貌似解释了等于白解释，因为anchor table data有是什么东西？不过总之就是要创建Top-K Projections和Live Aggregate Projections的时候，必须要创建Anchor Projections（why？）</p>
+
+<p>提一句anchor projection在创建的时候必须定义segment值。</p>
+
+<p>从限制条件看，这个因为是为了给Top-K Projections和Live Aggregate Projections建立分区索引。类似有cassendra的raw key。</p>
+
+<ol>
+<li>Top-K Projections
+这种是
+
+<blockquote><p>A Top-K query retrieves the top k rows from partition of selected rows. For example, in the following Top-K query, table1 has two columns: a and b. The query returns the top 10 rows associated with each value of column a.</p></blockquote></li>
+</ol>
+
+
+<p>这种projection主要是针对top k的查询优化。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>=&gt; SELECT * FROM table1 LIMIT 10 OVER (PARTITION BY a ORDER BY b);</span></code></pre></td></tr></table></div></figure>
+
+
+<p><a href="https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/AdministratorsGuide/Projections/TopKProjections.htm">https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/AdministratorsGuide/Projections/TopKProjections.htm</a></p>
+
+<ol>
+<li>Live Aggregate Projections</li>
+</ol>
+
+
+<p>这种projection是对anchor table做一个聚集的与计算。anchor projection的segemntation必须是Live Aggregate Projections的子集。当数据查询的时候，vertica会自动把数据插入到Live Aggregate Projections，并且在查询的时候，确定使用哪个表，如果发现Live Aggregate Projections要快的话就直接从Live Aggregate Projections中出数据。</p>
+
+<p>最后建立projection后，<a href="https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/ConnectingToHPVertica/ClientJDBC/KVApi/VerticaRoutableExecutor.htm">还可以设计路由规则</a></p>
+
+<h5>实际例子：</h5>
+
+<p>创建anchor projection报出的错误。
+create projection anchor_test as select * from summary_hyper_hourly segmented by hash(creative_id) all nodes;
+WARNING 4468:  Projection &lt;public.anchor_test> is not available for query processing. Execute the select start_refresh() function to copy data into this projection.
+          The projection must have a sufficient number of buddy projections and all nodes must be up before starting a refresh
+CREATE PROJECTION</p>
+
+<p>创建聚集或者Top-K projection的时候报出的错误。
+WARNING 6138:  Aggregate/Top-k projection &ldquo;test&rdquo; will be created for &ldquo;summary_hyper_hourly&rdquo;. Data in &ldquo;summary_hyper_hourly&rdquo; will be neither updated nor deleted
+WARNING 4468:  Projection &lt;public.test> is not available for query processing. Execute the select start_refresh() function to copy data into this projection.
+          The projection must have a sufficient number of buddy projections and all nodes must be up before starting a refresh</p>
+
+<p>报这些错误是因为在建立projection之后必须进行refresh vertica才会把数据灌入其中。所以使用refresh函数，例如下面：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>select refresh('summary_hyper_hourly');</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其中参数是table的name，而不是projection的name。
+<a href="https://community.dev.hpe.com/t5/Vertica-Forum/Refreshing-Projection/td-p/229974">https://community.dev.hpe.com/t5/Vertica-Forum/Refreshing-Projection/td-p/229974</a></p>
+
+<h4>优化case： 怎么优化join</h4>
+
+<p>Join操作在逻辑模型上讲是用笛卡尔积来表示的，即形成一个N*M的二维表，然后再根据where条件或者on条件过滤。
+但是如果逻辑，join这个操作又耗时，又耗内存和IO，因为需要把两个表的数据都加载进去。所以关于Join实际的算法大概分3种：</p>
+
+<ol>
+<li><p>嵌套循环联接（Nested Loop Join）：这个算法基本就是笛卡尔积的逻辑，也是最通用，效率也最低的算法。其中关于联接注意事项，参看<a href="http://blog.jobbole.com/100349/">这篇文章</a>的表联接部门，对于怎么做才能IO优化相当有用。这种联接方法有个好处就是可以没有联接关键词，生产全排列的笛卡尔积。</p>
+
+<blockquote><p>算法特点就是，cpu的时间复杂度：O(N<em>M)，IO效率 N + N</em>M(如果M很大，不能放进内存),空间复杂度：O(N+M)</p></blockquote></li>
+<li><p>HashJoin：如果内关系足够小的话，完全可以生产一个哈希表。然后在逐步扫描外部关系，在内关系的hashtable查找。时间复杂度：O(N * hashCost + M)。这个目前是最快的方法了，但是前提是内存足够，如果不够，那么只能说拜拜了。</p></li>
+<li><p>MergeJoin：这个要求其连接字段是排好序的。这时候如果能用上索引的最好。</p></li>
+</ol>
+
 </div>
 
 
@@ -195,23 +336,23 @@ select node_name,wos_row_count,ros_row_count from projection_storage where ancho
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/07/29/introduce-cap/">Introduce CAP</a>
+        <a href="/blog/2016/09/06/scheduling-strategy/">Scheduling Strategy</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/24/how-to-understand-a-data-system/">如何理解一个数据存储系统</a>
+        <a href="/blog/2016/09/04/data-file-organization/">Data File Organization</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/23/introduce-infobright/">Introduce Infobright</a>
+        <a href="/blog/2016/08/31/introduce-hive/">Introduce Hive</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/20/why-need-runnable-while-we-already-have-thread-in-java/">java里为什么有了Thread还要设置一个Runnable？</a>
+        <a href="/blog/2016/08/22/design-pattern/">Design Pattern</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/18/the-world-about-oriental-column-database/">数据分析利器 —— 列式储存数据库</a>
+        <a href="/blog/2016/08/14/how-to-manipulate-binary-stream/">How to Manipulate Binary Stream</a>
       </li>
     
   </ul>

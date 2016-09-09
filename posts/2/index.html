@@ -9,7 +9,7 @@
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="
+  <meta name="description" content="刚接触java的小朋友们是不是都发现jdbc这个东西挺好用？所有的数据引擎都完全一致的采用jdbc来连接，这种一致性简直太爽了。
 ">
   
 
@@ -76,7 +76,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2016/06/22/how-to-desgin-dataware-house/">How to Desgin Dataware House</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/07/18/how-to-develop-your-own-jdbc-application/">How to Develop Your Own Jdbc Application</a></h1>
     
     
       <p class="meta">
@@ -85,7 +85,698 @@
 
 
 
-<time class='entry-date' datetime='2016-06-22T22:35:06+08:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>10:35 pm</span></time>
+<time class='entry-date' datetime='2016-07-18T10:54:05+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:54 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>刚接触java的小朋友们是不是都发现jdbc这个东西挺好用？所有的数据引擎都完全一致的采用jdbc来连接，这种一致性简直太爽了。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/07/15/producer-consumer-problem/">Producer-consumer Problem</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-07-15T23:55:14+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>15</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>11:55 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近在学习多线程编程，周末的时候用java写了一个生产者消费模型，这里做一些记录和总结。</p>
+
+<h2>基本模板</h2>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Producer
+</span><span class='line'>  while(true)
+</span><span class='line'>    data = generateData()
+</span><span class='line'>    queue.enqueue(data)
+</span><span class='line'>
+</span><span class='line'>Consumer
+</span><span class='line'>  while(true)
+</span><span class='line'>    data = queue.dequeue()
+</span><span class='line'>
+</span><span class='line'>main
+</span><span class='line'>  sharedQueue = new Queue()
+</span><span class='line'>  producer1, producer2 ...
+</span><span class='line'>  consumer1, consumer2 ...
+</span><span class='line'>  start producer1, producer2 ...
+</span><span class='line'>  start consumer1, consumer2 ...
+</span><span class='line'>  stop producer1, producer2 ...
+</span><span class='line'>  stop consumer1, consumer2 ...</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>各种错误版</h2>
+
+<h3>最简单版</h3>
+
+<p>这个程序中工作任务很简单就是生产者不断放入一些随机数到队列中，而消费者就是不断取出这些数并打印。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+<span class='line-number'>114</span>
+<span class='line-number'>115</span>
+<span class='line-number'>116</span>
+<span class='line-number'>117</span>
+<span class='line-number'>118</span>
+<span class='line-number'>119</span>
+<span class='line-number'>120</span>
+<span class='line-number'>121</span>
+<span class='line-number'>122</span>
+<span class='line-number'>123</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">ProducerConsumer</span> <span class="o">{</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="kd">static</span> <span class="n">Queue</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">queue</span><span class="o">;</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">queue</span> <span class="o">=</span> <span class="k">new</span> <span class="n">LinkedList</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;();</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="kt">int</span> <span class="n">producerNum</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span>
+</span><span class='line'>      <span class="n">Producer</span><span class="o">[]</span> <span class="n">producers</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Producer</span><span class="o">[</span><span class="n">producerNum</span><span class="o">];</span>
+</span><span class='line'>      <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">producerNum</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+</span><span class='line'>          <span class="n">producers</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">Producer</span><span class="o">(</span><span class="n">queue</span><span class="o">);</span>
+</span><span class='line'>          <span class="n">producers</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="na">start</span><span class="o">();</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="kt">int</span> <span class="n">consumerNum</span> <span class="o">=</span> <span class="mi">2</span><span class="o">;</span>
+</span><span class='line'>      <span class="n">Consumer</span><span class="o">[]</span> <span class="n">consumers</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Consumer</span><span class="o">[</span><span class="n">consumerNum</span><span class="o">];</span>
+</span><span class='line'>      <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">consumerNum</span><span class="o">;</span> <span class="n">j</span><span class="o">++)</span> <span class="o">{</span>
+</span><span class='line'>          <span class="n">consumers</span><span class="o">[</span><span class="n">j</span><span class="o">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">Consumer</span><span class="o">(</span><span class="n">queue</span><span class="o">);</span>
+</span><span class='line'>          <span class="n">consumers</span><span class="o">[</span><span class="n">j</span><span class="o">].</span><span class="na">start</span><span class="o">();</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>          <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">(</span><span class="mi">2</span> <span class="o">*</span> <span class="mi">1000</span><span class="o">);</span>
+</span><span class='line'>          <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Main thread is awaken now!&quot;</span><span class="o">);</span>
+</span><span class='line'>      <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>          <span class="c1">// TODO Auto-generated catch block</span>
+</span><span class='line'>          <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>      <span class="c1">// stopping all producers and consumers</span>
+</span><span class='line'>      <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">producerNum</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+</span><span class='line'>          <span class="n">producers</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="na">stopLoop</span><span class="o">();</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>      <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">consumerNum</span><span class="o">;</span> <span class="n">j</span><span class="o">++)</span> <span class="o">{</span>
+</span><span class='line'>          <span class="n">consumers</span><span class="o">[</span><span class="n">j</span><span class="o">].</span><span class="na">stopLoop</span><span class="o">();</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>      <span class="c1">// make sure all threads are stopped</span>
+</span><span class='line'>      <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">producerNum</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+</span><span class='line'>          <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>              <span class="n">producers</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="na">join</span><span class="o">();</span>
+</span><span class='line'>              <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Producer: &quot;</span> <span class="o">+</span> <span class="n">producers</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="na">getId</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; is stopped!&quot;</span><span class="o">);</span>
+</span><span class='line'>          <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>              <span class="c1">// TODO Auto-generated catch block</span>
+</span><span class='line'>              <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>          <span class="o">}</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>      <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">consumerNum</span><span class="o">;</span> <span class="n">j</span><span class="o">++)</span> <span class="o">{</span>
+</span><span class='line'>          <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>              <span class="n">consumers</span><span class="o">[</span><span class="n">j</span><span class="o">].</span><span class="na">join</span><span class="o">();</span>
+</span><span class='line'>              <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Consumer: &quot;</span> <span class="o">+</span> <span class="n">consumers</span><span class="o">[</span><span class="n">j</span><span class="o">].</span><span class="na">getId</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; is stopped!&quot;</span><span class="o">);</span>
+</span><span class='line'>          <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>              <span class="c1">// TODO Auto-generated catch block</span>
+</span><span class='line'>              <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>          <span class="o">}</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kd">class</span> <span class="nc">Producer</span> <span class="kd">extends</span> <span class="n">Thread</span> <span class="o">{</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="n">Queue</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">queue</span><span class="o">;</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="kt">boolean</span> <span class="n">running</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="kt">long</span> <span class="n">threadId</span><span class="o">;</span> <span class="c1">// 因为每次run之后，才会进入到新的thread</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="kd">static</span> <span class="n">Lock</span> <span class="n">lock</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">ReentrantLock</span><span class="o">();</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="nf">Producer</span><span class="o">(</span><span class="n">Queue</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">queue</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">this</span><span class="o">.</span><span class="na">queue</span> <span class="o">=</span> <span class="n">queue</span><span class="o">;</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>  <span class="nd">@Override</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">threadId</span> <span class="o">=</span> <span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getId</span><span class="o">();</span>
+</span><span class='line'>      <span class="k">while</span> <span class="o">(</span><span class="n">running</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>          <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>              <span class="kt">double</span> <span class="n">item</span> <span class="o">=</span> <span class="n">Math</span><span class="o">.</span><span class="na">random</span><span class="o">()</span> <span class="o">*</span> <span class="mi">100</span><span class="o">;</span>
+</span><span class='line'>              <span class="n">lock</span><span class="o">.</span><span class="na">lock</span><span class="o">();</span> <span class="c1">// 这里为什么加锁？因为queue我们使用的是LinkedList，所以offer操作不是同步的，不能让不同的生产者互相争抢</span>
+</span><span class='line'>              <span class="n">queue</span><span class="o">.</span><span class="na">offer</span><span class="o">((</span><span class="kt">int</span><span class="o">)</span><span class="n">item</span><span class="o">);</span>
+</span><span class='line'>              <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Produce:&quot;</span> <span class="o">+</span> <span class="n">threadId</span> <span class="o">+</span> <span class="s">&quot;--&quot;</span> <span class="o">+</span> <span class="n">item</span><span class="o">);</span>
+</span><span class='line'>          <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>              <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>          <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+</span><span class='line'>              <span class="n">lock</span><span class="o">.</span><span class="na">unlock</span><span class="o">();</span> <span class="c1">// 放在finally中，保证程序不会中途出错而导致解锁步骤不运行</span>
+</span><span class='line'>          <span class="o">}</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">stopLoop</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Stopping Producer -- &quot;</span> <span class="o">+</span> <span class="n">threadId</span><span class="o">);</span>
+</span><span class='line'>      <span class="n">running</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="kd">class</span> <span class="nc">Consumer</span> <span class="kd">extends</span> <span class="n">Thread</span> <span class="o">{</span>
+</span><span class='line'>  <span class="cm">/**</span>
+</span><span class='line'><span class="cm">  * 这版开始加锁，不再出现NullPointerException错误</span>
+</span><span class='line'><span class="cm">  * 消费的过程中其实和生产的过程没有冲突，所以只要消费者之间共享一把锁就行了</span>
+</span><span class='line'><span class="cm">  * 让queue.peek 和 poll绑定，使之检查是有效的</span>
+</span><span class='line'><span class="cm">  */</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="n">Queue</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">queue</span><span class="o">;</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="kt">boolean</span> <span class="n">running</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="kd">static</span> <span class="n">Lock</span> <span class="n">lock</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">ReentrantLock</span><span class="o">();</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="kt">long</span> <span class="n">threadId</span><span class="o">;</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="nf">Consumer</span><span class="o">(</span><span class="n">Queue</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">queue</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">this</span><span class="o">.</span><span class="na">queue</span> <span class="o">=</span> <span class="n">queue</span><span class="o">;</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>  <span class="nd">@Override</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">threadId</span> <span class="o">=</span> <span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getId</span><span class="o">();</span>
+</span><span class='line'>      <span class="k">while</span> <span class="o">(</span><span class="n">running</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">(</span><span class="n">queue</span><span class="o">.</span><span class="na">peek</span><span class="o">()</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>          <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>                  <span class="n">lock</span><span class="o">.</span><span class="na">lock</span><span class="o">();</span> <span class="c1">// 加锁第一是因为poll非同步，还有peek和poll之间非原子性，不加锁会导致peek检查很容易失效</span>
+</span><span class='line'>                      <span class="k">if</span> <span class="o">(</span><span class="n">queue</span><span class="o">.</span><span class="na">peek</span><span class="o">()</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span> <span class="c1">// double check</span>
+</span><span class='line'>                          <span class="kt">int</span> <span class="n">item</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="na">poll</span><span class="o">();</span>
+</span><span class='line'>                          <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Consume:&quot;</span> <span class="o">+</span> <span class="n">threadId</span> <span class="o">+</span><span class="s">&quot; -- &quot;</span> <span class="o">+</span> <span class="n">item</span><span class="o">);</span>
+</span><span class='line'>                      <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+</span><span class='line'>                          <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Consume:&quot;</span> <span class="o">+</span> <span class="n">threadId</span> <span class="o">+</span><span class="s">&quot; -- empty&quot;</span><span class="o">);</span>
+</span><span class='line'>                      <span class="o">}</span>
+</span><span class='line'>          <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>          <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+</span><span class='line'>            <span class="n">lock</span><span class="o">.</span><span class="na">unlock</span><span class="o">();</span>
+</span><span class='line'>          <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">stopLoop</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Stopping Consumer: &quot;</span> <span class="o">+</span> <span class="n">threadId</span><span class="o">);</span>
+</span><span class='line'>      <span class="n">running</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>开始点评这个版本：
+- 巨大的缺点就是queue是无界的，很容易造成queue被爆掉
+- running这个变量非同步，所以在主线程中调用stopLoop虽然可能生效，但是按照java的内存模型来说，没有同步的变量在不同线程中可能不能被互相观察到，这导致consumer的线程都观察不到running已经被主线程设置为false了。从而导致程序停不下来（查看<a href="https://www.amazon.cn/Sun-%E5%85%AC%E5%8F%B8%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%E4%B8%9B%E4%B9%A6-Effective-Java%E4%B8%AD%E6%96%87%E7%89%88-Joshua-Bloch/dp/B001PTGR52/ref=sr_1_1?ie=UTF8&amp;qid=1468729174&amp;sr=8-1&amp;keywords=effective+java">Effective java的66条</a>）。解决这个问题有两种方法，一种是使用synchronized修饰的方法来封装running的读写，一种是把running秀事成volatile（参看<a href="https://www.amazon.cn/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA-JVM%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7%E4%B8%8E%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5-%E5%91%A8%E5%BF%97%E6%98%8E/dp/B00D2ID4PK/ref=sr_1_1?ie=UTF8&amp;qid=1468728884&amp;sr=8-1&amp;keywords=jvm">深入理解Java虚拟机:JVM高级特性与最佳实践</a>）。</p>
+
+<h3>queue实现有界版</h3>
+
+<p>自己利用LinkedList实现了一个BlockQueue，当然java中本身就有个这个而数据结构，这个造轮子只是为了理解其中的原理。
+这次这个程序稍微复杂一些，存取的不在是随机数，而是一个个log。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+<span class='line-number'>114</span>
+<span class='line-number'>115</span>
+<span class='line-number'>116</span>
+<span class='line-number'>117</span>
+<span class='line-number'>118</span>
+<span class='line-number'>119</span>
+<span class='line-number'>120</span>
+<span class='line-number'>121</span>
+<span class='line-number'>122</span>
+<span class='line-number'>123</span>
+<span class='line-number'>124</span>
+<span class='line-number'>125</span>
+<span class='line-number'>126</span>
+<span class='line-number'>127</span>
+<span class='line-number'>128</span>
+<span class='line-number'>129</span>
+<span class='line-number'>130</span>
+<span class='line-number'>131</span>
+<span class='line-number'>132</span>
+<span class='line-number'>133</span>
+<span class='line-number'>134</span>
+<span class='line-number'>135</span>
+<span class='line-number'>136</span>
+<span class='line-number'>137</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="cm">/**</span>
+</span><span class='line'><span class="cm"> * 1、第一版的时候我们只用了linkedlist来模拟queu，但是让出现producer特别慢，但是consumer又总是再探测浪费资源？</span>
+</span><span class='line'><span class="cm"> * 2、还有就是producer产生速度过去快，难道就让它把内存挤爆吗？</span>
+</span><span class='line'><span class="cm"> * 3、所以我们需要blockingQueue，第一是限制queue的大小，第二是协调两方的生产和消费速度。</span>
+</span><span class='line'><span class="cm"> * @author xiedandan</span>
+</span><span class='line'><span class="cm"> *</span>
+</span><span class='line'><span class="cm"> * 疑问点：使用monitor来设计一个blocking Queue</span>
+</span><span class='line'><span class="cm"> * 1. 不对queue进行synchronize，会爆出IllegalMonitorException</span>
+</span><span class='line'><span class="cm"> * 2. 然后开始不断调整synchronize位置，比如在while(running)外边，在while(running)里面</span>
+</span><span class='line'><span class="cm"> * 3. 然后就开了怎么都唤不醒consumer的bug</span>
+</span><span class='line'><span class="cm"> */</span>
+</span><span class='line'><span class="kd">public</span> <span class="kd">class</span> <span class="nc">ProducerConsumerBlockingQueue</span> <span class="o">{</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="kd">static</span> <span class="n">SudoBlockingQueue</span><span class="o">&lt;</span><span class="n">Log</span><span class="o">&gt;</span> <span class="n">queue</span><span class="o">;</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="c1">// 和格版本一致</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="cm">/* mimic a bin-log restore system.</span>
+</span><span class='line'><span class="cm"> * Producer to produce operating logs and consumer to read the logs and try to restore the record.</span>
+</span><span class='line'><span class="cm"> * log schema: transactionId, operatingType, dataValue(before current operation)</span>
+</span><span class='line'><span class="cm"> *</span>
+</span><span class='line'><span class="cm"> * version 1: Suppose we only have one row record in whole table and only add operation,</span>
+</span><span class='line'><span class="cm"> *             so the log order is not important.</span>
+</span><span class='line'><span class="cm"> */</span>
+</span><span class='line'><span class="kd">class</span> <span class="nc">ProducerLog</span> <span class="kd">extends</span> <span class="n">Thread</span> <span class="o">{</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="n">SudoBlockingQueue</span><span class="o">&lt;</span><span class="n">Log</span><span class="o">&gt;</span> <span class="n">queue</span><span class="o">;</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="kt">boolean</span> <span class="kd">volatile</span> <span class="n">running</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="kt">long</span> <span class="n">threadId</span><span class="o">;</span>
+</span><span class='line'>  <span class="c1">// private Lock lock; // 1. 为啥在这里我们不用lock呢？因为都封装在queue自身中了。</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="nf">ProducerLog</span><span class="o">(</span><span class="n">SudoBlockingQueue</span><span class="o">&lt;</span><span class="n">Log</span><span class="o">&gt;</span> <span class="n">queue</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">this</span><span class="o">.</span><span class="na">queue</span> <span class="o">=</span> <span class="n">queue</span><span class="o">;</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>  <span class="nd">@Override</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">threadId</span> <span class="o">=</span> <span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getId</span><span class="o">();</span>
+</span><span class='line'>      <span class="k">while</span><span class="o">(</span><span class="n">running</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>          <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>              <span class="kd">synchronized</span><span class="o">(</span><span class="n">queue</span><span class="o">)</span> <span class="o">{</span> <span class="c1">// 2. 试试把这句话取掉会产生结果？</span>
+</span><span class='line'>      <span class="c1">//         1.if (queue.isFull()) { // 3. 为什么不能使用if，而要使用while？</span>
+</span><span class='line'>                  <span class="k">while</span> <span class="o">(</span><span class="n">queue</span><span class="o">.</span><span class="na">isFull</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>                      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Proudce:&quot;</span> <span class="o">+</span> <span class="n">threadId</span> <span class="o">+</span> <span class="s">&quot;--- wait&quot;</span><span class="o">);</span>
+</span><span class='line'>                      <span class="n">queue</span><span class="o">.</span><span class="na">wait</span><span class="o">();</span>
+</span><span class='line'>                  <span class="o">}</span>
+</span><span class='line'>                  <span class="kt">boolean</span> <span class="n">e</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="na">isEmpty</span><span class="o">();</span>
+</span><span class='line'>                  <span class="n">Log</span> <span class="n">log</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">Log</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="o">(</span><span class="kt">int</span><span class="o">)(</span><span class="n">Math</span><span class="o">.</span><span class="na">random</span><span class="o">()</span> <span class="o">*</span> <span class="mi">100</span><span class="o">));</span>
+</span><span class='line'>                  <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Proudce:&quot;</span> <span class="o">+</span> <span class="n">threadId</span> <span class="o">+</span> <span class="s">&quot;---&quot;</span> <span class="o">+</span> <span class="n">log</span><span class="o">);</span>
+</span><span class='line'>                  <span class="n">queue</span><span class="o">.</span><span class="na">offer</span><span class="o">(</span><span class="n">log</span><span class="o">);</span>
+</span><span class='line'>                  <span class="k">if</span> <span class="o">(</span><span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Proudce:&quot;</span> <span class="o">+</span> <span class="n">threadId</span> <span class="o">+</span> <span class="s">&quot;--- notify all&quot;</span><span class="o">);</span>
+</span><span class='line'>                      <span class="n">queue</span><span class="o">.</span><span class="na">notifyAll</span><span class="o">();</span>
+</span><span class='line'>                  <span class="o">}</span>
+</span><span class='line'>              <span class="o">}</span>
+</span><span class='line'>          <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>              <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>          <span class="o">}</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">stopLoop</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Stopping Prouder:&quot;</span> <span class="o">+</span> <span class="n">threadId</span><span class="o">);</span>
+</span><span class='line'>      <span class="n">running</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>      <span class="n">queue</span><span class="o">.</span><span class="na">syncNotifyAll</span><span class="o">();</span> <span class="c1">// 4. 为啥这里还有再次notifyall一次呢？</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="kd">class</span> <span class="nc">ConsumerLog</span> <span class="kd">extends</span> <span class="n">Thread</span> <span class="o">{</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="n">SudoBlockingQueue</span><span class="o">&lt;</span><span class="n">Log</span><span class="o">&gt;</span> <span class="n">queue</span><span class="o">;</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="kt">boolean</span> <span class="n">running</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="kt">long</span> <span class="n">threadId</span><span class="o">;</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="nf">ConsumerLog</span><span class="o">(</span><span class="n">SudoBlockingQueue</span><span class="o">&lt;</span><span class="n">Log</span><span class="o">&gt;</span> <span class="n">queue</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">this</span><span class="o">.</span><span class="na">queue</span> <span class="o">=</span> <span class="n">queue</span><span class="o">;</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>  <span class="nd">@Override</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">threadId</span> <span class="o">=</span> <span class="n">Thread</span><span class="o">.</span><span class="na">currentThread</span><span class="o">().</span><span class="na">getId</span><span class="o">();</span>
+</span><span class='line'>      <span class="k">while</span><span class="o">(</span><span class="n">running</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>          <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>              <span class="kd">synchronized</span><span class="o">(</span><span class="n">queue</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                  <span class="k">while</span> <span class="o">(</span><span class="n">running</span> <span class="o">&amp;&amp;</span> <span class="n">queue</span><span class="o">.</span><span class="na">isEmpty</span><span class="o">())</span> <span class="o">{</span>
+</span><span class='line'>                      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Consumer:&quot;</span> <span class="o">+</span> <span class="n">threadId</span> <span class="o">+</span> <span class="s">&quot;--wait&quot;</span><span class="o">);</span>
+</span><span class='line'>                      <span class="n">queue</span><span class="o">.</span><span class="na">wait</span><span class="o">();</span>
+</span><span class='line'>                  <span class="o">}</span>
+</span><span class='line'>                  <span class="kt">boolean</span> <span class="n">f</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="na">isFull</span><span class="o">();</span>
+</span><span class='line'>                  <span class="n">Log</span> <span class="n">log</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="na">poll</span><span class="o">();</span>
+</span><span class='line'>                  <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Consumer:&quot;</span> <span class="o">+</span> <span class="n">threadId</span> <span class="o">+</span> <span class="s">&quot;--&quot;</span> <span class="o">+</span> <span class="n">log</span><span class="o">);</span>
+</span><span class='line'>                  <span class="k">if</span> <span class="o">(</span><span class="n">f</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>                      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Consumer:&quot;</span> <span class="o">+</span> <span class="n">threadId</span> <span class="o">+</span> <span class="s">&quot;--notify&quot;</span><span class="o">);</span>
+</span><span class='line'>                      <span class="n">queue</span><span class="o">.</span><span class="na">notifyAll</span><span class="o">();</span>
+</span><span class='line'>                  <span class="o">}</span>
+</span><span class='line'>              <span class="o">}</span>
+</span><span class='line'>          <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>              <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>          <span class="o">}</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">stopLoop</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Stopping Consumer -- &quot;</span> <span class="o">+</span> <span class="n">threadId</span><span class="o">);</span>
+</span><span class='line'>      <span class="n">running</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</span><span class='line'>      <span class="n">queue</span><span class="o">.</span><span class="na">syncNotifyAll</span><span class="o">();</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="kd">class</span> <span class="nc">Log</span> <span class="o">{</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kt">int</span> <span class="n">tranId</span><span class="o">;</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kt">int</span> <span class="n">operaType</span><span class="o">;</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kt">int</span> <span class="n">data</span><span class="o">;</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="nf">Log</span><span class="o">(</span><span class="kt">int</span> <span class="n">tranId</span><span class="o">,</span> <span class="kt">int</span> <span class="n">operaType</span><span class="o">,</span> <span class="kt">int</span> <span class="n">data</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">this</span><span class="o">.</span><span class="na">tranId</span> <span class="o">=</span> <span class="n">tranId</span><span class="o">;</span>
+</span><span class='line'>      <span class="k">this</span><span class="o">.</span><span class="na">operaType</span> <span class="o">=</span> <span class="n">operaType</span><span class="o">;</span>
+</span><span class='line'>      <span class="k">this</span><span class="o">.</span><span class="na">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">;</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>  <span class="nd">@Override</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="n">String</span> <span class="nf">toString</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">return</span> <span class="s">&quot;TranId:&quot;</span> <span class="o">+</span> <span class="n">tranId</span> <span class="o">+</span> <span class="s">&quot;,OperaType:&quot;</span> <span class="o">+</span> <span class="n">operaType</span> <span class="o">+</span> <span class="s">&quot;,Data&quot;</span> <span class="o">+</span> <span class="n">data</span><span class="o">;</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="kd">class</span> <span class="nc">SudoBlockingQueue</span> <span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="kd">extends</span> <span class="n">LinkedList</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="o">{</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="kt">long</span> <span class="n">serialVersionUID</span> <span class="o">=</span> <span class="mi">13344L</span><span class="o">;</span>
+</span><span class='line'>  <span class="kd">private</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">CAPACITY</span><span class="o">;</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="nf">SudoBlockingQueue</span><span class="o">(</span><span class="kt">int</span> <span class="n">capacity</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>      <span class="n">CAPACITY</span> <span class="o">=</span> <span class="n">capacity</span><span class="o">;</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>  <span class="kt">boolean</span> <span class="nf">isFull</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">return</span> <span class="kd">super</span><span class="o">.</span><span class="na">size</span><span class="o">()</span> <span class="o">==</span> <span class="n">CAPACITY</span><span class="o">;</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="nf">getCapacity</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">return</span> <span class="n">CAPACITY</span><span class="o">;</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kd">synchronized</span> <span class="kt">void</span> <span class="nf">syncNotifyAll</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">this</span><span class="o">.</span><span class="na">notifyAll</span><span class="o">();</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'>  <span class="kd">public</span> <span class="kd">synchronized</span> <span class="kt">void</span> <span class="nf">syncWait</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>      <span class="k">try</span> <span class="o">{</span>
+</span><span class='line'>          <span class="k">this</span><span class="o">.</span><span class="na">wait</span><span class="o">();</span>
+</span><span class='line'>      <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>          <span class="c1">// TODO Auto-generated catch block</span>
+</span><span class='line'>          <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'>  <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>回答上面的问题：</p>
+
+<ol>
+<li>为什么要对queue进行同步呢？原因之一是是前一个例子一样lock的作用，同步offer的。还有一个重要的原因是queue.wait()和queue.notify()必须在拥有当前queue的控制权时候才能进行。不然会报IllegalMonitorStateException(关于为什么会产生这个异常，参看<a href="http://www.cnblogs.com/techyc/p/3272321.html">Java的wait(), notify()和notifyAll()使用小结</a>)。</li>
+<li>为什么不能使用if，而要使用while？原因是为了double check，想想有3个消费者，其生产的消费速度远远大于生产速度。当一个任务被生产出来，唤醒了全部的consumers，这时候多个consumer准备结束queue.wait()。但是只有一个consumer能抢到资源，其他的consumer如果不再次做isEmpty检查就会误以为任务，继续走下去，结果发生错误。一定参看这篇文章：<a href="http://www.importnew.com/16453.html">如何在 Java 中正确使用 wait, notify 和 notifyAll – 以生产者消费者模型为例</a></li>
+<li>为啥这里还有再次notifyAll一次呢？因为当stop的时候有些线程正处于wait装填，必须唤醒才能从while(running)跳出来。因为notifyAll需要保证获得queue的控制权，所以需要synchronized。</li>
+</ol>
+
+
+<p>这个版本设计的也比较糟糕，因为需要调用多次的stopLoop，可以把running设计成static，只用调用一次stopLoop即可。</p>
+
+<h2>关于 wait(), notify() and notifyAll()的一些理解</h2>
+
+<ul>
+<li>这些是都是一个Monitor同步模型的一些具体操作。<a href="http://www.javamadesoeasy.com/2015/03/why-wait-notify-and-notifyall-are-in.html">下面引用这篇文章</a></li>
+<li>Every Object has a monitor, acquiring that monitors allow thread to hold lock on object. But Thread class does not have any monitors.</li>
+<li><p>wait(), notify() and notifyAll() are called on objects only > When wait() method is called on object by thread it waits for another thread on that object to release object monitor by calling notify() or notifyAll() method on that object.
+When notify() method is called on object by thread it notifies all the threads which are waiting for that object monitor that object monitor is available now.
+So, this shows that wait(), notify() and notifyAll() are called on objects only.
+Now, Straight forward question that comes to mind is how thread acquires object lock by acquiring object monitor? Let’s try to understand this basic concept in detail?</p></li>
+<li><p>Wait(), notify() and notifyAll() method being in Object class allows all the threads created on that object to communicate with other.  [As multiple threads may exist on same object].</p></li>
+<li><p>As multiple threads exists on same object. Only one thread can hold object monitor at a time. As a result thread can notify other threads of same object that lock is available now. But, thread having these methods does not make any sense because multiple threads exists on object it&rsquo;s not other way around (i.e. multiple objects exists on thread).</p></li>
+<li><p>Now let’s discuss one hypothetical scenario, what will happen if Thread class contains wait(), notify() and notifyAll() methods?
+Having wait(), notify() and notifyAll() methods means Thread class also must have their monitor.
+Every thread having their monitor will create few problems -</p>
+
+<blockquote><p>Thread communication problem.
+Synchronization on object won’t be possible- Because object has monitor, one object can have multiple threads and thread hold lock on object by holding object monitor. But if each thread will have monitor, we won’t have any way of achieving synchronization.
+Inconsistency in state of object (because synchronization won&rsquo;t be possible).</p></blockquote></li>
+</ul>
+
+
+<h2>写正确一个并发程序真实不容易，特别容易遇到各种死锁而结束不了程序。学会并发编程：</h2>
+
+<ol>
+<li><a href="./">生产者消费模型</a></li>
+<li><a href="./">线程池</a></li>
+<li><a href="./">进程池</a></li>
+<li><a href="./">LRU缓存</a></li>
+</ol>
+
+
+<h3>refenrence</h3>
+
+<ul>
+<li><a href="http://www.importnew.com/10173.html">notify和notifyAll的一段代码分析</a></li>
+<li><a href="http://stackoverflow.com/questions/20110013/implement-your-own-blocking-queue-in-java">implement-your-own blocking queue in java</a></li>
+<li><a href="http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/locks/Condition.html">Interface Condition</a></li>
+<li><a href="http://www.importnew.com/16453.html">如何在 Java 中正确使用 wait, notify 和 notifyAll – 以生产者消费者模型为例</a></li>
+<li><a href="http://www.cnblogs.com/techyc/p/3272321.html">Java的wait(), notify()和notifyAll()使用小结</a></li>
+<li><a href="http://www.ticmy.com/?p=219"></a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/07/07/why-many-data-structrues-have-logn-relative-time-complexity/">Why Many Data Structrues Have Logn Relative Time Complexity</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-07-07T21:50:55+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>7</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:50 pm</span></time>
         
       </p>
     
@@ -105,7 +796,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2016/06/12/online-advertisement/">Online Advertisement</a></h1>
+      <h1 class="entry-title"><a href="/blog/2016/07/07/introduce-redis/">Introduce Redis</a></h1>
     
     
       <p class="meta">
@@ -114,16 +805,44 @@
 
 
 
-<time class='entry-date' datetime='2016-06-12T17:01:20+08:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>12</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>5:01 pm</span></time>
+<time class='entry-date' datetime='2016-07-07T21:35:59+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>7</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:35 pm</span></time>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><h1>ad in facebook</h1>
+  <div class="entry-content"><p>观点一：redis采用结构化数据，打通了代码和储存
+关键技术： event loop， single thread</p>
+</div>
+  
+  
 
-<p><a href="https://zhuanlan.zhihu.com/p/20596989?refer=donglaoshi">https://zhuanlan.zhihu.com/p/20596989?refer=donglaoshi</a></p>
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/06/22/how-to-desgin-a-thread-pool/">How to Desgin a Thread Pool</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-06-22T23:11:22+08:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>11:11 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content">
 </div>
   
   
@@ -258,35 +977,6 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2016/04/24/talk-about-hash-functions/">Talk About Hash Functions</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-04-24T22:32:57+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:32 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
       <h1 class="entry-title"><a href="/blog/2016/04/24/introduce-mapreduce/">Introduce MapReduce</a></h1>
     
     
@@ -387,155 +1077,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/04/21/debug-python/">Debug Python</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-04-21T11:12:30+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2016</span></span> <span class='time'>11:12 am</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/04/10/message-delivery-reliability/">Message System</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-04-10T18:31:31+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>10</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>6:31 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>接触了一些message system的系统（大部分是kafka），对message queue的作用和关键点有了一些了解。这些就谈谈我的认识，和使用注意事项。</p>
-
-<h1>message queue的作用</h1>
-
-<p>查阅了材料发现总结下来，列举的理由有十几条之多，但是直接貌似没有任何联系和组织方式。很是不好理解。我在这里使用模型的变化来阐述我自己的理解：
-<img src="./images/posts/message_system.png" alt="naive" />
-从上面的演化图来看，有了消息队列后的一个本质变化就是把收消息和接消息的任务都扔给了第三方，其实这就是软件行业中最一般的做法如果要获得软件的灵活性和扩展性，那么就开始加中间层。计算机网络是这么做的，同样操作系统也是这么做的。
-而考虑具体的好处这个问题和系统会出现什么问题是手心手背的关系。我们就来一块一块的说。
-我们假设我们要做一个买票系统。数据库使用mysql，前面只有一个售票程序来操作数据。这时候的模型就是第一个模块的样子。初期的时候一切都很完美，这个网站只拥有1万用户，每天只卖500张票。
-后来发现有些背后的mysql总是宕机，导致用户订票总是不成功，所以就想着怎么把用户的订单信息先存下来，然后等mysql恢复后马上继续处理。这时候你就开始想着建立一个消息缓存队列，然后程序自然形成了一个生产者消费者模型。同时你还会发现这个不仅仅有消息缓存的好处，还有发现消息现在是可以被保存了（或者说很便捷和自然的保存了）。以前那些因为程序bug处理失败的消息可以被重复处理了。还有就是哪天突然要在mysql之上加上一层redis，那其实也不必修改上游程序。总结下来：
-1. 缓冲 &ndash; 消息的缓存，当下游处于宕机状态，消息可以被缓存等待重启后继续处理。
-2. 解耦 &ndash; 项目之间解耦，形成各种微服务
-3. 冗余
-4. 送达保证
-5. 顺序保证能实现了</p>
-
-<p>再后来你的系统的用户增加到了100万，而且因为是买的火车票，所以一到过节订单就出现高峰，这时候辛亏你有了消息队列可以帮你缓存。
-6. 消除峰值 &ndash; 即消息均衡，当消息的生产速度差距很大的时候，消息可以被缓存，然后转发其他空闲的服务上或者等待等后续措施。</p>
-
-<p>后来再发现一个消息队列因为不够存储高峰期间储蓄的数据了，这时候再增加下游的消费者处理能力很浪费，因为平时你用不着。这时候发现增加一个消息队列服务的成本去很低，那么开始扩展这里。
-7. 扩展性</p>
-
-<p>其他feature：
-1. 异步通信
-这个是好是坏，全看实际的引用场景。对于实时要求性很高，但是不要求消息全部保证被处理就是无所谓的特性。</p>
-
-<ol>
-<li>附赠的feature(只是更方便吧)
-因为消息缓存的独立，可以对其处理速度监控，从而得知系统的负载能力。</li>
-</ol>
-
-
-<p>从另一个角度再看看消息队列的作用：
-因为从生产者、消费者两方关系衍生到生产者、消息队列、消费者三方之间的关系，所以我们就从3个主题的角度讨论。
-1. 主体一生产者会发生些什么情况：</p>
-
-<ul>
-<li>性能——流量突然增大，或者流量是不均匀的</li>
-<li>部分失效——突然部分生产者挂了。如果没有消息队列，那就意味着部分消费者没有任务消费了，或者消费者自己做了任务自动均衡，这是一件比较麻烦的额事情。</li>
-<li>容错性——都挂了。如果没有消息队列，那么消费者也立即进入休息状态。但是有了消息对立后以前生产的东西还能储存下来，提供消费者消费，然后有个缓冲时间窗口重启</li>
-<li>扩展性——突然要增加生产者的数量，没有消息队列的情况下，意味着需要有一套re-balance的机制在里面，同样时间麻烦的事情。统统都交给消息队列考虑吧。其实这条和部分失效是一样的，都是scaling过程。</li>
-<li><p>复用（解耦）——生产的消息万一不仅仅只有一个消费者，这样还需要一套分发机制。也是件麻烦的事情。有了消息队列，其实消费者和我再也没啥关系了。我爱怎么生成就怎么生产。</p></li>
-<li><p>主体二消费者会发生些什么情况：</p></li>
-<li><p>性能——处理速度万一跟不上呢？</p></li>
-<li>扩展性——同上，消息队列提供了扩展收缩自动均衡的策略。</li>
-</ul>
-
-
-<h1>如果学习一个message queue？</h1>
-
-<h2>消息可达性保证机制</h2>
-
-<p>这个机制或者约定更确切些，就是描述系统到底怎么client进行交互，确保信息是正确的到达了目的地。一般的消息保证机制有：
-1. 至多一次，保证绝对不重复发，但是有丢数据情况。这种情况server处理是最简单的，发完了就不管了，不需要和client交互。</p>
-
-<blockquote><p>at-most-once delivery means that for each message handed to the mechanism, that message is delivered zero or one times; in more casual terms it means that messages may be lost.
-2. 至少一次，保证一定client接收到了信息，如果不能确定client接收到了信息会重复发。做到这点server只要一直发知道接收到了client的ack。
-at-least-once delivery means that for each message handed to the mechanism potentially multiple attempts are made at delivering it, such that at least one succeeds; again, in more casual terms this means that messages may be duplicated but not lost.
-3. 精确的一次，保证不重复发但也不丢数据。exactly-once是最难保证的，因为这涉及到通信中的很多情况。
-exactly-once delivery means that for each message handed to the mechanism exactly one delivery is made to the recipient; the message can neither be lost nor duplicated.</p>
-
-<p>The first one is the cheapest—highest performance, least implementation overhead—because it can be done in a fire-and-forget fashion without keeping state at the sending end or in the transport mechanism. The second one requires retries to counter transport losses, which means keeping state at the sending end and having an acknowledgement mechanism at the receiving end. The third is most expensive—and has consequently worst performance—because in addition to the second it requires state to be kept at the receiving end in order to filter out duplicate deliveries.</p></blockquote>
-
-<h3>为什么保证不了消息发送？</h3>
-
-<ol>
-<li>The message is sent out on the network?</li>
-<li>The message is received by the other host?</li>
-<li>The message is put into the target actor&rsquo;s mailbox?</li>
-<li>The message is starting to be processed by the target actor?</li>
-<li>The message is processed successfully by the target actor?</li>
-</ol>
-
-
-<p>其实就从消息传递从出发到结果的整个过程，状体包括出发、路上、进门、喝茶、出门和回家通报。
-其中在路上需要花多少时间谁都不知道，还有没有万一进门后被真“喝茶”后，不返回通报的你让发送者的家人怎么办？</p>
-
-<h2>消息顺序保证机制</h2>
-
-<ol>
-<li>保证消息一定是顺序到达的，这个地方需要考虑如果是一个kafka的系统，同一个group下的不同consumer之间的顺序怎么保证？</li>
-<li>不保证消息一定顺序到达</li>
-</ol>
-
-
-<h1>reference</h1>
-
-<ol>
-<li><a href="http://doc.akka.io/docs/akka/2.4.3/general/message-delivery-reliability.html">Message Delivery Reliability</a></li>
-<li><a href="http://www.jasongj.com/2015/01/02/Kafka%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/">Kafka深度解析</a></li>
-</ol>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/3">&larr; Older</a>
@@ -553,23 +1094,23 @@ exactly-once delivery means that for each message handed to the mechanism exactl
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/07/29/introduce-cap/">Introduce CAP</a>
+        <a href="/blog/2016/09/06/scheduling-strategy/">Scheduling Strategy</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/24/how-to-understand-a-data-system/">如何理解一个数据存储系统</a>
+        <a href="/blog/2016/09/04/data-file-organization/">Data File Organization</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/23/introduce-infobright/">Introduce Infobright</a>
+        <a href="/blog/2016/08/31/introduce-hive/">Introduce Hive</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/20/why-need-runnable-while-we-already-have-thread-in-java/">java里为什么有了Thread还要设置一个Runnable？</a>
+        <a href="/blog/2016/08/22/design-pattern/">Design Pattern</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/18/the-world-about-oriental-column-database/">数据分析利器 —— 列式储存数据库</a>
+        <a href="/blog/2016/08/14/how-to-manipulate-binary-stream/">How to Manipulate Binary Stream</a>
       </li>
     
   </ul>

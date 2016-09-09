@@ -9,7 +9,9 @@
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="[跨越性发明]算法复杂度分析技术 关于算法分析技术的介绍，我看到最精彩的文章出自于Robert Sadgewick的《算法》。本书在第一章的介绍性文章给了一些很精彩的算法案例和程序代码后提出让我很震惊的问题:“怎么判断一个算法跑的快不快？”,而且这个问题从头到尾不断重复。 &hellip;">
+  <meta name="description" content="看mondrian代码非常痛了，代码经常是绕来绕去的，特别是一些假递归比比皆是。还有A调用B，B再调用A，来回折腾，其中有些是用的单利，有些没有。
+比如：RolapConnection调用RolapSchema，RolapSchema内部又实例化另一个RolapConnection，这样来回折腾
+">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -69,222 +71,6 @@
     <div id="content">
       <div class="blog-index">
   
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/10/24/aha-analysis-of-algorithms/">Aha! Analysis of Algorithms</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-10-24T15:15:46+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>3:15 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h1>[跨越性发明]算法复杂度分析技术</h1>
-
-<p>关于算法分析技术的介绍，我看到最精彩的文章出自于Robert Sadgewick的《算法》。本书在第一章的介绍性文章给了一些很精彩的算法案例和程序代码后提出让我很震惊的问题:“怎么判断一个算法跑的快不快？”,而且这个问题从头到尾不断重复。我很震惊的原因是我认为既然都知道算法过程，其他的类似与计算步骤这种“附属问题”难道还需要考虑？然后真被问到后，我发现我还真不会。不信，假装大家都事先不知道分析技术，我们来看下面的例子：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include &lt;stdio.h&gt;</span>
-</span><span class='line'><span class="cp">#include &lt;types.h&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">size_t</span> <span class="nf">binary_search</span><span class="p">(</span><span class="kt">int</span> <span class="o">*</span><span class="n">arr</span><span class="p">,</span> <span class="kt">int</span> <span class="n">len</span><span class="p">,</span> <span class="kt">int</span> <span class="n">target</span><span class="p">)</span>
-</span><span class='line'><span class="p">{</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">left</span><span class="p">,</span><span class="n">right</span><span class="p">,</span><span class="n">middle</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">right</span><span class="o">=</span><span class="n">len</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">while</span><span class="p">(</span><span class="n">left</span><span class="o">&lt;=</span><span class="n">right</span><span class="p">){</span>
-</span><span class='line'>        <span class="n">middle</span><span class="o">=</span><span class="p">(</span><span class="n">left</span><span class="o">+</span><span class="n">right</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">;</span>
-</span><span class='line'>        <span class="k">if</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="n">target</span><span class="p">]</span><span class="o">==</span><span class="n">arr</span><span class="p">[</span><span class="n">middle</span><span class="p">]){</span>
-</span><span class='line'>            <span class="k">return</span> <span class="n">middle</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>        <span class="k">if</span> <span class="k">else</span><span class="p">(</span><span class="n">arr</span><span class="p">[</span><span class="n">target</span><span class="p">]</span><span class="o">&lt;</span><span class="n">arr</span><span class="p">[</span><span class="n">middle</span><span class="p">]){</span>
-</span><span class='line'>            <span class="n">right</span><span class="o">=</span><span class="n">middle</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>        <span class="k">else</span><span class="p">{</span>
-</span><span class='line'>            <span class="n">left</span><span class="o">=</span><span class="n">middle</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>上面的二分查找法，让我们来分析运行时间。
-首先反应就是实际运行一下，统计时间不就出来了。好，就这么办。不过当开始动手的时候就发现自己要构建输入，而构建个什么样的输入呢？arr的包括数据长度可以从10个整数到100000整数到无穷大……。从这个问题我们就会强烈的意识到算法的运行时间和输入数据大小直接相关。我们下记下来这条：</p>
-
-<blockquote><p>运行时间和输入数据大小直接相关</p></blockquote>
-
-<p>用更简介的纪录方法：</p>
-
-<blockquote><p>运行时间 ~ 输入数据大小</p></blockquote>
-
-<p>还是不够方便，我们用一种数据方法来记录，这种思想来自于波利亚的<a href="http://www.amazon.cn/%E6%80%8E%E6%A0%B7%E8%A7%A3%E9%A2%98-%E6%95%B0%E5%AD%A6%E6%80%9D%E7%BB%B4%E7%9A%84%E6%96%B0%E6%96%B9%E6%B3%95-%E6%B3%A2%E5%88%A9%E4%BA%9A/dp/B0011F6OGM/ref=sr_1_1?ie=UTF8&amp;qid=1445674579&amp;sr=8-1&amp;keywords=%E6%80%8E%E4%B9%88%E8%A7%A3%E9%A2%98">怎么解题</a>或者数据建模，这种数学化一个实际问题是我发现找到结果的最强大的工具。T来表示运行时间,arr_len作为时间函数的一个自变量</p>
-
-<blockquote><p>T=f(arr_len)</p></blockquote>
-
-<p>构建完第一参数，我们来构建第二个参数，查那个数呢？Oh，my god!又发现target同样影响查询效率。因为查中间的位置，比查第一个和最后一个元素的时间长多了。这时我们再加一个自变量：tar_pos(target_pos)。</p>
-
-<blockquote><p>T=f(arr_len,tar_pos)</p></blockquote>
-
-<p>后来又因为我开启了一个耗资源的游戏，这个程序居然在同样的参数下跑的慢了。突然有想到了，原来机器的资源不同也是个大因素，这里包括机器拥有的cpu、内存、磁盘等。这时又需要加参数进入我们的函数了。我们叫machine envrionment，简称m_env.</p>
-
-<blockquote><p>T=f(arr_len,tar_pos,m_env)</p></blockquote>
-
-<p>看上面的问题，我们发现要精确进算运行速度，简直是不可能的事，因为有一个非常不容易控制而且我们也不关心的自变量那就是m_env。我们的算法要成功，必须在任何机器上都需要有良好的性能。所以我们开始<strong>简化模型</strong>,那就是开始构建理想机器，其资源全部资源都给我们关心的程序。<code>且假设一个statment所用的时间都是1（没有单位）</code>.这样我们算时间就转化成了算程序使用了多少statment。</p>
-
-<blockquote><p>T=f(arr_len,tar_pos), assumpte every statment takes one time</p></blockquote>
-
-<p>现在基本确定了自变量（怎么知道考虑的自变量够了呢？），我们来细化关系式。
-T= 1+1+while里面的步骤。while里面的步骤怎么计算？
-假如我们的输入是：0 1 2 3 4 5。那么每个位置对应的运行次数如下图：</p>
-
-<p><img src="/images/posts/binary_search_tree.jpg" alt="bianry_search_tree" /></p>
-
-<p>上图给出的是n=6的情况。树的高hight=log(6)+1=3, t&lt;=hight(todo:能给出t＝f(k)的具体公式吗？参照平衡二叉树的性质)。</p>
-
-<p>给出了这个公式，我们就可以衡量任意参数的时间了。但是如果要对比算优良，就主要看在同样的参数下，谁更快了。现在我们拿出一个顺序查找来对比，我们都知道顺序查找的时间公式：T=tar_pos, 0&lt;=tar_pos&lt;6。 我们从第一个到k位置开始对比，下面列出个表格：</p>
-
-<table>
-<thead>
-<tr>
-<th>算法      </th>
-<th>0 </th>
-<th>1</th>
-<th>2</th>
-<th>3</th>
-<th>4</th>
-<th>5</th>
-<th>6</th>
-<th>avg</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>顺序查找法 </td>
-<td>0 </td>
-<td>1</td>
-<td>2</td>
-<td>3</td>
-<td>4</td>
-<td>5</td>
-<td>6</td>
-<td>3</td>
-</tr>
-<tr>
-<td>二分法    </td>
-<td>3 </td>
-<td>2</td>
-<td>3</td>
-<td>1</td>
-<td>3</td>
-<td>2</td>
-<td>3</td>
-<td>2.4</td>
-</tr>
-</tbody>
-</table>
-
-
-<p>对于上面的长度为6的数组查找我们还能一一列举出来，<code>但是当扩展到任意长度n后呢</code>？我们怎么比较呢？这里又是一个很跨越性的思想——概率统计：比较一组数时，我们使用</p>
-
-<blockquote><p>mean＝∑(k)*t,p(k)指被查找数在k位置的概率，t是该位置耗费的查找时间。</p></blockquote>
-
-<p>而且假定在没有任何前提下，所有位置的概率一样，即p(k)=1/n.</p>
-
-<p>然后具列出具体位置的式子：</p>
-
-<ul>
-<li>顺序查找法:t=k/n,mean=(1+n)/2</li>
-<li>二分法:t&lt;=log(n)+1,mean&lt;=log(n)+1 (太难精确计算了，所以用了不等式来表示)</li>
-</ul>
-
-
-<p>所以我们来比较t1=(1+n)/2 和 t2=ceil(log(n))+1,发现当n>=8后，t2开始超过t1,而且随着n的增大，他们的差距越来越大。（todo:需要张函数图才能直观说明啊）</p>
-
-<p>而8是个非常小的数，所以对于日常来说，我们大多数都是遇到大于8的情况，所以我们可以直觉判断二分法优于顺序查找法。</p>
-
-<p>从上面我们进步衍生出一个思想，<code>*不断扩充n的范围来观察时间效率的变化</code>。在这里我再插入一个故事：</p>
-
-<p>马上就到北邮的校庆了，北邮人很开心。但是一个北邮人想一个清华的吐槽，我们学校的年龄才是清华的一半。然后另一个北邮人又说了一句：“现在是北邮的年龄是清华的一半，100后是3/4，然后无限年后这两个学校的年龄就相等了。”
-这里有个故事蕴含着一个重要的思想就是极限。起始值和常数值会被快增长的部分迅速磨平。</p>
-
-<p>极限思想应用在算法分析中，一个天才的想法就诞生了。在这里产生了一个运算符O。就是一种抛弃增长慢部分的技术。</p>
-
-<blockquote><p>定义：如果存在常数c0和n0，对于所有n>n0,有g(n)&lt;c0f(n),则称函数g(n)是O(f(n))的。</p></blockquote>
-
-<p>即用g(n)来代替f(n)来比较衡量大小。</p>
-
-<h1>可计算问题和不可计算问题</h1>
-
-<p>上面讨论到计算的复杂度增长问题，</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2015/10/19/mondrian-and-multithread/">Mondrian中的线程模型使用情况</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-10-19T14:50:09+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>2:50 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
-</div>
-  
-  
-
-
-    </article>
   
   
     <article>
@@ -834,135 +620,6 @@ B可能就是慢了1纳秒，但是B还认为计数器才累积到100，所以�
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2015/07/24/style-of-programming-1/">Style of Programming 1</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-07-24T18:12:32+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>6:12 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h1>side effect的疑惑</h1>
-
-<h2>例子</h2>
-
-<p>这个例子是用c++写的。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span> <span class="nf">sort_three_nums</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span><span class="kt">int</span> <span class="n">b</span><span class="p">,</span><span class="kt">int</span> <span class="n">c</span><span class="p">){</span>
-</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">c</span><span class="o">&lt;</span><span class="n">b</span><span class="p">){</span>
-</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="c1">//{b&lt;c}</span>
-</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">b</span><span class="o">&lt;</span><span class="n">a</span><span class="p">){</span>
-</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="c1">//{a&lt;b &amp;&amp; a&lt;c}</span>
-</span><span class='line'>    <span class="c1">//be careful!Swap a,b maybe destory the precondition {b&lt;c}, because the value of b maybe changed</span>
-</span><span class='line'>    <span class="c1">//so you need to compare b and c again!!</span>
-</span><span class='line'>    <span class="c1">//the confusion of side effect</span>
-</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">c</span><span class="o">&lt;</span><span class="n">b</span><span class="p">){</span>
-</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="c1">//{a&lt;b &amp;&amp; b&lt;c &amp;&amp; a&lt;c}</span>
-</span><span class='line'>    <span class="c1">//{a&lt;b&lt;c}</span>
-</span><span class='line'>    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d %d %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这是一个典型的对三个数进行排序的例子，中间需要两次判断b,c导致的原因是在第二次比较中，<code>swap(a,b)</code>可能已经改变了b的值，所以到指第一次的比较结果失效了。像这种在中间就悄悄地改变变量的值，让人防不胜防。而且在命令式编程中也是处处存在，进而导致一些莫名其妙的问题。渐渐地软件开发在人们眼里也变成了一门高不可测且bug百出的学科。</p>
-
-<h2>改进</h2>
-
-<p>上面的代码从表面看令人非常疑惑，特别是那两次表面上一模一样的比较（b&lt;c）。让人看着着实不爽。让我们交换一个比较规则看看。假设我先比较a,b；然后再比较a,c；确保a是最小的数，然后再比较b,c。这样是不是要语义清楚一些呢？</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span> <span class="nf">sort_three_nums</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span><span class="kt">int</span> <span class="n">b</span><span class="p">,</span><span class="kt">int</span> <span class="n">c</span><span class="p">){</span>
-</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">b</span><span class="o">&lt;</span><span class="n">a</span><span class="p">){</span>
-</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="c1">//{a&lt;b}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">c</span><span class="o">&lt;</span><span class="n">a</span><span class="p">){</span>
-</span><span class='line'>      <span class="c1">//{a&lt;b &amp;&amp; c&lt;a}={c&lt;a&lt;b}</span>
-</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
-</span><span class='line'>        <span class="c1">//{a&lt;c&lt;b}=&gt;{a&lt;b &amp;&amp; a&lt;c}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="c1">//{a&lt;b &amp;&amp; a&lt;c}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">c</span><span class="o">&lt;</span><span class="n">b</span><span class="p">){</span>
-</span><span class='line'>      <span class="c1">//{a&lt;b &amp;&amp; a&lt;c &amp;&amp; c&lt;b}={a&lt;c&lt;b}</span>
-</span><span class='line'>        <span class="n">swap</span><span class="p">(</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
-</span><span class='line'>        <span class="c1">//{a&lt;b&lt;b}</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="c1">//{a&lt;b &amp;&amp; a&lt;c &amp;&amp; b&lt;c}={a&lt;b&lt;c}</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d %d %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">c</span><span class="p">);</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>能不能使用一种中间不要产生side effect的方法？</h2>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
       <h1 class="entry-title"><a href="/blog/2015/07/09/wo-shi-ru-he-da-jian-zhe-ge-bo-ke-de/">我是如何搭建这个博客的</a></h1>
     
     
@@ -1011,23 +668,23 @@ B可能就是慢了1纳秒，但是B还认为计数器才累积到100，所以�
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/07/29/introduce-cap/">Introduce CAP</a>
+        <a href="/blog/2016/09/06/scheduling-strategy/">Scheduling Strategy</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/24/how-to-understand-a-data-system/">如何理解一个数据存储系统</a>
+        <a href="/blog/2016/09/04/data-file-organization/">Data File Organization</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/23/introduce-infobright/">Introduce Infobright</a>
+        <a href="/blog/2016/08/31/introduce-hive/">Introduce Hive</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/20/why-need-runnable-while-we-already-have-thread-in-java/">java里为什么有了Thread还要设置一个Runnable？</a>
+        <a href="/blog/2016/08/22/design-pattern/">Design Pattern</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/18/the-world-about-oriental-column-database/">数据分析利器 —— 列式储存数据库</a>
+        <a href="/blog/2016/08/14/how-to-manipulate-binary-stream/">How to Manipulate Binary Stream</a>
       </li>
     
   </ul>

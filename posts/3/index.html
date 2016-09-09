@@ -9,8 +9,7 @@
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="
-">
+  <meta name="description" content="接触了一些message system的系统（大部分是kafka），对message queue的作用和关键点有了一些了解。这些就谈谈我的认识，和使用注意事项。 message queue的作用 查阅了材料发现总结下来，列举的理由有十几条之多，但是直接貌似没有任何联系和组织方式。很是不好理解。 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -70,6 +69,126 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/04/10/how-to-understand-a-message-sysetm/">Message System</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-04-10T18:31:31+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>10</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>6:31 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>接触了一些message system的系统（大部分是kafka），对message queue的作用和关键点有了一些了解。这些就谈谈我的认识，和使用注意事项。</p>
+
+<h1>message queue的作用</h1>
+
+<p>查阅了材料发现总结下来，列举的理由有十几条之多，但是直接貌似没有任何联系和组织方式。很是不好理解。我在这里使用模型的变化来阐述我自己的理解：
+<img src="./images/posts/message_system.png" alt="naive" />
+从上面的演化图来看，有了消息队列后的一个本质变化就是把收消息和接消息的任务都扔给了第三方，其实这就是软件行业中最一般的做法如果要获得软件的灵活性和扩展性，那么就开始加中间层。计算机网络是这么做的，同样操作系统也是这么做的。
+而考虑具体的好处这个问题和系统会出现什么问题是手心手背的关系。我们就来一块一块的说。
+我们假设我们要做一个买票系统。数据库使用mysql，前面只有一个售票程序来操作数据。这时候的模型就是第一个模块的样子。初期的时候一切都很完美，这个网站只拥有1万用户，每天只卖500张票。
+后来发现有些背后的mysql总是宕机，导致用户订票总是不成功，所以就想着怎么把用户的订单信息先存下来，然后等mysql恢复后马上继续处理。这时候你就开始想着建立一个消息缓存队列，然后程序自然形成了一个生产者消费者模型。同时你还会发现这个不仅仅有消息缓存的好处，还有发现消息现在是可以被保存了（或者说很便捷和自然的保存了）。以前那些因为程序bug处理失败的消息可以被重复处理了。还有就是哪天突然要在mysql之上加上一层redis，那其实也不必修改上游程序。总结下来：
+1. 缓冲 &ndash; 消息的缓存，当下游处于宕机状态，消息可以被缓存等待重启后继续处理。
+2. 解耦 &ndash; 项目之间解耦，形成各种微服务
+3. 冗余
+4. 送达保证
+5. 顺序保证能实现了</p>
+
+<p>再后来你的系统的用户增加到了100万，而且因为是买的火车票，所以一到过节订单就出现高峰，这时候辛亏你有了消息队列可以帮你缓存。
+6. 消除峰值 &ndash; 即消息均衡，当消息的生产速度差距很大的时候，消息可以被缓存，然后转发其他空闲的服务上或者等待等后续措施。</p>
+
+<p>后来再发现一个消息队列因为不够存储高峰期间储蓄的数据了，这时候再增加下游的消费者处理能力很浪费，因为平时你用不着。这时候发现增加一个消息队列服务的成本去很低，那么开始扩展这里。
+7. 扩展性</p>
+
+<p>其他feature：
+1. 异步通信
+这个是好是坏，全看实际的引用场景。对于实时要求性很高，但是不要求消息全部保证被处理就是无所谓的特性。</p>
+
+<ol>
+<li>附赠的feature(只是更方便吧)
+因为消息缓存的独立，可以对其处理速度监控，从而得知系统的负载能力。</li>
+</ol>
+
+
+<p>从另一个角度再看看消息队列的作用：
+因为从生产者、消费者两方关系衍生到生产者、消息队列、消费者三方之间的关系，所以我们就从3个主题的角度讨论。
+1. 主体一生产者会发生些什么情况：</p>
+
+<ul>
+<li>性能——流量突然增大，或者流量是不均匀的</li>
+<li>部分失效——突然部分生产者挂了。如果没有消息队列，那就意味着部分消费者没有任务消费了，或者消费者自己做了任务自动均衡，这是一件比较麻烦的额事情。</li>
+<li>容错性——都挂了。如果没有消息队列，那么消费者也立即进入休息状态。但是有了消息对立后以前生产的东西还能储存下来，提供消费者消费，然后有个缓冲时间窗口重启</li>
+<li>扩展性——突然要增加生产者的数量，没有消息队列的情况下，意味着需要有一套re-balance的机制在里面，同样时间麻烦的事情。统统都交给消息队列考虑吧。其实这条和部分失效是一样的，都是scaling过程。</li>
+<li><p>复用（解耦）——生产的消息万一不仅仅只有一个消费者，这样还需要一套分发机制。也是件麻烦的事情。有了消息队列，其实消费者和我再也没啥关系了。我爱怎么生成就怎么生产。</p></li>
+<li><p>主体二消费者会发生些什么情况：</p></li>
+<li><p>性能——处理速度万一跟不上呢？</p></li>
+<li>扩展性——同上，消息队列提供了扩展收缩自动均衡的策略。</li>
+</ul>
+
+
+<h1>如果学习一个message queue？</h1>
+
+<h2>消息可达性保证机制</h2>
+
+<p>这个机制或者约定更确切些，就是描述系统到底怎么client进行交互，确保信息是正确的到达了目的地。一般的消息保证机制有：
+1. 至多一次，保证绝对不重复发，但是有丢数据情况。这种情况server处理是最简单的，发完了就不管了，不需要和client交互。</p>
+
+<blockquote><p>at-most-once delivery means that for each message handed to the mechanism, that message is delivered zero or one times; in more casual terms it means that messages may be lost.
+2. 至少一次，保证一定client接收到了信息，如果不能确定client接收到了信息会重复发。做到这点server只要一直发知道接收到了client的ack。
+at-least-once delivery means that for each message handed to the mechanism potentially multiple attempts are made at delivering it, such that at least one succeeds; again, in more casual terms this means that messages may be duplicated but not lost.
+3. 精确的一次，保证不重复发但也不丢数据。exactly-once是最难保证的，因为这涉及到通信中的很多情况。
+exactly-once delivery means that for each message handed to the mechanism exactly one delivery is made to the recipient; the message can neither be lost nor duplicated.</p>
+
+<p>The first one is the cheapest—highest performance, least implementation overhead—because it can be done in a fire-and-forget fashion without keeping state at the sending end or in the transport mechanism. The second one requires retries to counter transport losses, which means keeping state at the sending end and having an acknowledgement mechanism at the receiving end. The third is most expensive—and has consequently worst performance—because in addition to the second it requires state to be kept at the receiving end in order to filter out duplicate deliveries.</p></blockquote>
+
+<h3>为什么保证不了消息发送？</h3>
+
+<ol>
+<li>The message is sent out on the network?</li>
+<li>The message is received by the other host?</li>
+<li>The message is put into the target actor&rsquo;s mailbox?</li>
+<li>The message is starting to be processed by the target actor?</li>
+<li>The message is processed successfully by the target actor?</li>
+</ol>
+
+
+<p>其实就从消息传递从出发到结果的整个过程，状体包括出发、路上、进门、喝茶、出门和回家通报。
+其中在路上需要花多少时间谁都不知道，还有没有万一进门后被真“喝茶”后，不返回通报的你让发送者的家人怎么办？</p>
+
+<h2>消息顺序保证机制</h2>
+
+<ol>
+<li>保证消息一定是顺序到达的，这个地方需要考虑如果是一个kafka的系统，同一个group下的不同consumer之间的顺序怎么保证？</li>
+<li>不保证消息一定顺序到达</li>
+</ol>
+
+
+<h1>reference</h1>
+
+<ol>
+<li><a href="http://doc.akka.io/docs/akka/2.4.3/general/message-delivery-reliability.html">Message Delivery Reliability</a></li>
+<li><a href="http://www.jasongj.com/2015/01/02/Kafka%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/">Kafka深度解析</a></li>
+</ol>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -234,15 +353,27 @@ Thread和Runnable的区别和联系、多次start一个线程会怎么样、线�
 <h1>如何生产消息</h1>
 
 <p>关键词：topic, group, partition, offset
-所有的消息系统在设计消息生产的时候都要考虑消息的<strong>时序性和可达性</strong>。
-在时序方面，kafka在这方面保证在partition内是写入顺序。
-对可达性而言，所有的可达性都需要客户端的配合才能形式要求的特性（at -most-once, at-least-once and exactly-once）。</p>
+所有的消息系统在设计消息生产的时候都要考虑消息的<strong>时序性和可达性</strong>。</p>
+
+<h2>在时序方面</h2>
+
+<p>kafka在这方面保证在partition内是写入顺序。其中新接口给出了partition的指派自定义规则，一种是自己定义（Partitioner接口），另一种是通过其定义了一个消息体类ProducerRecord，是一个key-value格式，就是为了保证同样的key会被放入同样的parition上（注意这可能导致数据倾斜）。如果key被设置为null，那么parition指派规则就使用 default partitioner 规则—— Round-robin，随机分配。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>ProducerRecord&lt;String, String&gt; record = new ProducerRecord&lt;String, String&gt;("Country", "Precision Products", "France");</span></code></pre></td></tr></table></div></figure>
+
+
+<p>至于当摸个partition突然失效，那么相应的key的message会怎么办？这个就是设计到了kafka的容错机制——replication and availability.</p>
+
+<h2>可达性而言</h2>
+
+<p>所有的可达性都需要客户端的配合才能形式要求的特性（at -most-once, at-least-once and exactly-once）。</p>
 
 <p>现在有个大大的问题 —— 消息到底写没写成功？假如现在对消息的写入成功要求非常高，一定需要这件事情。所以客户端需要有个信号告诉这件事情，所以如果kafka告诉客户端写成功了，客户端就认为写成功了，然后进行下一条消息操作。</p>
 
 <p>大多数人想想的都是这样的：</p>
 
-<p><img src="./images/posts/kafka_producer1.png" alt="normal" />
+<p><img src="https://img3.doubanio.com/view/photo/photo/public/p2375588550.jpg" alt="normal" />
 这是最理想的情况，最麻烦就是出现异常情况，我们首先来列下那些异常会出现：</p>
 
 <p>至少涉及到消息都会有两种状态，到达了和超时。</p>
@@ -277,12 +408,22 @@ Thread和Runnable的区别和联系、多次start一个线程会怎么样、线�
 
 <p>假如接收到反馈，反馈是失败，那么也很简单，那就是再重写一遍。
 但是最复杂的情况就是ack超时的情况，以为超时可能有下面几种可能造成的：
-<img src="./images/posts/kafka_producer2.png" alt="message loss" />
-如果是信息丢失了，我可以重写如一遍嘛，好解决。但是如果是ack丢失了，按照上面添加的规则，<strong>信息重复了</strong>！重点还是这两种情况对于客户端来说是没办法区分的。这可以容忍吗就要看具体业务了？</p>
+<img src="https://img3.doubanio.com/view/photo/photo/public/p2375588551.jpg" alt="message loss" />
+如果是信息丢失了，我可以重写如一遍嘛，好解决。但是如果是ack丢失了，按照上面添加的规则，<strong>信息重复了</strong>！重点还是这两种情况对于客户端来说是没办法区分的。这可以容忍就要看具体业务了？</p>
 
-<p>从kafka的API看出，其消息是通过异步的Future类实现。要怎么处理消息的可达性其实完全交给了用户自己决定。包括storm也是这么做的。</p>
+<p>从kafka的API看出，其消息是通过异步的Future类实现。要怎么处理消息的可达性的自主权其实完全交给了用户自己决定。包括storm也是这么做的。</p>
 
-<p><img src="./images/posts/kafka_producer3.png" alt="message loss" /></p>
+<p><img src="https://img3.doubanio.com/view/photo/photo/public/p2375588553.jpg" alt="message loss" /></p>
+
+<p>具体实现方式通过kafka的Producer的配置：</p>
+
+<ol>
+<li><p>acks：描述接收broker的确认信息的机制。这个是一个int型，其数量描述的是有多少replica响应的acks（和replica的leader模型有关系）。当值为0的时候，表示不接受确认直接返回，也就是说不确认信息是否怎的写入了broker。意味着at-most-once模型。当然这种也是发送吞吐量最高的模型。
+当acks=1时候，接收leader的acks响应。当然这种也有丢失数据的风险，当leader crash了或者当新leader被选中但是却没有这个消息的副本。
+当acks = all，接收所有replica的确认信息。</p></li>
+<li><p>retries：描述producer发送失败的时候，重试的次数。</p></li>
+</ol>
+
 
 <h1>如何消费消息</h1>
 
@@ -290,18 +431,33 @@ Thread和Runnable的区别和联系、多次start一个线程会怎么样、线�
 
 <p>同样所有的消息系统在设计消息消费的时候都要考虑消息的<strong>时序性和可达性</strong>。而kafka的时序性则表现在<strong>partition内保持有序的，partition之间无序</strong>，这样也就是意味着一个partition在一个group只能被一个consumer消费。而不会出现一个partition对应多个consumer的现象。这个特性配合上producer可以指定写入partition的规则，能做很多序列化的事情。下面的图展示的是partition的数量和consumer数量各种情况下的模型：</p>
 
+<h2>时序性</h2>
+
 <ol>
 <li><p>partition数量大于consumer数量：
-<img src="./images/posts/kafka_consumer1.png" alt="naive" /></p></li>
+<img src="https://img3.doubanio.com/view/photo/photo/public/p2375588545.jpg" alt="naive" /></p></li>
 <li><p>partition数量等于consumer数量：
-<img src="./images/posts/kafka_consumer2.png" alt="naive" /></p></li>
+<img src="https://img1.doubanio.com/view/photo/photo/public/p2375588547.jpg" alt="naive" /></p></li>
 <li><p>partition数量小于consumer数量：
-<img src="./images/posts/kafka_consumer3.png" alt="naive" />
+<img src="https://img1.doubanio.com/view/photo/photo/public/p2375588548.jpg" alt="naive" />
 看见有consumer开始轮空了。这个就是为了保证一个partition内的时序性。所以在扩展的时候需要保证partition数量大于consumer数量的，否则有些consumer就浪费了。</p></li>
 </ol>
 
 
-<p>讲完时序性，现在开始讲可达性。</p>
+<h2>讲完时序性，现在开始讲可达性。</h2>
+
+<p>kafka的消息可达性保证是通过committed offset这个机制实现的。什么是committed offset呢？</p>
+
+<blockquote><p>We call the action of updating the current position in the partition a commit.</p></blockquote>
+
+<p> 那就是在一个共享的地方更新每个partition的处理位置。即读的过程中告诉某个人（其实是通过__consumer_offsets这个特殊的topic实现的？怎么实现的？）我读到哪里了。但是这里有个问题就是回报和实现处理的步调可能不一致，然后到底怎么选择就看实际业务需求了。kafka提供了自动commit机制——定时回报offset，明显是异步。同时又提供了同步和异步commit的接口供使用。</p>
+
+<ol>
+<li>使用auto commit</li>
+<li>使用同步commit</li>
+<li>使用异步commit</li>
+</ol>
+
 
 <p>既然partition和consumer数量都是不限制的，那就会涉及到系统设计的核心问题——rescale(rebalance)。</p>
 
@@ -314,6 +470,52 @@ Thread和Runnable的区别和联系、多次start一个线程会怎么样、线�
 <p>kafa的消息格式是规定好的二进制协议的，这点和redis的策略一样。所以客户端只要传输二进制流给服务端即可。因为这和语言无关，所以客户端可以采用任何一种语言，而不仅仅限于java。</p>
 
 <blockquote><p>Kafka has a binary wire protocol. This means that it is possible for applications to read messages from Kafka or write messages to Kafka simply by sending the cor‐ rect byte sequences to Kafka’s network port. There are multiple cli‐ ents that implement Kafka’s wire protocol in different programming language, giving simple ways to use Kafka not just in Java applications but also in languages like C++, Python, Go and many more. Those clients are not part of Apache Kafka project, but a list of those is maintained in the project wiki 1. The wire protocol and the external clients are outside the scope of the chapter.</p></blockquote>
+
+<h1>Replica设计</h1>
+
+<p>kafka的replica的单元是partition而不是topic，而每个partition有一个leader和0到多个的followers。</p>
+
+<p>As with most distributed systems automatically handling failures requires having a precise definition of what it means for a node to be &ldquo;alive&rdquo;. For Kafka node liveness has two conditions</p>
+
+<ol>
+<li>A node must be able to maintain its session with ZooKeeper (via ZooKeeper&rsquo;s heartbeat mechanism)</li>
+<li>If it is a slave it must replicate the writes happening on the leader and not fall &ldquo;too far&rdquo; behind</li>
+</ol>
+
+
+<p>Kafka will remain available in the presence of node failures after a short fail-over period, but may not remain available in the presence of network partitions.</p>
+
+<h1>设计巧妙的地方？</h1>
+
+<ul>
+<li><p>partition的设计非常巧妙</p>
+
+<ol>
+<li>和key绑定，相当于Bigtable中的raw key ，可以自由选择如何sharding数据。</li>
+<li>partition内的时序性保证，解决了一些不能乱序的消息</li>
+<li>rebalance（committed offset管理）, 当parition增加和减少的时候，如果rebalance consumer，当然如何rebalance producer（can？）？</li>
+</ol>
+</li>
+<li><p>group的设计</p>
+
+<ol>
+<li>能够轻松的并行，并随意的扩展</li>
+</ol>
+</li>
+<li><p>offset管理</p>
+
+<ol>
+<li>committed offset</li>
+</ol>
+</li>
+<li><p>batch模式</p>
+
+<ol>
+<li>当然是为了加速</li>
+</ol>
+</li>
+</ul>
+
 
 <h1>reference</h1>
 </div>
@@ -418,6 +620,23 @@ Thread和Runnable的区别和联系、多次start一个线程会怎么样、线�
 - 没有索引，所以所有搜索都是暴力的顺序搜索 —— 回应是：大多数大规模数据计算是使用不了关系数据模型在单机上进行的，且索引这种中心式结构很容易成为性能瓶颈，还有当计算是密集型的时候，索引是没有用的
 - mapreduce缺乏现有数据库的关键特性 —— 回应是：难道不是关系型就是不好的吗？（两篇文章感觉火药味十足啊！）
 - mapreduce不兼容现有的DBMS工具 —— 回应是：如果继续兼容现有DBMS，就想上面提到的为了使用锤子，而错把螺丝钉当钉子使用</p>
+
+<h1>一个mapreduce job的启动过程</h1>
+
+<h1>为什么需要yarn？</h1>
+
+<p>如果不是在大量环境中运行一段时候后，意识到了大量的问题后，估计每个人都会觉得上面的方案已经很完美了。所以这里先提出mapreduce框架的缺陷：
+1. 我们都知道，只要是master结构的架构，随着需求的不断扩大瓶颈一般都会出在master身上，而JobTracker这个这个master。因为JobTracker的限制，所有的资源分配任务和监视任务都集中在Jobtracker上面。所有当集群特别大的时候，内存，cup等肯定会出现问题。
+2. master结构还有一个问题，就是单点问题，加入master一挂，那么整个系统就挂了，这和分布式系统倡导高可用、容错特性背向而驰。而当集群越来越大，job越来愈多，都靠Jobtracker调度，那么其挂的可能性有增大的很多。
+3. 不完美的不仅是Jobtracker，还有TaskTracker。问题就在于TaskTracker把资源强制划分为 map task slot 和 reduce task slot, 如果当系统中只有 map task 或者只有 reduce task 的时候，会造成资源的浪费，也就是前面提过的集群资源利用的问题。这样就会经常出现一个job的map任务都做完了，但是reduce阶段却获得不了资源而终止，很是浪费。
+4. TaskTracker对任务的大小也没做考虑，有些任务大，有些任务小。假如两个都很占用内存的任务遇到一起，就会导致OOM，Task失败。</p>
+
+<h2>reference</h2>
+
+<ul>
+<li><a href="https://www.ibm.com/developerworks/cn/opensource/os-cn-hadoop-yarn/">Hadoop 新 MapReduce 框架 Yarn 详解</a></li>
+</ul>
+
 </div>
   
   
@@ -775,93 +994,6 @@ echoNum(1)，echoNum(2)，echoNum(3)
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/01/13/introduce-vertica/">介绍vertica</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-01-13T18:55:49+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>13</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>6:55 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>最近olap系统开始上线vertica。话说vertica的速度真实不是盖的，太快了，完全盖过infobright的所有风采，完全不留痕迹！</p>
-
-<h1>vertica的基本架构介绍</h1>
-
-<p>首先定型一下vertica在数据库领域里的分支：
-1. 面向批量分析数据(OLAP)
-2. 关系型数据库(RDBMS)
-3. 面向列式储存(column-store architechture)
-4. 分布式(distributed)
-按照vertica在官方文档中提到自己的特性：4 c's——<a href="https://my.vertica.com/docs/7.0.x/HTML/index.htm#Authoring/ConceptsGuide/Other/TheHPVerticaApproach.htm%3FTocPath%3DConcepts%2520Guide%7C_____1">Column Storage， Compression，Clustering，Continuous Performance</a>
-其中高压缩比这个特性一般是附属于面向列式储存的特性的，不是一个正交属性。</p>
-
-<p>当然类似于mysql，sql server等面向OLTP的数据库，其主要处理事务型数据。而vertica的设计目的已经进入到了另一个领域OLAP（OLTP和OLAP的对比，<a href="">参看这里</a>）。所以相对于OLTP大多数采用row-store的储存架构，OLAP一般会用column-store架构。<a href="">这里可以思考一下为什么会有这样的不同</a>。
-上面这些都是一个成型的数据库设计架构选择。需要先了解上面提到的概念，你才可以明白为什么市场上会有如此之多的数据产品，还有vertiac的价值到底在哪里。</p>
-
-<p>一些概念中vertica中也做了相应的变化，接下来我们来看看vertica中的一些重要概念。</p>
-
-<h2>储存设计</h2>
-
-<p>因为Vertica是面向列式储存的数据库，其读取也是按列为单位，其中读取实际单位是projections（作为vertica的FlexStore体系中的一个概念，假如说column-store是为了加快OLAP数据库查询速度的首选，那么FlexStore的存在就是进一步在这基础上从physical design, database storage, and query execution三个方面提升速度）。
-其中打破了按表储存的架构，表在vertica中只是一个逻辑概念，其本身还是一个特殊的projections，其物理储存全部用的是projections：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Projection
-</span><span class='line'>Optimized collections of table columns that provide physical storage for data. A projection can contain some or all of the columns of one or more tables. A projection that contains all of the columns of a table is called a super-projection. A projection that joins one or more tables is called a pre-join projection.</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>查看projection
-select node_name,wos_row_count,ros_row_count from projection_storage where anchor_table_name=&lsquo;dim_exp&rsquo;;</li>
-<li>wos vs ros
-<a href="http://vertica-forums.com/viewtopic.php?t=126">http://vertica-forums.com/viewtopic.php?t=126</a></li>
-</ul>
-
-
-<h2>如何hack</h2>
-
-<p>上面讲了很多原理，现在我们就开始动手操作吧，俗话说说的不如做的。</p>
-
-<h3>删除数据——分区的最大用处</h3>
-
-<p>到底使用分区比较好呢？还是用purage_table比较好呢？
-果断构建partition好，因为如果用purage对于已经转移好的ros数据块（到底会怎么样？解释不清楚了吧！）速度会很慢。<a href="https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/PURGE_TABLE.htm">https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/PURGE_TABLE.htm</a></p>
-
-<h3>如何查看当前liencese的使用情况</h3>
-
-<p>SELECT GET_COMPLIANCE_STATUS();</p>
-
-<h3>索引到底是个什么鬼</h3>
-
-<h3>查看执行的任务，类似于mysql的show processlist</h3>
-
-<p>SELECT * FROM SESSIONS;</p>
-
-<h3>数据类型</h3>
-
-<p>在vertica中除了对int的定义不同，相比其他储存引擎，vertica的所有整形都是用64bit的，包括tinyint。
-在vertica主意使用char的问题，发现当定义char(200),不满200长度的字段，会自动补全空白，这样改变了数据的内容，对于精确搜索时，这是个坑。最好改成varchar，但现在还不明白这个的性能有什么差别。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/4">&larr; Older</a>
@@ -879,23 +1011,23 @@ select node_name,wos_row_count,ros_row_count from projection_storage where ancho
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/07/29/introduce-cap/">Introduce CAP</a>
+        <a href="/blog/2016/09/06/scheduling-strategy/">Scheduling Strategy</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/24/how-to-understand-a-data-system/">如何理解一个数据存储系统</a>
+        <a href="/blog/2016/09/04/data-file-organization/">Data File Organization</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/23/introduce-infobright/">Introduce Infobright</a>
+        <a href="/blog/2016/08/31/introduce-hive/">Introduce Hive</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/20/why-need-runnable-while-we-already-have-thread-in-java/">java里为什么有了Thread还要设置一个Runnable？</a>
+        <a href="/blog/2016/08/22/design-pattern/">Design Pattern</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/18/the-world-about-oriental-column-database/">数据分析利器 —— 列式储存数据库</a>
+        <a href="/blog/2016/08/14/how-to-manipulate-binary-stream/">How to Manipulate Binary Stream</a>
       </li>
     
   </ul>

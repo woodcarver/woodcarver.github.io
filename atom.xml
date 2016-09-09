@@ -4,7 +4,7 @@
   <title><![CDATA[Wood Carver]]></title>
   <link href="http://woodcarver.github.io/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2016-08-08T21:56:31+08:00</updated>
+  <updated>2016-09-09T10:09:28+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -14,12 +14,223 @@
 
   
   <entry>
+    <title type="html"><![CDATA[Scheduling Strategy]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/09/06/scheduling-strategy/"/>
+    <updated>2016-09-06T00:09:14+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/09/06/scheduling-strategy</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Data File Organization]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/09/04/data-file-organization/"/>
+    <updated>2016-09-04T17:01:19+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/09/04/data-file-organization</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Introduce Hive]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/08/31/introduce-hive/"/>
+    <updated>2016-08-31T22:57:57+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/08/31/introduce-hive</id>
+    <content type="html"><![CDATA[<h1>Rcfile的设计</h1>
+
+<ul>
+<li>key/value</li>
+<li>column-store and row-store , why?
+row-store: fast loading data in real-time in HDFS, because data coming by row and will be stored in one place event in one block. But it can not support fast ad-hoc query.</li>
+</ul>
+
+
+<p>怎么衡量一个文件组织方式？答案只有一个，那就是它满不满足使用性能？
+好的，对于一个文件我们要做的事情无非就是：读，写。
+读有又，位置和数据大小的特性。比如按位置划分就有随机读，顺序读，逆序读等等，大小就是读一条数据，一片数据。再把位置和大小一结合，呵呵！是不是很复杂？
+对于hive来说，其读特性就是：读一行也行，读一列也快，还有更牛的是还能建立索引。</p>
+
+<p>写的话，也有位置和大小之分。随机写，在头位置写，在未位置写。大小写入一条数据，写入一片数据。再一结合。。。。</p>
+
+<p>hive写的就是追加，这也是为什么要先水平在垂直，要的就是加载数据速度，还有实时加载数据的特性。因为打开一个节点的比打开无数节点靠谱很多不是吗？还往单机上说，就是打开一个文件总比打开多个文件写要快不是吗？
+同时如果写操作是流式的，那么每次写入其实都需要重新组织数组块，进行压缩。</p>
+
+<p>如果把读和写结合起来就产生了更邪恶的操作，那就是删除和更新。</p>
+
+<h1>HSQL怎么解析到MapReduce？</h1>
+
+<h2>怎么使用MapReduce实现Join？</h2>
+
+<h2>怎么使用MapReduce实现Group By？</h2>
+
+<h2>怎么使用MapReduce实现Distinct？</h2>
+
+<h1>如何在Hive中加载一个外部的脚本文件？</h1>
+
+<h1>写一个UDF</h1>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Design Pattern]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/08/22/design-pattern/"/>
+    <updated>2016-08-22T23:00:57+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/08/22/design-pattern</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[How to Manipulate Binary Stream]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/08/14/how-to-manipulate-binary-stream/"/>
+    <updated>2016-08-14T20:47:13+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/08/14/how-to-manipulate-binary-stream</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[How to Use Jmock]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/08/14/how-to-use-jmock/"/>
+    <updated>2016-08-14T14:35:32+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/08/14/how-to-use-jmock</id>
+    <content type="html"><![CDATA[<p><a href="http://www.jmock.org/expectations.html">jmock官网</a></p>
+
+<h1>测试框架</h1>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>public void testSomeAction() {
+</span><span class='line'>    ... set up ...
+</span><span class='line'>
+</span><span class='line'>    context.checking(new Expectations()
+</span><span class='line'>        ... expectations go here ...
+</span><span class='line'>    );
+</span><span class='line'>
+</span><span class='line'>    ... code being tested ...
+</span><span class='line'>
+</span><span class='line'>    context.assertIsSatisfied();
+</span><span class='line'>
+</span><span class='line'>    ... other assertions ...
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其中最重要的一个步骤就是context.checking。这个方法中定义的expectation就是需要关注的。也就是你要模拟的方法的输入和输出。
+其他格式是这样的：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>invocation-count (mock-object).method(argument-constraints);
+</span><span class='line'>    inSequence(sequence-name);
+</span><span class='line'>    when(state-machine.is(state-name));
+</span><span class='line'>    will(action);
+</span><span class='line'>    then(state-machine.is(new-state-name));</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其每个短语的具体意思如下：</p>
+
+<table>
+<thead>
+<tr>
+<th>one    </th>
+<th>The invocation is expected once and once only.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>exactly(n).of</td>
+<td> The invocation is expected exactly n times. Note: one is a convenient shorthand for exactly(1).</td>
+</tr>
+<tr>
+<td>atLeast(n).of </td>
+<td>The invocation is expected at least n times.</td>
+</tr>
+<tr>
+<td>atMost(n).of   </td>
+<td>The invocation is expected at most n times.</td>
+</tr>
+<tr>
+<td>between(min, max).of   </td>
+<td>The invocation is expected at least min times and at most max times.</td>
+</tr>
+<tr>
+<td>allowing   </td>
+<td>The invocation is allowed any number of times but does not have to happen.</td>
+</tr>
+<tr>
+<td>ignoring   </td>
+<td>The same as allowing. Allowing or ignoring should be chosen to make the test code clearly express intent.</td>
+</tr>
+<tr>
+<td>never  </td>
+<td>The invocation is not expected at all. This is used to make tests more explicit and so easier to understand.</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>所有的函数都是可以选的，例如你可以如下组合你的exception。</p>
+
+<h1>例子</h1>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>public void testReturnsCachedObjectWithinTimeout() {
+</span><span class='line'>    context.checking(new Expectations()
+</span><span class='line'>        oneOf (clock).time(); will(returnValue(loadTime));
+</span><span class='line'>        oneOf (clock).time(); will(returnValue(fetchTime));
+</span><span class='line'>
+</span><span class='line'>        allowing (reloadPolicy).shouldReload(loadTime, fetchTime); will(returnValue(false));
+</span><span class='line'>
+</span><span class='line'>        oneOf (loader).load(KEY); will(returnValue(VALUE));
+</span><span class='line'>    );
+</span><span class='line'>
+</span><span class='line'>    Object actualValueFromFirstLookup = cache.lookup(KEY);
+</span><span class='line'>    Object actualValueFromSecondLookup = cache.lookup(KEY);
+</span><span class='line'>
+</span><span class='line'>    context.assertIsSatisfied();
+</span><span class='line'>    assertSame("should be loaded object", VALUE, actualValueFromFirstLookup);
+</span><span class='line'>    assertSame("should be cached object", VALUE, actualValueFromSecondLookup);
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[Introduce CAP]]></title>
     <link href="http://woodcarver.github.io/blog/2016/07/29/introduce-cap/"/>
     <updated>2016-07-29T10:04:53+08:00</updated>
     <id>http://woodcarver.github.io/blog/2016/07/29/introduce-cap</id>
-    <content type="html"><![CDATA[<p>这篇博文主要是对<a href="http://www.infoq.com/cn/articles/cap-twelve-years-later-how-the-rules-have-changed/">《CAP理论十二年回顾："规则"变了
-》</a>的个人解读。</p>
+    <content type="html"><![CDATA[<p>这篇博文主要是对<a href="http://www.infoq.com/cn/articles/cap-twelve-years-later-how-the-rules-have-changed/">《CAP理论十二年回顾："规则"变了》</a>的读后感。</p>
 
 <h1>CAP到底讲什么，为什么不能同时满足？</h1>
 
@@ -61,12 +272,33 @@
 
 <p>当系统进入到分区模式，它有两种可行的策略。其一是限制部分操作，因此会削弱可用性。其二是额外记录一些有利于后面分区恢复的操作信息。系统可通过持续尝试恢复通信来察觉分区何时结束。</p>
 
+<h1>副本</h1>
+
+<p>一谈到副本，最大的问题就是其一致性，这个问题不仅仅是在分布式系统中涉及，只不过分布式系统是鼓励副本的存在，而在这个基础上开始设计一套一套的解决方案。但相对其他领域——比如设计模式OOD，关系数据范式都是从另一个方向把<strong>重复（副本）扼杀在摇篮中</strong>，比如策略模型，把能公用的都抽象出来复用。</p>
+
+<h1>可怕的一致性</h1>
+
+<ol>
+<li>一个场景，一个问题</li>
+<li>如何解决这个问题？</li>
+<li>这个解决方法是错的吗？</li>
+<li>这个方法是对的吗？</li>
+<li><p>有没有更优的解法？</p></li>
+<li><p>隐喻，一个直观的例子</p></li>
+<li>过度到实际的模型</li>
+<li>证明模型</li>
+<li>实际用途</li>
+</ol>
+
+
 <h1>reference</h1>
 
 <ul>
 <li><a href="https://martin.kleppmann.com/2015/05/11/please-stop-calling-databases-cp-or-ap.html">Please stop calling databases CP or AP</a></li>
 <li><a href="https://www.infoq.com/articles/cap-twelve-years-later-how-the-rules-have-changed">CAP Twelve Years Later: How the &ldquo;Rules&rdquo; Have Changed
 </a></li>
+<li><a href="http://www.cnblogs.com/esingchan/p/3917718.html">分布式理论之一：Paxos算法的通俗理解</a></li>
+<li><a href="http://www.cnblogs.com/endsock/p/3480093.html">Paxos算法细节详解(一)&ndash;通过现实世界描述算法</a></li>
 </ul>
 
 ]]></content>
@@ -74,14 +306,41 @@
   
   <entry>
     <title type="html"><![CDATA[如何理解一个数据存储系统]]></title>
-    <link href="http://woodcarver.github.io/blog/2016/07/24/how-to-understand-a-data-system/"/>
+    <link href="http://woodcarver.github.io/blog/2016/07/24/how-to-understand-a-database/"/>
     <updated>2016-07-24T14:57:42+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2016/07/24/how-to-understand-a-data-system</id>
-    <content type="html"><![CDATA[<p>先看一个图：</p>
+    <id>http://woodcarver.github.io/blog/2016/07/24/how-to-understand-a-database</id>
+    <content type="html"><![CDATA[<h1>储存系统的目的</h1>
 
-<p><img src="./images/posts/data_system.png" alt="dddd" /></p>
+<p>其实储存系统的目的估计和文件系统没什么两样，就是存储数据并且取出数据。关键的两个操作还是 <strong>write/read</strong>。但是说差异巨大也是合理的，因为因为文件系统的是面向<strong>文件</strong>的，而对数据的结构和信息是隐藏起来，可以说毫不关心数据的特质，全部打包放在一起。而数据储存系统而转换了问题的角度，把主角换成了<strong>数据</strong>，提供数据的特定的组织方式，针对不同结果的组织给出方便的获取和写入方式。</p>
 
-<p>这个图其实说明了数据库的两个层次，一个是逻辑层次一个是物理层次。逻辑层次就是开发者看到的、理解的、认为的样子。对于这层来说大部分数据引擎其实都差不多，不是关系型的就是key-value型。当不了解引擎内部的物理实现逻辑的时候，用户肯定会按照自己理所当然的想法去使用这个系统。这个想法无可厚非，能做到让用户安全放心的使用，尽量屏蔽底层实现也是数据管理系统的追求。不过现在看来当你的数据大一点的时候这个想法有点不现实。</p>
+<p>说明其不同，让我们看一个例子。拿最常数的用户表说明，如果我们建立的一个网站，提供用户注册留言。
+设想我们没有数据库，只能存储文件，那么我们就会这么存储：</p>
+
+<blockquote><p>user.txt
+|user_id | name | phone|
+|&mdash;&mdash;&ndash;|&mdash;&mdash;|&mdash;&mdash;|
+|001     |Alice |123333|
+|002     |Bob   |166666|
+|&hellip;     |&hellip;   |&hellip;   |</p>
+
+<p>message.txt
+|user_id | message|
+|&mdash;&mdash;&ndash;|&mdash;&mdash;&ndash;|
+|001     |I am Alice|
+|002     |I am Bob|
+|&hellip;     |&hellip;   |</p></blockquote>
+
+<p>这时候一个用户查看自己发送过的所有的留言。首先做的是从uesr.txt中扫描，找出Alice的user_id信息，然后再在message.txt找出所有的留言。这个过程估计需要你不短的一段代码。跟别提还要各种分割字符串，切出各种字段。还有更难控制的字段的类型，比如日期格式等。</p>
+
+<p>而上面的通用常见的问题，通过数据库系统得到了很好的解决。</p>
+
+<h1>模型层次</h1>
+
+<p>既然说了数据库的目的，那么就来看看怎么构建一个数据库。先看下面的图，描述了数据库的使用层次和实际实现层次。使用层次就是面向用户（程序员），说明系统张什么样子的。而实现层次就是为了支持使用层次而设计的实现方法。使用更专业的术语那就是逻辑层次一个是物理层次。</p>
+
+<p><img src="http://woodcarver.oss-cn-shanghai.aliyuncs.com/post/data_system.png" alt="dddd" /></p>
+
+<p>逻辑层次就是开发者看到的、理解的、认为的样子。对于这层来说大部分数据引擎其实都差不多，不是关系型的就是key-value型。当不了解引擎内部的物理实现逻辑的时候，用户肯定会按照自己理所当然的想法去使用这个系统。这个想法无可厚非，能做到让用户安全放心的使用，尽量屏蔽底层实现也是数据管理系统的追求。不过现在看来当你的数据大一点的时候这个想法有点不现实。</p>
 
 <p>所以如果还不关注其内部实现，就会不断出现红框框的问题，知道你放弃这个系统为止。</p>
 
@@ -89,7 +348,7 @@
 
 <h1>当谈起一个数据库的时候，我们在说什么？</h1>
 
-<p>两个方面，了解其逻辑模型和物理模型。</p>
+<p>两个方面，了解其逻辑模型和物理模型。既然逻辑模型都一样或者差不多，为什么还需要不同的物理模型？原因就没有哪种数据库能支持各种操作到极致的，每种数据库都各种操作都有取舍，各有优缺。有些支持快速的响应，例如redis，有些偏向于？？？？？。</p>
 
 <h2>谈逻辑模型——提供什么服务，支持哪些操作</h2>
 
@@ -126,21 +385,34 @@
 
 <p>物理层次出了决定操作的性能外，还有一个重大的不同，就是对规模扩展的支持程度有巨大的差别。关系型数据库的一个诟病就是对规模扩展非常差。其优良的操作模型和结构化数据要求进一步对大数据量的日志型提出了挑战。</p>
 
+<h2>一个表现的具体问题，<a href="http://stackoverflow.com/questions/1636379/why-db-indexes-use-balanced-trees-not-hashtables">Why DB indexes use balanced trees, not hashtables?</a></h2>
+
+<h2>Has different Characteristics for data operatings</h2>
+
+<p>B-Tree supports comparisons  =, >, >=, &lt;, &lt;=, BETWEEN operators and like, while HashTable only supports =.
+so the using scope of HashTable is too narrow.</p>
+
+<h2>HashTable is hard to rescale or grow</h2>
+
+<p>The size of hashtable is determined when it is created. If you add more data than it&rsquo;s size, you need to resize it. And it&rsquo;s very ineffcient. althought there are rescale algorithm or other replication policy(like in redis).</p>
+
+<h2>memory usage effiency</h2>
+
+<p>B+ Tree can be load into memory partially, while HashTable can not. ?? really?</p>
+
+<h2>refernece</h2>
+
+<ol>
+<li><a href="https://dev.mysql.com/doc/refman/5.5/en/index-btree-hash.html">Comparison of B-Tree and Hash Indexes</a></li>
+</ol>
+
+
 <h1>reference</h1>
 
 <ul>
 <li><a href="https://www.tutorialcup.com/dbms/data-independence.htm">Data Independence</a></li>
 </ul>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Introduce Infobright]]></title>
-    <link href="http://woodcarver.github.io/blog/2016/07/23/introduce-infobright/"/>
-    <updated>2016-07-23T13:28:19+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2016/07/23/introduce-infobright</id>
-    <content type="html"><![CDATA[
 ]]></content>
   </entry>
   
@@ -1112,6 +1384,7 @@ Inconsistency in state of object (because synchronization won&rsquo;t be possibl
 <li><a href="./">生产者消费模型</a></li>
 <li><a href="./">线程池</a></li>
 <li><a href="./">进程池</a></li>
+<li><a href="./">LRU缓存</a></li>
 </ol>
 
 
@@ -1154,26 +1427,6 @@ Inconsistency in state of object (because synchronization won&rsquo;t be possibl
     <updated>2016-06-22T23:11:22+08:00</updated>
     <id>http://woodcarver.github.io/blog/2016/06/22/how-to-desgin-a-thread-pool</id>
     <content type="html"><![CDATA[
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[How to Desgin Dataware House]]></title>
-    <link href="http://woodcarver.github.io/blog/2016/06/22/how-to-desgin-dataware-house/"/>
-    <updated>2016-06-22T22:35:06+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2016/06/22/how-to-desgin-dataware-house</id>
-    <content type="html"><![CDATA[
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Online Advertisement]]></title>
-    <link href="http://woodcarver.github.io/blog/2016/06/12/online-advertisement/"/>
-    <updated>2016-06-12T17:01:20+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2016/06/12/online-advertisement</id>
-    <content type="html"><![CDATA[<h1>ad in facebook</h1>
-
-<p><a href="https://zhuanlan.zhihu.com/p/20596989?refer=donglaoshi">https://zhuanlan.zhihu.com/p/20596989?refer=donglaoshi</a></p>
 ]]></content>
   </entry>
   
@@ -1240,15 +1493,6 @@ Inconsistency in state of object (because synchronization won&rsquo;t be possibl
   </entry>
   
   <entry>
-    <title type="html"><![CDATA[Talk About Hash Functions]]></title>
-    <link href="http://woodcarver.github.io/blog/2016/04/24/talk-about-hash-functions/"/>
-    <updated>2016-04-24T22:32:57+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2016/04/24/talk-about-hash-functions</id>
-    <content type="html"><![CDATA[
-]]></content>
-  </entry>
-  
-  <entry>
     <title type="html"><![CDATA[Introduce MapReduce]]></title>
     <link href="http://woodcarver.github.io/blog/2016/04/24/introduce-mapreduce/"/>
     <updated>2016-04-24T19:16:20+08:00</updated>
@@ -1309,115 +1553,6 @@ Inconsistency in state of object (because synchronization won&rsquo;t be possibl
 <ul>
 <li><a href="https://www.livecoding.tv/udm/videos/xYvyp-1dv600-l03-planning-and-managing-projects">planning and managing pojects</a></li>
 </ul>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Debug Python]]></title>
-    <link href="http://woodcarver.github.io/blog/2016/04/21/debug-python/"/>
-    <updated>2016-04-21T11:12:30+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2016/04/21/debug-python</id>
-    <content type="html"><![CDATA[
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Message System]]></title>
-    <link href="http://woodcarver.github.io/blog/2016/04/10/message-delivery-reliability/"/>
-    <updated>2016-04-10T18:31:31+08:00</updated>
-    <id>http://woodcarver.github.io/blog/2016/04/10/message-delivery-reliability</id>
-    <content type="html"><![CDATA[<p>接触了一些message system的系统（大部分是kafka），对message queue的作用和关键点有了一些了解。这些就谈谈我的认识，和使用注意事项。</p>
-
-<h1>message queue的作用</h1>
-
-<p>查阅了材料发现总结下来，列举的理由有十几条之多，但是直接貌似没有任何联系和组织方式。很是不好理解。我在这里使用模型的变化来阐述我自己的理解：
-<img src="./images/posts/message_system.png" alt="naive" />
-从上面的演化图来看，有了消息队列后的一个本质变化就是把收消息和接消息的任务都扔给了第三方，其实这就是软件行业中最一般的做法如果要获得软件的灵活性和扩展性，那么就开始加中间层。计算机网络是这么做的，同样操作系统也是这么做的。
-而考虑具体的好处这个问题和系统会出现什么问题是手心手背的关系。我们就来一块一块的说。
-我们假设我们要做一个买票系统。数据库使用mysql，前面只有一个售票程序来操作数据。这时候的模型就是第一个模块的样子。初期的时候一切都很完美，这个网站只拥有1万用户，每天只卖500张票。
-后来发现有些背后的mysql总是宕机，导致用户订票总是不成功，所以就想着怎么把用户的订单信息先存下来，然后等mysql恢复后马上继续处理。这时候你就开始想着建立一个消息缓存队列，然后程序自然形成了一个生产者消费者模型。同时你还会发现这个不仅仅有消息缓存的好处，还有发现消息现在是可以被保存了（或者说很便捷和自然的保存了）。以前那些因为程序bug处理失败的消息可以被重复处理了。还有就是哪天突然要在mysql之上加上一层redis，那其实也不必修改上游程序。总结下来：
-1. 缓冲 &ndash; 消息的缓存，当下游处于宕机状态，消息可以被缓存等待重启后继续处理。
-2. 解耦 &ndash; 项目之间解耦，形成各种微服务
-3. 冗余
-4. 送达保证
-5. 顺序保证能实现了</p>
-
-<p>再后来你的系统的用户增加到了100万，而且因为是买的火车票，所以一到过节订单就出现高峰，这时候辛亏你有了消息队列可以帮你缓存。
-6. 消除峰值 &ndash; 即消息均衡，当消息的生产速度差距很大的时候，消息可以被缓存，然后转发其他空闲的服务上或者等待等后续措施。</p>
-
-<p>后来再发现一个消息队列因为不够存储高峰期间储蓄的数据了，这时候再增加下游的消费者处理能力很浪费，因为平时你用不着。这时候发现增加一个消息队列服务的成本去很低，那么开始扩展这里。
-7. 扩展性</p>
-
-<p>其他feature：
-1. 异步通信
-这个是好是坏，全看实际的引用场景。对于实时要求性很高，但是不要求消息全部保证被处理就是无所谓的特性。</p>
-
-<ol>
-<li>附赠的feature(只是更方便吧)
-因为消息缓存的独立，可以对其处理速度监控，从而得知系统的负载能力。</li>
-</ol>
-
-
-<p>从另一个角度再看看消息队列的作用：
-因为从生产者、消费者两方关系衍生到生产者、消息队列、消费者三方之间的关系，所以我们就从3个主题的角度讨论。
-1. 主体一生产者会发生些什么情况：</p>
-
-<ul>
-<li>性能——流量突然增大，或者流量是不均匀的</li>
-<li>部分失效——突然部分生产者挂了。如果没有消息队列，那就意味着部分消费者没有任务消费了，或者消费者自己做了任务自动均衡，这是一件比较麻烦的额事情。</li>
-<li>容错性——都挂了。如果没有消息队列，那么消费者也立即进入休息状态。但是有了消息对立后以前生产的东西还能储存下来，提供消费者消费，然后有个缓冲时间窗口重启</li>
-<li>扩展性——突然要增加生产者的数量，没有消息队列的情况下，意味着需要有一套re-balance的机制在里面，同样时间麻烦的事情。统统都交给消息队列考虑吧。其实这条和部分失效是一样的，都是scaling过程。</li>
-<li><p>复用（解耦）——生产的消息万一不仅仅只有一个消费者，这样还需要一套分发机制。也是件麻烦的事情。有了消息队列，其实消费者和我再也没啥关系了。我爱怎么生成就怎么生产。</p></li>
-<li><p>主体二消费者会发生些什么情况：</p></li>
-<li><p>性能——处理速度万一跟不上呢？</p></li>
-<li>扩展性——同上，消息队列提供了扩展收缩自动均衡的策略。</li>
-</ul>
-
-
-<h1>如果学习一个message queue？</h1>
-
-<h2>消息可达性保证机制</h2>
-
-<p>这个机制或者约定更确切些，就是描述系统到底怎么client进行交互，确保信息是正确的到达了目的地。一般的消息保证机制有：
-1. 至多一次，保证绝对不重复发，但是有丢数据情况。这种情况server处理是最简单的，发完了就不管了，不需要和client交互。</p>
-
-<blockquote><p>at-most-once delivery means that for each message handed to the mechanism, that message is delivered zero or one times; in more casual terms it means that messages may be lost.
-2. 至少一次，保证一定client接收到了信息，如果不能确定client接收到了信息会重复发。做到这点server只要一直发知道接收到了client的ack。
-at-least-once delivery means that for each message handed to the mechanism potentially multiple attempts are made at delivering it, such that at least one succeeds; again, in more casual terms this means that messages may be duplicated but not lost.
-3. 精确的一次，保证不重复发但也不丢数据。exactly-once是最难保证的，因为这涉及到通信中的很多情况。
-exactly-once delivery means that for each message handed to the mechanism exactly one delivery is made to the recipient; the message can neither be lost nor duplicated.</p>
-
-<p>The first one is the cheapest—highest performance, least implementation overhead—because it can be done in a fire-and-forget fashion without keeping state at the sending end or in the transport mechanism. The second one requires retries to counter transport losses, which means keeping state at the sending end and having an acknowledgement mechanism at the receiving end. The third is most expensive—and has consequently worst performance—because in addition to the second it requires state to be kept at the receiving end in order to filter out duplicate deliveries.</p></blockquote>
-
-<h3>为什么保证不了消息发送？</h3>
-
-<ol>
-<li>The message is sent out on the network?</li>
-<li>The message is received by the other host?</li>
-<li>The message is put into the target actor&rsquo;s mailbox?</li>
-<li>The message is starting to be processed by the target actor?</li>
-<li>The message is processed successfully by the target actor?</li>
-</ol>
-
-
-<p>其实就从消息传递从出发到结果的整个过程，状体包括出发、路上、进门、喝茶、出门和回家通报。
-其中在路上需要花多少时间谁都不知道，还有没有万一进门后被真“喝茶”后，不返回通报的你让发送者的家人怎么办？</p>
-
-<h2>消息顺序保证机制</h2>
-
-<ol>
-<li>保证消息一定是顺序到达的，这个地方需要考虑如果是一个kafka的系统，同一个group下的不同consumer之间的顺序怎么保证？</li>
-<li>不保证消息一定顺序到达</li>
-</ol>
-
-
-<h1>reference</h1>
-
-<ol>
-<li><a href="http://doc.akka.io/docs/akka/2.4.3/general/message-delivery-reliability.html">Message Delivery Reliability</a></li>
-<li><a href="http://www.jasongj.com/2015/01/02/Kafka%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90/">Kafka深度解析</a></li>
-</ol>
 
 ]]></content>
   </entry>

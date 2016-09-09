@@ -121,6 +121,22 @@
 第二步：写pom.xml
 第三步：写程序
 第四步：运行</p>
+
+<h1>storm的事务——如何保证storm的消息不丢失？</h1>
+
+<p>又见事务，话说事务到底是什么？google了一下，发现在不同的而场景有不同的定义，但是貌似都有共同的特征，下面给出<a href="https://en.wikipedia.org/wiki/Transaction_processing">wikipedia的定义</a>：
+In computer science, transaction processing is information processing that is divided into <strong>individual, indivisible</strong> operations called transactions. Each transaction must succeed or fail as a complete unit; it can never be only partially complete.
+也许这个定义给出了事务的原子性，要么做完要么完全不做。但是还有两位一个问题，就是能不能重复做？根据事务的rollback原则，回答肯定是否定的。但是根根我的另一篇文章看，消息发送系统要达到exactly-once是一件非常难的事情。其中要求服务处理拥有幂等性，想想都头痛。所以storm给出的答案直接是：
+Storm guarantees data processing by providing an at least once processing guarantee。—— 只支持至少一次，失败就给你重发。那么自然就引出一个大大的问题，怎么解决重发的问题？不过要吐个槽，刚被推荐看storm的<a href="http://storm.apache.org/releases/current/Transactional-topologies.html">transaction</a>，发现这个模块就被置为Deprecated状态。不过还是看看他是怎么设计的吧！</p>
+
+<p>First, you need to tell Storm whenever you&rsquo;re creating a new link in the tree of tuples.
+Second, you need to tell Storm when you have finished processing an individual tuple.</p>
+
+<h2>怎么写出一个消息可靠的storm程序</h2>
+
+<p>按照这篇文章：<a href="http://storm.apache.org/releases/0.9.6/Guaranteeing-message-processing.html">http://storm.apache.org/releases/0.9.6/Guaranteeing-message-processing.html</a>
+难道如果不想建立可靠消息，直接使用<em>collector.emit(new Values(word))而不是</em>collector.emit(tuple, new Values(word))就行了？
+难道重试机制不是在spout的fail函数写好的？</p>
 </div>
 
 
@@ -166,23 +182,23 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/07/29/introduce-cap/">Introduce CAP</a>
+        <a href="/blog/2016/09/06/scheduling-strategy/">Scheduling Strategy</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/24/how-to-understand-a-data-system/">如何理解一个数据存储系统</a>
+        <a href="/blog/2016/09/04/data-file-organization/">Data File Organization</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/23/introduce-infobright/">Introduce Infobright</a>
+        <a href="/blog/2016/08/31/introduce-hive/">Introduce Hive</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/20/why-need-runnable-while-we-already-have-thread-in-java/">java里为什么有了Thread还要设置一个Runnable？</a>
+        <a href="/blog/2016/08/22/design-pattern/">Design Pattern</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/18/the-world-about-oriental-column-database/">数据分析利器 —— 列式储存数据库</a>
+        <a href="/blog/2016/08/14/how-to-manipulate-binary-stream/">How to Manipulate Binary Stream</a>
       </li>
     
   </ul>

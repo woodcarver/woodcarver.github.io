@@ -9,9 +9,8 @@
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="这篇博文主要是对《CAP理论十二年回顾："规则"变了
-》的个人解读。 CAP到底讲什么，为什么不能同时满足？ 首先明确一点，CAP是一个分布式系统的特性，如果你没有多个服务节点，就不可能发生分区。先解释下概念：
-- C —— 执行的结果能同时反映到所有节点上。等同于所有节点访问同一份最新的数据副本 &hellip;">
+  <meta name="description" content="这篇博文主要是对《CAP理论十二年回顾："规则"变了》的读后感。 CAP到底讲什么，为什么不能同时满足？ 首先明确一点，CAP是一个分布式系统的特性，如果你没有多个服务节点，就不可能发生分区。先解释下概念：
+- C —— 执行的结果能同时反映到所有节点上。等同于所有节点访问同一份最新的数据副本。 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -90,8 +89,7 @@
   </header>
 
 
-<div class="entry-content"><p>这篇博文主要是对<a href="http://www.infoq.com/cn/articles/cap-twelve-years-later-how-the-rules-have-changed/">《CAP理论十二年回顾："规则"变了
-》</a>的个人解读。</p>
+<div class="entry-content"><p>这篇博文主要是对<a href="http://www.infoq.com/cn/articles/cap-twelve-years-later-how-the-rules-have-changed/">《CAP理论十二年回顾："规则"变了》</a>的读后感。</p>
 
 <h1>CAP到底讲什么，为什么不能同时满足？</h1>
 
@@ -133,12 +131,33 @@
 
 <p>当系统进入到分区模式，它有两种可行的策略。其一是限制部分操作，因此会削弱可用性。其二是额外记录一些有利于后面分区恢复的操作信息。系统可通过持续尝试恢复通信来察觉分区何时结束。</p>
 
+<h1>副本</h1>
+
+<p>一谈到副本，最大的问题就是其一致性，这个问题不仅仅是在分布式系统中涉及，只不过分布式系统是鼓励副本的存在，而在这个基础上开始设计一套一套的解决方案。但相对其他领域——比如设计模式OOD，关系数据范式都是从另一个方向把<strong>重复（副本）扼杀在摇篮中</strong>，比如策略模型，把能公用的都抽象出来复用。</p>
+
+<h1>可怕的一致性</h1>
+
+<ol>
+<li>一个场景，一个问题</li>
+<li>如何解决这个问题？</li>
+<li>这个解决方法是错的吗？</li>
+<li>这个方法是对的吗？</li>
+<li><p>有没有更优的解法？</p></li>
+<li><p>隐喻，一个直观的例子</p></li>
+<li>过度到实际的模型</li>
+<li>证明模型</li>
+<li>实际用途</li>
+</ol>
+
+
 <h1>reference</h1>
 
 <ul>
 <li><a href="https://martin.kleppmann.com/2015/05/11/please-stop-calling-databases-cp-or-ap.html">Please stop calling databases CP or AP</a></li>
 <li><a href="https://www.infoq.com/articles/cap-twelve-years-later-how-the-rules-have-changed">CAP Twelve Years Later: How the &ldquo;Rules&rdquo; Have Changed
 </a></li>
+<li><a href="http://www.cnblogs.com/esingchan/p/3917718.html">分布式理论之一：Paxos算法的通俗理解</a></li>
+<li><a href="http://www.cnblogs.com/endsock/p/3480093.html">Paxos算法细节详解(一)&ndash;通过现实世界描述算法</a></li>
 </ul>
 
 </div>
@@ -168,8 +187,10 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2016/07/24/how-to-understand-a-data-system/" title="Previous Post: 如何理解一个数据存储系统">&laquo; 如何理解一个数据存储系统</a>
+        <a class="basic-alignment left" href="/blog/2016/07/24/how-to-understand-a-database/" title="Previous Post: 如何理解一个数据存储系统">&laquo; 如何理解一个数据存储系统</a>
       
+      
+        <a class="basic-alignment right" href="/blog/2016/08/14/how-to-use-jmock/" title="Next Post: how to use jmock">how to use jmock &raquo;</a>
       
     </p>
   </footer>
@@ -184,23 +205,23 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/07/29/introduce-cap/">Introduce CAP</a>
+        <a href="/blog/2016/09/06/scheduling-strategy/">Scheduling Strategy</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/24/how-to-understand-a-data-system/">如何理解一个数据存储系统</a>
+        <a href="/blog/2016/09/04/data-file-organization/">Data File Organization</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/23/introduce-infobright/">Introduce Infobright</a>
+        <a href="/blog/2016/08/31/introduce-hive/">Introduce Hive</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/20/why-need-runnable-while-we-already-have-thread-in-java/">java里为什么有了Thread还要设置一个Runnable？</a>
+        <a href="/blog/2016/08/22/design-pattern/">Design Pattern</a>
       </li>
     
       <li class="post">
-        <a href="/blog/2016/07/18/the-world-about-oriental-column-database/">数据分析利器 —— 列式储存数据库</a>
+        <a href="/blog/2016/08/14/how-to-manipulate-binary-stream/">How to Manipulate Binary Stream</a>
       </li>
     
   </ul>

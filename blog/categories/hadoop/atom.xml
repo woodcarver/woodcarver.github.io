@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Hadoop | Wood Carver]]></title>
   <link href="http://woodcarver.github.io/blog/categories/hadoop/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2016-08-08T21:56:31+08:00</updated>
+  <updated>2016-09-09T10:09:28+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -101,6 +101,23 @@
 - 没有索引，所以所有搜索都是暴力的顺序搜索 —— 回应是：大多数大规模数据计算是使用不了关系数据模型在单机上进行的，且索引这种中心式结构很容易成为性能瓶颈，还有当计算是密集型的时候，索引是没有用的
 - mapreduce缺乏现有数据库的关键特性 —— 回应是：难道不是关系型就是不好的吗？（两篇文章感觉火药味十足啊！）
 - mapreduce不兼容现有的DBMS工具 —— 回应是：如果继续兼容现有DBMS，就想上面提到的为了使用锤子，而错把螺丝钉当钉子使用</p>
+
+<h1>一个mapreduce job的启动过程</h1>
+
+<h1>为什么需要yarn？</h1>
+
+<p>如果不是在大量环境中运行一段时候后，意识到了大量的问题后，估计每个人都会觉得上面的方案已经很完美了。所以这里先提出mapreduce框架的缺陷：
+1. 我们都知道，只要是master结构的架构，随着需求的不断扩大瓶颈一般都会出在master身上，而JobTracker这个这个master。因为JobTracker的限制，所有的资源分配任务和监视任务都集中在Jobtracker上面。所有当集群特别大的时候，内存，cup等肯定会出现问题。
+2. master结构还有一个问题，就是单点问题，加入master一挂，那么整个系统就挂了，这和分布式系统倡导高可用、容错特性背向而驰。而当集群越来越大，job越来愈多，都靠Jobtracker调度，那么其挂的可能性有增大的很多。
+3. 不完美的不仅是Jobtracker，还有TaskTracker。问题就在于TaskTracker把资源强制划分为 map task slot 和 reduce task slot, 如果当系统中只有 map task 或者只有 reduce task 的时候，会造成资源的浪费，也就是前面提过的集群资源利用的问题。这样就会经常出现一个job的map任务都做完了，但是reduce阶段却获得不了资源而终止，很是浪费。
+4. TaskTracker对任务的大小也没做考虑，有些任务大，有些任务小。假如两个都很占用内存的任务遇到一起，就会导致OOM，Task失败。</p>
+
+<h2>reference</h2>
+
+<ul>
+<li><a href="https://www.ibm.com/developerworks/cn/opensource/os-cn-hadoop-yarn/">Hadoop 新 MapReduce 框架 Yarn 详解</a></li>
+</ul>
+
 ]]></content>
   </entry>
   

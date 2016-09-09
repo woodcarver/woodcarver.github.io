@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Unit-test | Wood Carver]]></title>
+  <link href="http://woodcarver.github.io/blog/categories/unit-test/atom.xml" rel="self"/>
+  <link href="http://woodcarver.github.io/"/>
+  <updated>2016-09-09T10:09:28+08:00</updated>
+  <id>http://woodcarver.github.io/</id>
+  <author>
+    <name><![CDATA[Wood Carver]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[How to Use Jmock]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/08/14/how-to-use-jmock/"/>
+    <updated>2016-08-14T14:35:32+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/08/14/how-to-use-jmock</id>
+    <content type="html"><![CDATA[<p><a href="http://www.jmock.org/expectations.html">jmock官网</a></p>
+
+<h1>测试框架</h1>
+
+<pre><code>public void testSomeAction() {
+    ... set up ...
+
+    context.checking(new Expectations()
+        ... expectations go here ...
+    );
+
+    ... code being tested ...
+
+    context.assertIsSatisfied();
+
+    ... other assertions ...
+}
+</code></pre>
+
+<p>其中最重要的一个步骤就是context.checking。这个方法中定义的expectation就是需要关注的。也就是你要模拟的方法的输入和输出。
+其他格式是这样的：</p>
+
+<pre><code>invocation-count (mock-object).method(argument-constraints);
+    inSequence(sequence-name);
+    when(state-machine.is(state-name));
+    will(action);
+    then(state-machine.is(new-state-name));
+</code></pre>
+
+<p>其每个短语的具体意思如下：</p>
+
+<table>
+<thead>
+<tr>
+<th>one    </th>
+<th>The invocation is expected once and once only.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>exactly(n).of</td>
+<td> The invocation is expected exactly n times. Note: one is a convenient shorthand for exactly(1).</td>
+</tr>
+<tr>
+<td>atLeast(n).of </td>
+<td>The invocation is expected at least n times.</td>
+</tr>
+<tr>
+<td>atMost(n).of   </td>
+<td>The invocation is expected at most n times.</td>
+</tr>
+<tr>
+<td>between(min, max).of   </td>
+<td>The invocation is expected at least min times and at most max times.</td>
+</tr>
+<tr>
+<td>allowing   </td>
+<td>The invocation is allowed any number of times but does not have to happen.</td>
+</tr>
+<tr>
+<td>ignoring   </td>
+<td>The same as allowing. Allowing or ignoring should be chosen to make the test code clearly express intent.</td>
+</tr>
+<tr>
+<td>never  </td>
+<td>The invocation is not expected at all. This is used to make tests more explicit and so easier to understand.</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>所有的函数都是可以选的，例如你可以如下组合你的exception。</p>
+
+<h1>例子</h1>
+
+<pre><code>public void testReturnsCachedObjectWithinTimeout() {
+    context.checking(new Expectations()
+        oneOf (clock).time(); will(returnValue(loadTime));
+        oneOf (clock).time(); will(returnValue(fetchTime));
+
+        allowing (reloadPolicy).shouldReload(loadTime, fetchTime); will(returnValue(false));
+
+        oneOf (loader).load(KEY); will(returnValue(VALUE));
+    );
+
+    Object actualValueFromFirstLookup = cache.lookup(KEY);
+    Object actualValueFromSecondLookup = cache.lookup(KEY);
+
+    context.assertIsSatisfied();
+    assertSame("should be loaded object", VALUE, actualValueFromFirstLookup);
+    assertSame("should be cached object", VALUE, actualValueFromSecondLookup);
+}
+</code></pre>
+]]></content>
+  </entry>
+  
+</feed>
