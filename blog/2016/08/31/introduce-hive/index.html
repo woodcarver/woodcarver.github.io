@@ -121,7 +121,67 @@ row-store: fast loading data in real-time in HDFS, because data coming by row an
 
 <h1>如何在Hive中加载一个外部的脚本文件？</h1>
 
-<h1>写一个UDF</h1>
+<h1>写UDF, UDAF, UDTF</h1>
+
+<p>Hive提供UDF, UDAF, UDTF三种接口来给用户扩展sql的功能。当然为什么要有三个接口呢？他们有什么区别？这个我们下面会依次讲到。</p>
+
+<p>首先我们需要知道现在都有哪些实现好的函数，就不用再造轮子了是吧！</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&gt; show functions;
+</span><span class='line'>!  
+</span><span class='line'>!=  
+</span><span class='line'>......
+</span><span class='line'>
+</span><span class='line'>&gt; describe function max;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>show functions这个命令可以列出现有的函数，而describe function function-name会列出具体的函数描述。</p>
+
+<p>写自己的函数前，我们先要明确下我们的函数到底会怎么被Hive运行？会在那个阶段运行？这个就不得不说SQL语句的解析了。一般SQL的解析顺序是：</p>
+
+<ul>
+<li>from</li>
+<li>where</li>
+<li>group by</li>
+<li>having</li>
+<li>select</li>
+<li>distinct</li>
+<li>union</li>
+<li>order by</li>
+<li>limit</li>
+</ul>
+
+
+<p>本质上SQL是一个种集合代数运算操作的语言，每一种操作都是一种代数操作。
+这个顺序基本可以这么理解：首先需要确定数据源（from后面的表），然后数据确定范围（where条件筛选），然后对这个数据进行分组（group），然后选择要展示的列（select），然后可以对选择的数据集进行排序（order by）。后面如果还有一个数据集那么可以union。其中还有像having，distinct和limit操作的顺序我暂时还不能理解这里就不讲了，还有发现distinct的执行顺序和group by并不在一起让而且在select后面，也许这里就会产生一些写法上的注意点。其中这个排序也可能在不同的数据库引擎中执行顺序不一样。
+具体详情参看<a href="http://blog.jobbole.com/55086/">这篇文章</a>。</p>
+
+<p>那么hive的函数要做到在SQL语句哪个部分都能运行，所以对函数的语义一定要弄清楚。而且一定要把函数处理过程想想成流式的，因为在SQL中所有的操作都是流式操作。</p>
+
+<ol>
+<li>UDF只能实现一进一出的操作, 即UDF只能操作一行的数据，而要操作多行的数据需要使用UDAF实现</li>
+<li>实现聚合函数请用UDAF， 解决进多出一</li>
+<li>UDTF(User-Defined Table-Generating Functions) 用来解决 输入一行输出多行(On-to-many maping) 的需求</li>
+</ol>
+
+
+<h2>怎么解决hive中的数据倾斜问题</h2>
+
+<h2>hive sql优化</h2>
+
+<ul>
+<li>裁剪列，不要写不查的列</li>
+<li>裁剪分区，如果是子查询限制条件一般放在子查询内部</li>
+<li>Join1 —— 小表前置，想想hash join的过程</li>
+<li>Join2 ——</li>
+</ul>
+
 </div>
 
 
@@ -167,7 +227,7 @@ row-store: fast loading data in real-time in HDFS, because data coming by row an
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/09/06/scheduling-strategy/">Scheduling Strategy</a>
+        <a href="/blog/2016/09/14/learning-how-to-learn/">Learning How to Learn</a>
       </li>
     
       <li class="post">

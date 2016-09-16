@@ -621,15 +621,64 @@ Thread和Runnable的区别和联系、多次start一个线程会怎么样、线�
 - mapreduce缺乏现有数据库的关键特性 —— 回应是：难道不是关系型就是不好的吗？（两篇文章感觉火药味十足啊！）
 - mapreduce不兼容现有的DBMS工具 —— 回应是：如果继续兼容现有DBMS，就想上面提到的为了使用锤子，而错把螺丝钉当钉子使用</p>
 
-<h1>一个mapreduce job的启动过程</h1>
+<h1>说了那么多，我们谈谈mapreduce是个什么东西</h1>
 
-<h1>为什么需要yarn？</h1>
+<p>mapreduce是一个分布式批量计算框架。想必听到这句话的时候大家应该和我一样会问计算框架是个什么东西，也有可能就是吓的不敢问了？
+最粗的方式：
+- map
+- reduce</p>
+
+<p>其次粒度，6个阶段：
+- input ： 这个阶段注意输入格式
+- split ：这个阶段注意split的性能
+- map
+- shuffle
+- reduce ： 注意数据倾斜
+- output ：注意输出格式</p>
+
+<p>最细粒度：
+- input
+- split
+- mapper
+- combiner
+- partitioner
+到这里都是本地机器内操作
+- shuffle
+- reduce
+- output</p>
+
+<h2>一个mapreduce job的启动过程</h2>
+
+<p>话说说完了计算框架的逻辑，那么要运行一个计算任务该怎么做？发现又是另一套东西，怎么都是感觉表面一套背地里一套！</p>
+
+<h2>第一版的过程</h2>
+
+<h2>为什么需要yarn？</h2>
 
 <p>如果不是在大量环境中运行一段时候后，意识到了大量的问题后，估计每个人都会觉得上面的方案已经很完美了。所以这里先提出mapreduce框架的缺陷：
 1. 我们都知道，只要是master结构的架构，随着需求的不断扩大瓶颈一般都会出在master身上，而JobTracker这个这个master。因为JobTracker的限制，所有的资源分配任务和监视任务都集中在Jobtracker上面。所有当集群特别大的时候，内存，cup等肯定会出现问题。
 2. master结构还有一个问题，就是单点问题，加入master一挂，那么整个系统就挂了，这和分布式系统倡导高可用、容错特性背向而驰。而当集群越来越大，job越来愈多，都靠Jobtracker调度，那么其挂的可能性有增大的很多。
 3. 不完美的不仅是Jobtracker，还有TaskTracker。问题就在于TaskTracker把资源强制划分为 map task slot 和 reduce task slot, 如果当系统中只有 map task 或者只有 reduce task 的时候，会造成资源的浪费，也就是前面提过的集群资源利用的问题。这样就会经常出现一个job的map任务都做完了，但是reduce阶段却获得不了资源而终止，很是浪费。
 4. TaskTracker对任务的大小也没做考虑，有些任务大，有些任务小。假如两个都很占用内存的任务遇到一起，就会导致OOM，Task失败。</p>
+
+<h2>编写mapreduce</h2>
+
+<h3>万恶的数据倾斜</h3>
+
+<ol>
+<li>为什么会发生数据倾斜
+根据上面mapreduce逻辑过程我们发现，数据倾斜不可能发生在map过程，都是发生在reduce过程。为什么呢？因为shuffle过程有个规则就是同样的key会发往同一个reduce上，所以到出现key1的记录条数是10亿，而key2的记录条数是10个，那么接到key1的reduce可就要倒霉了，同时其他的reduce也要陪着慢慢的等。</li>
+</ol>
+
+
+<p>怎么解决呢？（难道mapreduce自己没有解决机制吗？）</p>
+
+<ul>
+<li>既然出现大key的时候会出现倾斜，那么直接的解决方法就是把大key给拆了，可以通过加后缀的方式改变key值。</li>
+</ul>
+
+
+<h1>hadoop的另一大旗舰产品——HDFS</h1>
 
 <h2>reference</h2>
 
@@ -667,39 +716,50 @@ Thread和Runnable的区别和联系、多次start一个线程会怎么样、线�
 
   <div class="entry-content"><h1>知识地图</h1>
 
-<p>这篇文章整理的是对关于诊断linux系统状况的相关指标和命令。涉及到：
-1. I/O负载状况
-2. 进程控制
-3. cpu负载状况
-4. memory占用情况
-5. disk使用情况</p>
+<p>这篇文章整理的是对关于诊断linux系统状况的相关指标和命令。涉及到：</p>
+
+<ol>
+<li>I/O负载状况</li>
+<li>进程控制</li>
+<li>cpu负载状况</li>
+<li>memory占用情况</li>
+<li>disk使用情况</li>
+</ol>
+
+
+<p>其中统计值会把I/O的时候见包含进cpu时间中，所以从上面的分类来看一个运行的进程的指标——cpu就是衡量任务的占时状况，而内存就是占用空间情况。</p>
 
 <h1>Commands about I/O</h1>
 
 <ul>
-<li><p>什么是I/O
-再让我们看一眼csapp的那幅经典图
-<img src="/images/posts/computer_organization.png" alt="computer organization" />
+<li>什么是I/O</li>
+</ul>
+
+
+<p>再让我们看一眼csapp的那幅经典图
+<img src="http://woodcarver.oss-cn-shanghai.aliyuncs.com/post/computer_organization.png" alt="computer organization" />
 看到所有的设备都是通过I/O bridge把数据移动到Main memory上，然后再主存再和CPU交互进行计算。当CPU有输出时，也是先输出到主存上，然后再输入到设备上。而再计算机中I/O设备就只除去CPU和主存的设备，也成外围设备。
 介绍完I/O设备，那什么是I/O呢？按照《Unix系统内幕》的定义：</p>
 
 <blockquote><p>The I/O subsystem haldes the movement of data between memory and peripheral devices such as disks, printers, and terminals.
-所以I/O就是指I/O设备和memory之间数据移动。</p></blockquote></li>
-<li><p>怎么才算是一次I/O</p>
+所以I/O就是指I/O设备和memory之间数据移动。</p></blockquote>
+
+<p>怎么才算是一次I/O，大概是指移动次数但是这个不重要，重要的是对于I/O的衡量却不是根据其移动次数，而是根据其占用一个运行任务的时间比例衡量的。所以如果运行的进程中你看到真正使用CPU时间的比例很少，“大部分”是在等待I/O。那么就是说I/O不行，跟不上CPU的节奏。</p>
+
+<p>那当发现I/O占时过大的时候怎么办？目标就是减少I/O！这个目标说起来容易，做起来也确实有几个常规方法。一种是数据库系统经常用到了。例如mysql的索引技术就是排除不相关数据，只传当前相关的数据。还有些对磁盘的数据进行压缩，这个传输到内存上的容量就少了，I/O自然降了。
+还有就是换设备，换硬盘、换网卡<code>^_^</code>。</p>
 
 <h2>iostat</h2>
 
 <h2>top</h2>
 
-top对I/O的描述是用I/O wait这个指标，例如下图：
-<img src="/images/posts/top_command_short.png" alt="top command" />
-其中I/O wait 的定义是：
+<p>top对I/O的描述是用I/O wait这个指标，例如下图：
+<img src="http://woodcarver.oss-cn-shanghai.aliyuncs.com/post/top_command_short.png" alt="top command" />
+其中I/O wait 的定义是：</p>
 
 <blockquote><p>I/O wait is the percentage of time your processors are waiting on the disk.
 I/O wait就是CPU在整个任务处理中等待闲置的时间，举个例子：一个任务一共使用了1s，但是其中从从磁盘中取数据花了700ms，而在磁盘读取数据时CPU是闲置的，所以CPU的等待I/O的时间占了70%，即I/O wait 是70%。
-当然有人指出对多核cpu通过iowait来统计io的负载情况并不准确，<a href="http://veithen.github.io/2013/11/18/iowait-linux.html">详见</a></p></blockquote></li>
-</ul>
-
+当然有人指出对多核cpu通过iowait来统计io的负载情况并不准确，<a href="http://veithen.github.io/2013/11/18/iowait-linux.html">详见</a></p></blockquote>
 
 <p><code>threshold：当I/O wait &gt; 1/CPU_cores 可以判断明显出现了I/O瓶颈(why?)。</code></p>
 
@@ -711,6 +771,16 @@ I/O wait就是CPU在整个任务处理中等待闲置的时间，举个例子：
 
 <p>发现这个命令组合很有意思
 dstat -tdD total,sda,sdb,sdc,md1 60</p>
+
+<h1>command about CPU</h1>
+
+<h2>top</h2>
+
+<p>top对cpu的描述有下面几个值：
+user &ndash; 表示用户太消耗的cpu时间
+sys &ndash; 表示内核态消耗的cpu时间
+real &ndash; 表示操作从开始到结束所经过的墙钟时间（Wall Clock Time）
+cpu时间和墙钟时间的区别是，墙钟时间包括各种非运算的等待时间，例如等待磁盘I/O，等待线程阻塞，而cpu时间不包括这些耗时。但是当系统有多个cpu或者多核的时候，多线程操作会叠加这些cpu时间，所以如果看到user+sys > real 是正常的。</p>
 
 <h2>Reference</h2>
 
@@ -729,6 +799,7 @@ dstat -tdD total,sda,sdb,sdc,md1 60</p>
 <li>source</li>
 <li>kill</li>
 <li>bg,fg,jobs</li>
+<li>nice</li>
 </ul>
 
 </div>
@@ -1011,7 +1082,7 @@ echoNum(1)，echoNum(2)，echoNum(3)
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/09/06/scheduling-strategy/">Scheduling Strategy</a>
+        <a href="/blog/2016/09/14/learning-how-to-learn/">Learning How to Learn</a>
       </li>
     
       <li class="post">

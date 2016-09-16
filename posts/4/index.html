@@ -1295,6 +1295,10 @@ Second, you need to tell Storm when you have finished processing an individual t
 <p>按照这篇文章：<a href="http://storm.apache.org/releases/0.9.6/Guaranteeing-message-processing.html">http://storm.apache.org/releases/0.9.6/Guaranteeing-message-processing.html</a>
 难道如果不想建立可靠消息，直接使用<em>collector.emit(new Values(word))而不是</em>collector.emit(tuple, new Values(word))就行了？
 难道重试机制不是在spout的fail函数写好的？</p>
+
+<h2>作业启动流程</h2>
+
+<h2>其中并行度如何控制？</h2>
 </div>
   
   
@@ -1929,7 +1933,7 @@ T= 1+1+while里面的步骤。while里面的步骤怎么计算？
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2016/09/06/scheduling-strategy/">Scheduling Strategy</a>
+        <a href="/blog/2016/09/14/learning-how-to-learn/">Learning How to Learn</a>
       </li>
     
       <li class="post">

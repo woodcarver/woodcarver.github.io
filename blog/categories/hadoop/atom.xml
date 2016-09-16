@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Hadoop | Wood Carver]]></title>
   <link href="http://woodcarver.github.io/blog/categories/hadoop/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2016-09-09T10:09:28+08:00</updated>
+  <updated>2016-09-16T12:12:35+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -102,15 +102,64 @@
 - mapreduce缺乏现有数据库的关键特性 —— 回应是：难道不是关系型就是不好的吗？（两篇文章感觉火药味十足啊！）
 - mapreduce不兼容现有的DBMS工具 —— 回应是：如果继续兼容现有DBMS，就想上面提到的为了使用锤子，而错把螺丝钉当钉子使用</p>
 
-<h1>一个mapreduce job的启动过程</h1>
+<h1>说了那么多，我们谈谈mapreduce是个什么东西</h1>
 
-<h1>为什么需要yarn？</h1>
+<p>mapreduce是一个分布式批量计算框架。想必听到这句话的时候大家应该和我一样会问计算框架是个什么东西，也有可能就是吓的不敢问了？
+最粗的方式：
+- map
+- reduce</p>
+
+<p>其次粒度，6个阶段：
+- input ： 这个阶段注意输入格式
+- split ：这个阶段注意split的性能
+- map
+- shuffle
+- reduce ： 注意数据倾斜
+- output ：注意输出格式</p>
+
+<p>最细粒度：
+- input
+- split
+- mapper
+- combiner
+- partitioner
+到这里都是本地机器内操作
+- shuffle
+- reduce
+- output</p>
+
+<h2>一个mapreduce job的启动过程</h2>
+
+<p>话说说完了计算框架的逻辑，那么要运行一个计算任务该怎么做？发现又是另一套东西，怎么都是感觉表面一套背地里一套！</p>
+
+<h2>第一版的过程</h2>
+
+<h2>为什么需要yarn？</h2>
 
 <p>如果不是在大量环境中运行一段时候后，意识到了大量的问题后，估计每个人都会觉得上面的方案已经很完美了。所以这里先提出mapreduce框架的缺陷：
 1. 我们都知道，只要是master结构的架构，随着需求的不断扩大瓶颈一般都会出在master身上，而JobTracker这个这个master。因为JobTracker的限制，所有的资源分配任务和监视任务都集中在Jobtracker上面。所有当集群特别大的时候，内存，cup等肯定会出现问题。
 2. master结构还有一个问题，就是单点问题，加入master一挂，那么整个系统就挂了，这和分布式系统倡导高可用、容错特性背向而驰。而当集群越来越大，job越来愈多，都靠Jobtracker调度，那么其挂的可能性有增大的很多。
 3. 不完美的不仅是Jobtracker，还有TaskTracker。问题就在于TaskTracker把资源强制划分为 map task slot 和 reduce task slot, 如果当系统中只有 map task 或者只有 reduce task 的时候，会造成资源的浪费，也就是前面提过的集群资源利用的问题。这样就会经常出现一个job的map任务都做完了，但是reduce阶段却获得不了资源而终止，很是浪费。
 4. TaskTracker对任务的大小也没做考虑，有些任务大，有些任务小。假如两个都很占用内存的任务遇到一起，就会导致OOM，Task失败。</p>
+
+<h2>编写mapreduce</h2>
+
+<h3>万恶的数据倾斜</h3>
+
+<ol>
+<li>为什么会发生数据倾斜
+根据上面mapreduce逻辑过程我们发现，数据倾斜不可能发生在map过程，都是发生在reduce过程。为什么呢？因为shuffle过程有个规则就是同样的key会发往同一个reduce上，所以到出现key1的记录条数是10亿，而key2的记录条数是10个，那么接到key1的reduce可就要倒霉了，同时其他的reduce也要陪着慢慢的等。</li>
+</ol>
+
+
+<p>怎么解决呢？（难道mapreduce自己没有解决机制吗？）</p>
+
+<ul>
+<li>既然出现大key的时候会出现倾斜，那么直接的解决方法就是把大key给拆了，可以通过加后缀的方式改变key值。</li>
+</ul>
+
+
+<h1>hadoop的另一大旗舰产品——HDFS</h1>
 
 <h2>reference</h2>
 
