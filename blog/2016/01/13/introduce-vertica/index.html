@@ -145,6 +145,50 @@ select node_name,wos_row_count,ros_row_count from projection_storage where ancho
 <p><a href="http://woothon.iteye.com/blog/2211252">http://woothon.iteye.com/blog/2211252</a>
 SELECT SUM(used_bytes) FROM   V_MONITOR.projection_storage</p>
 
+<h3>表满了之后怎么办？</h3>
+
+<p>This post will show how to get the compressed size of Vertica tables from column_storage and projection_storage system tables in the v_monitor schema. To get an estimated raw or uncompressed data size, see my earlier post on License Utilization.</p>
+
+<p>column_storage
+The following query aggregates the column_storage data to the table level. You can add column_name for more granularity. Note that empty tables will not appear in this table.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="n">anchor_table_schema</span><span class="p">,</span>
+</span><span class='line'>       <span class="n">anchor_table_name</span><span class="p">,</span>
+</span><span class='line'>       <span class="k">SUM</span><span class="p">(</span><span class="n">used_bytes</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span> <span class="mi">1024</span><span class="o">^</span><span class="mi">3</span> <span class="p">)</span> <span class="k">AS</span> <span class="n">used_compressed_gb</span>
+</span><span class='line'><span class="k">FROM</span>   <span class="n">v_monitor</span><span class="p">.</span><span class="n">column_storage</span>
+</span><span class='line'><span class="k">GROUP</span>  <span class="k">BY</span> <span class="n">anchor_table_schema</span><span class="p">,</span>
+</span><span class='line'>          <span class="n">anchor_table_name</span>
+</span><span class='line'><span class="k">ORDER</span>  <span class="k">BY</span> <span class="k">SUM</span><span class="p">(</span><span class="n">used_bytes</span><span class="p">)</span> <span class="k">DESC</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>projection_storage
+The following query is almost identical to the one above, except for the table name. The lowest level in this system table is the table name. Any empty tables will appear in your result.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="n">anchor_table_schema</span><span class="p">,</span>
+</span><span class='line'>       <span class="n">anchor_table_name</span><span class="p">,</span>
+</span><span class='line'>       <span class="k">SUM</span><span class="p">(</span><span class="n">used_bytes</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span> <span class="mi">1024</span><span class="o">^</span><span class="mi">3</span> <span class="p">)</span> <span class="k">AS</span> <span class="n">used_compressed_gb</span>
+</span><span class='line'><span class="k">FROM</span>   <span class="n">v_monitor</span><span class="p">.</span><span class="n">projection_storage</span>
+</span><span class='line'><span class="k">GROUP</span>  <span class="k">BY</span> <span class="n">anchor_table_schema</span><span class="p">,</span>
+</span><span class='line'>          <span class="n">anchor_table_name</span>
+</span><span class='line'><span class="k">ORDER</span>  <span class="k">BY</span> <span class="k">SUM</span><span class="p">(</span><span class="n">used_bytes</span><span class="p">)</span> <span class="k">DESC</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
 <h3>索引到底是个什么鬼</h3>
 
 <h2>任务控制</h2>
@@ -175,20 +219,23 @@ SELECT CLOSE_ALL_SESSIONS();</p>
 
 <p>查看projection，使用下面命令：</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>\dj</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="err">\</span><span class="n">dj</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>删除projection，使用</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>drop projection &lt;projection_name&gt;</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">drop</span> <span class="n">projection</span> <span class="o">&lt;</span><span class="n">projection_name</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>创建projection，使用</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>create projection &lt;projection_name&gt;</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">create</span> <span class="n">projection</span> <span class="o">&lt;</span><span class="n">projection_name</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>Projection是作为vertica物理储存的概念，其大概相当于oracle的物化视图。核心概念就是对同一份数据集合做颗粒度分别储存，把一些经常使用的计算结果预先储存起来，以此来提高查询效率。
@@ -241,8 +288,9 @@ SELECT CLOSE_ALL_SESSIONS();</p>
 
 <p>这种projection主要是针对top k的查询优化。</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>=&gt; SELECT * FROM table1 LIMIT 10 OVER (PARTITION BY a ORDER BY b);</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="o">=&gt;</span> <span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">table1</span> <span class="k">LIMIT</span> <span class="mi">10</span> <span class="n">OVER</span> <span class="p">(</span><span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">a</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">b</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p><a href="https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/AdministratorsGuide/Projections/TopKProjections.htm">https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/AdministratorsGuide/Projections/TopKProjections.htm</a></p>
@@ -271,8 +319,9 @@ WARNING 4468:  Projection &lt;public.test> is not available for query processing
 
 <p>报这些错误是因为在建立projection之后必须进行refresh vertica才会把数据灌入其中。所以使用refresh函数，例如下面：</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>select refresh('summary_hyper_hourly');</span></code></pre></td></tr></table></div></figure>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">select</span> <span class="n">refresh</span><span class="p">(</span><span class="s1">&#39;summary_hyper_hourly&#39;</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>其中参数是table的name，而不是projection的name。
