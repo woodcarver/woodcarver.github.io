@@ -150,7 +150,8 @@ SELECT SUM(used_bytes) FROM   V_MONITOR.projection_storage</p>
 
 <h3>表满了之后怎么办？</h3>
 
-<p>This post will show how to get the compressed size of Vertica tables from column_storage and projection_storage system tables in the v_monitor schema. To get an estimated raw or uncompressed data size, see my earlier post on License Utilization.</p>
+<p><a href="http://vertica.tips/2014/01/25/table-size/">http://vertica.tips/2014/01/25/table-size/</a>
+This post will show how to get the compressed size of Vertica tables from column_storage and projection_storage system tables in the v_monitor schema. To get an estimated raw or uncompressed data size, see my earlier post on License Utilization.</p>
 
 <p>column_storage
 The following query aggregates the column_storage data to the table level. You can add column_name for more granularity. Note that empty tables will not appear in this table.</p>
