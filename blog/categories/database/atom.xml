@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Database | Wood Carver]]></title>
   <link href="http://woodcarver.github.io/blog/categories/database/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2016-10-07T14:01:42+08:00</updated>
+  <updated>2017-01-15T01:00:53+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -379,6 +379,15 @@ Let us see one by one on clicking the above links</li>
 </table>
 
 
+<h2>Rcfile</h2>
+
+<p>(1) fast data loading
+(2) fast query processing
+(3) highly efficient storage space utilization
+(4) strong adaptivity to highly dynamic workload patterns</p>
+
+<h2>Orcfile</h2>
+
 <h1>refernce</h1>
 
 <ul>
@@ -387,6 +396,9 @@ Let us see one by one on clicking the above links</li>
 <li><a href="http://blog.csdn.net/cjfeii/article/details/8884658">关系型数据在磁盘上的存储布局</a></li>
 <li><a href="http://blog.csdn.net/v_july_v/article/details/7526689">从LSM-Tree、COLA-Tree谈到StackOverflow、OSQA</a></li>
 <li><a href="http://www.cnblogs.com/siegfang/archive/2013/01/12/lsm-tree.html">日志结构的合并树 The Log-Structured Merge-Tree</a></li>
+<li><a href="http://www.cnblogs.com/yurunmiao/p/4745951.html">Hadoop RCFile存储格式详解（源码分析、代码示例）</a></li>
+<li><a href="http://web.cse.ohio-state.edu/hpcs/WWW/HTML/publications/papers/TR-11-4.pdf">RCFile: A Fast and Space-efficient Data Placement</a></li>
+<li><a href="http://blog.csdn.net/u011955252/article/details/50531178">Rcfile API使用</a></li>
 </ul>
 
 ]]></content>
@@ -401,12 +413,17 @@ Let us see one by one on clicking the above links</li>
 
 <h1>vertica的基本架构介绍</h1>
 
-<p>首先定型一下vertica在数据库领域里的分支：
-1. 面向批量分析数据(OLAP)
-2. 关系型数据库(RDBMS)
-3. 面向列式储存(column-store architechture)
-4. 分布式(distributed)
-按照vertica在官方文档中提到自己的特性：4 c's——<a href="https://my.vertica.com/docs/7.0.x/HTML/index.htm#Authoring/ConceptsGuide/Other/TheHPVerticaApproach.htm%3FTocPath%3DConcepts%2520Guide%7C_____1">Column Storage， Compression，Clustering，Continuous Performance</a>
+<p>首先定型一下vertica在数据库领域里的分支：</p>
+
+<ol>
+<li>面向批量分析数据(OLAP)</li>
+<li>关系型数据库(RDBMS)</li>
+<li>面向列式储存(column-store architechture)</li>
+<li>分布式(distributed)</li>
+</ol>
+
+
+<p>按照vertica在官方文档中提到自己的特性：4 c's——<a href="https://my.vertica.com/docs/7.0.x/HTML/index.htm#Authoring/ConceptsGuide/Other/TheHPVerticaApproach.htm%3FTocPath%3DConcepts%2520Guide%7C_____1">Column Storage， Compression，Clustering，Continuous Performance</a>
 其中高压缩比这个特性一般是附属于面向列式储存的特性的，不是一个正交属性。</p>
 
 <p>当然类似于mysql，sql server等面向OLTP的数据库，其主要处理事务型数据。而vertica的设计目的已经进入到了另一个领域OLAP（OLTP和OLAP的对比，<a href="">参看这里</a>）。所以相对于OLTP大多数采用row-store的储存架构，OLAP一般会用column-store架构。<a href="">这里可以思考一下为什么会有这样的不同</a>。
@@ -417,15 +434,32 @@ Let us see one by one on clicking the above links</li>
 <h2>储存设计</h2>
 
 <p>因为Vertica是面向列式储存的数据库，其读取也是按列为单位，其中读取实际单位是projections（作为vertica的FlexStore体系中的一个概念，假如说column-store是为了加快OLAP数据库查询速度的首选，那么FlexStore的存在就是进一步在这基础上从physical design, database storage, and query execution三个方面提升速度）。
-其中打破了按表储存的架构，表在vertica中只是一个逻辑概念，其本身还是一个特殊的projections，其物理储存全部用的是projections：
-<code>
-Projection
+其中打破了按表储存的架构，表在vertica中只是一个逻辑概念，其本身还是一个特殊的projections，其物理储存全部用的是projections：</p>
+
+<pre><code>Projection
 Optimized collections of table columns that provide physical storage for data. A projection can contain some or all of the columns of one or more tables. A projection that contains all of the columns of a table is called a super-projection. A projection that joins one or more tables is called a pre-join projection.
-</code></p>
+</code></pre>
 
 <ul>
-<li>查看projection
-select node_name,wos_row_count,ros_row_count from projection_storage where anchor_table_name=&lsquo;dim_exp&rsquo;;</li>
+<li>查看projection</li>
+</ul>
+
+
+<pre><code>\dj
+</code></pre>
+
+<p>进入交互界面后，通过这个命令可以查看系统中拥有的projection列表。</p>
+
+<h3>Continuous Performance（平滑性能？）</h3>
+
+<p>在vertica中强调了它拥有的性能平滑过渡的特性。这个其实是在说它的wos和ros的过渡特性。wos就是指Write Optimized Store，而ros则对应的指Read Optimized Store。一般来说大部分的的数据库系统储存都是wos的，而vertica为了追求写入速度，写入数据也使用了wos，但是把wos限制在了内存中，这样对于读取也没有过大的影响。当内存溢出或者用户直接指定采用ros写入方式的时候，vertica会把wos的数据从内存中转化成ros储存到磁盘上。通过这种方式来保证历史数据的读取性能。</p>
+
+<p>查看一个表的存储方式是wos还是row，可以通过下面sql：</p>
+
+<pre><code>select node_name,wos_row_count,ros_row_count from projection_storage where anchor_table_name='dim_exp';
+</code></pre>
+
+<ul>
 <li>wos vs ros
 <a href="http://vertica-forums.com/viewtopic.php?t=126">http://vertica-forums.com/viewtopic.php?t=126</a></li>
 </ul>
@@ -438,7 +472,10 @@ select node_name,wos_row_count,ros_row_count from projection_storage where ancho
 <h3>删除数据——分区的最大用处</h3>
 
 <p>到底使用分区比较好呢？还是用purage_table比较好呢？
-果断构建partition好，因为如果用purage对于已经转移好的ros数据块（到底会怎么样？解释不清楚了吧！）速度会很慢。<a href="https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/PURGE_TABLE.htm">https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/PURGE_TABLE.htm</a></p>
+果断构建partition好，因为如果用purage对于已经转移好的ros数据块（到底会怎么样？）速度会很慢。<a href="https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/PURGE_TABLE.htm">https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/PURGE_TABLE.htm</a></p>
+
+<pre><code>select drop_partition('"${summary_table}"',${dt_14_ago}${hr})
+</code></pre>
 
 <h3>如何查看当前liencese的使用情况</h3>
 
@@ -451,11 +488,15 @@ SELECT SUM(used_bytes) FROM   V_MONITOR.projection_storage</p>
 
 <h3>表满了之后怎么办？</h3>
 
+<p>总的原则就是删除数据，然后重新获取license。</p>
+
 <p><a href="http://vertica.tips/2014/01/25/table-size/">http://vertica.tips/2014/01/25/table-size/</a>
 This post will show how to get the compressed size of Vertica tables from column_storage and projection_storage system tables in the v_monitor schema. To get an estimated raw or uncompressed data size, see my earlier post on License Utilization.</p>
 
 <p>column_storage
 The following query aggregates the column_storage data to the table level. You can add column_name for more granularity. Note that empty tables will not appear in this table.</p>
+
+<p>查看每个表的占据的容量：</p>
 
 <pre><code class="sql">SELECT anchor_table_schema,
        anchor_table_name,
@@ -467,16 +508,18 @@ ORDER  BY SUM(used_bytes) DESC;
 </code></pre>
 
 <p>projection_storage
-The following query is almost identical to the one above, except for the table name. The lowest level in this system table is the table name. Any empty tables will appear in your result.
-<code>sql
-SELECT anchor_table_schema,
+The following query is almost identical to the one above, except for the table name. The lowest level in this system table is the table name. Any empty tables will appear in your result.</p>
+
+<p>每个project占据的容量：</p>
+
+<pre><code class="sql">SELECT anchor_table_schema,
        anchor_table_name,
        SUM(used_bytes) / ( 1024^3 ) AS used_compressed_gb
 FROM   v_monitor.projection_storage
 GROUP  BY anchor_table_schema,
           anchor_table_name
 ORDER  BY SUM(used_bytes) DESC;
-</code></p>
+</code></pre>
 
 <h3>索引到底是个什么鬼</h3>
 
@@ -484,14 +527,16 @@ ORDER  BY SUM(used_bytes) DESC;
 
 <h3>查看执行的任务，类似于mysql的show processlist</h3>
 
-<p>SELECT session_id,statement_start,current_statement FROM SESSIONS
-<a href="https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/CLOSE_SESSION.htm">https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/CLOSE_SESSION.htm</a>
-SELECT * FROM SESSIONS;</p>
+<pre><code>SELECT session_id,statement_start,current_statement FROM SESSIONS
+https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/CLOSE_SESSION.htm
+SELECT * FROM SESSIONS;
+</code></pre>
 
 <h3>杀死执行的任务，类似于mysql的kill</h3>
 
-<p>SELECT CLOSE_SESSION(&lsquo;stress05-27944:0xc1a&rsquo;);
-SELECT CLOSE_ALL_SESSIONS();</p>
+<pre><code class="sql">SELECT CLOSE_SESSION('stress05-27944:0xc1a');
+SELECT CLOSE_ALL_SESSIONS();
+</code></pre>
 
 <h3>数据类型</h3>
 
@@ -627,20 +672,33 @@ WARNING 4468:  Projection &lt;public.test> is not available for query processing
     <link href="http://woodcarver.github.io/blog/2015/08/03/introduction-to-olap/"/>
     <updated>2015-08-03T15:02:36+08:00</updated>
     <id>http://woodcarver.github.io/blog/2015/08/03/introduction-to-olap</id>
-    <content type="html"><![CDATA[<p>现在看完了一本关于讲解数据仓库和数据挖掘的书了，感觉讲的挺不错，现在来写一篇文章。
-首先我们考虑当一家公司从小到大一直发展到amazon的那样，我们叫她ama，数据的会怎么变化。但amazon起初就是小网站的时候肯定大家都一样前端一个购物网页后端放一个给前端操作的数据库即可。那么这个数据库必然是天然适应前端应用操作的一个东西对不对？当然这时候我们也没有别的需求，所以数据库的全世界也就只有这一种啦，你也认识不到还有别的使用数据的地方。
-然后ama不断的发展，突然来了这么一个人，这个人以前是名统计学家，他对公司这么放着一堆“金子”不用而感到惊讶。所她自己挽起袖子，自己发誓要通过科学的方法得出一些结论，让公司的市场方向和运营得到指导和优化。但是面对他从来没在学校见过的不可思议大的已经都“落灰”的数据时候，发现自己仅仅是抽个样本看都难。
-然后他又正好有个前同事是数据库的专家，你貌似知道以前他搞过基因测序，那东西可是比这堆东西更大，而他搞定了，去问问他。
-“Hi，Denise你以前的基因测序是怎么把信息存储起来的同时还能做计算？”
-“Shally，你算问对人了。我现在就在研究最火的大数据方向！不过也许你听大数据这个词已经烦了，不过用它拿科研经费挺好使。平时我们不用这个词。如果要描述数据量非常大，我们用Massive Data（海量数据），如果要描述数据非常多样，我们用Heterogeneous Data（异构数据），如果要描述数据既多样，又量大，我们用Massive Heterogeneous Data（海量异构数据），如果要申请基金忽悠一笔钱，我们用Big Data（大数据）。”
-“别和我说那些有的没的，我作为一个统计学家当然知道怎么使用数据，我最大问题是我现在没办法操作这些数据！”
-“好吧。那我们就来讲讲分析型数据的储存吧！”
-“等等，你刚才讲了分析型数据？这是个什么东西？”
-“嗯，作为统计学家来说你接触到的肯定大部分都是分析型数据，而且你的圈子因为不考虑那些操作型数据，所以并不熟悉这个词。而相对在计算机界，因为都是建立一个一个的应用，背后的数据库都是为了支撑应用操作或者事务（(OLTP &ndash; OnLine transaction processing)）而存在，所以他们反而都会忽视分析型数据。既然说到这里我们就来说说什么是操作型数据和什么分析型数据。他们的定义都很很简单，顾名思义，操作型数据是针对前端应用，并且为了适应这些应用而组织起来。而分析型数据存在的目的就是为了分析（OLAP &ndash; OnLine analytical processing），所以它的组织方式是围绕着怎么支持分析工作的。”
-“嗯，这到底能怎么影响储存呢？”
-“这两种的特性不一样？比如，为了支持基本的网上购买操作或者可以说是事务，你需要设计货品表。货品表为了支持购买操作一般就只保留一个副本，即便是修改了，或者删除了。操作会<strong>立即</strong>同步到表中并被观察到，而且只保留<strong>最近状态</strong>。为了保证修改价格的时候不影响正在购买此商品的用户，还需要复杂的事务机制保证对用户数据是一致，。假想下下单的时候价格是5块，支付时候变成了10块的心情。而且还考虑尽量减少数据的冗余，大量使用数据关联技术（关系型数据库理论的核心——范式）。货品表是个典型的操作型数据。”
-“而分析型数据呢？相对于操作型数据来说，首先它是按时间发生的全局数据。会把所有的操作历史保留。所以数据从一行变成了一块。想想你会为了分析数据搞一套来一条数据运行一遍你的分析过程吗？不会，所以对数据进行批量处理，而且在操作型数据中的那种不能超过1s的严格响应时间，你也不会那么在乎。还有一个操作型数据特别头疼的问题，就是数据的一致性保证机制——事务的处理。这个东西可是个很影响效率的机制。考虑到分析型数据储存都是历史的操作产生的数据，一般是不变的（如果去修改历史，是不是有点自欺欺人）。”
-“好了，到此为止我们来总结下这两种数据的不同。</p>
+    <content type="html"><![CDATA[<p>现在看完了一本关于讲解数据仓库和数据挖掘的书了，感觉讲的挺不错，现在来写一篇文章。</p>
+
+<p>首先我们考虑当一家公司从小到大一直发展到amazon的那样，我们叫她ama，数据的会怎么变化。但amazon起初就是小网站的时候肯定大家都一样前端一个购物网页后端放一个给前端操作的数据库即可。那么这个数据库必然是天然适应前端应用操作的一个东西对不对？当然这时候我们也没有别的需求，所以数据库的全世界也就只有这一种啦，你也认识不到还有别的使用数据的地方。</p>
+
+<p>然后ama不断的发展，突然来了这么一个人，这个人以前是名统计学家，他对公司这么放着一堆“金子”不用而感到惊讶。所她自己挽起袖子，自己发誓要通过科学的方法得出一些结论，让公司的市场方向和运营得到指导和优化。但是面对他从来没在学校见过的不可思议大的已经都“落灰”的数据时候，发现自己仅仅是抽个样本看都难（解释下为啥难？）。</p>
+
+<p>然后他又正好有个前同事是数据库的专家，你貌似知道以前他搞过基因测序，那东西可是比这堆东西更大，而他搞定了，去问问他。</p>
+
+<p>“Hi，Denise你以前的基因测序是怎么把信息存储起来的同时还能做计算？”</p>
+
+<p>“Shally，你算问对人了。我现在就在研究最火的大数据方向！不过也许你听大数据这个词已经烦了，不过用它拿科研经费挺好使。平时我们不用这个词。如果要描述数据量非常大，我们用Massive Data（海量数据），如果要描述数据非常多样，我们用Heterogeneous Data（异构数据），如果要描述数据既多样，又量大，我们用Massive Heterogeneous Data（海量异构数据），如果要申请基金忽悠一笔钱，我们用Big Data（大数据）。”</p>
+
+<p>“别和我说那些有的没的，我作为一个统计学家当然知道怎么使用数据，我最大问题是我现在没办法操作这些数据！”</p>
+
+<p>“好吧。那我们就来讲讲分析型数据的储存吧！”</p>
+
+<p>“等等，你刚才讲了分析型数据？这是个什么东西？”</p>
+
+<p>“嗯，作为统计学家来说你接触到的肯定大部分都是分析型数据，而且你的圈子因为不考虑那些操作型数据，所以并不熟悉这个词。而相对在计算机界，因为都是建立一个一个的应用，背后的数据库都是为了支撑应用操作或者事务（(OLTP &ndash; OnLine transaction processing)）而存在，所以他们反而都会忽视分析型数据。既然说到这里我们就来说说什么是操作型数据和什么分析型数据。他们的定义都很很简单，顾名思义，操作型数据是针对前端应用，并且为了适应这些应用而组织起来。而分析型数据存在的目的就是为了分析（OLAP &ndash; OnLine analytical processing），所以它的组织方式是围绕着怎么支持分析工作的。”</p>
+
+<p>“嗯，这到底能怎么影响储存呢？”</p>
+
+<p>“这两种的特性不一样？比如，为了支持基本的网上购买操作或者可以说是事务，你需要设计货品表。货品表为了支持购买操作一般就只保留一个副本，即便是修改了，或者删除了。操作会<strong>立即</strong>同步到表中并被观察到，而且只保留<strong>最近状态</strong>。为了保证修改价格的时候不影响正在购买此商品的用户，还需要复杂的事务机制保证对用户数据是一致，。假想下下单的时候价格是5块，支付时候变成了10块的心情。而且还考虑尽量减少数据的冗余，大量使用数据关联技术（关系型数据库理论的核心——范式）。货品表是个典型的操作型数据。”</p>
+
+<p>“而分析型数据呢？相对于操作型数据来说，首先它是按时间发生的全局数据。会把所有的操作历史保留。所以数据从一行变成了一块。想想你会为了分析数据搞一套来一条数据运行一遍你的分析过程吗？不会，所以对数据进行批量处理，而且在操作型数据中的那种不能超过1s的严格响应时间，你也不会那么在乎。还有一个操作型数据特别头疼的问题，就是数据的一致性保证机制——事务的处理。这个东西可是个很影响效率的机制。考虑到分析型数据储存都是历史的操作产生的数据，一般是不变的（如果去修改历史，是不是有点自欺欺人）。”</p>
+
+<p>“好了，到此为止我们来总结下这两种数据的不同。</p>
 
 <p>|特性    | OLTP数据 | OLAP数据|
 |&mdash;&mdash;-|&mdash;&mdash;&mdash;|&mdash;&mdash;&mdash;|
@@ -651,13 +709,19 @@ WARNING 4468:  Projection &lt;public.test> is not available for query processing
 |一致性| 支持事务| 几乎不存在这个问题，因为没有修改操作|
 |目的| 面向业务，支持日常操作|面向分析挖掘，<a href="">用处千千万，谈谈大数据的用处</a>|
 |计算|一次数据量小，计算简单|一次数据量大，而且计算复杂|
-”
-“接下来根据上面的特性，我们来说说没啥分析型数据要专门的储存方法。”
-“这个我知道，因为使用现有的操作型数据处理方式，数据取不出来也存不下。”
-“说的太对了，但还有其他的问题，那就是刚才提到的特性中有很多对于系统设计是冲突，你要支持A特性，就别想还能满足B特性。如果你感兴趣我再说说针对这两种数据有发展了那些数据库？”
-“快说吧！”
-“现在你们公司肯定用的是行式储存的数据库。而为了支持分析型数据，现在发展出了很多基于列式的数据库。先说说为啥列式数据更适合于分析型数据。你看以先看看这篇文章哈。”
-听完朋友的讲解，你当天就找到DBA去帮你搭建了他推荐的infobright，开始愉快的操作了。但是渐渐的你发现每次手动导入数据，不仅麻烦还存在数据过期的头疼问题。再加上总是缺少大量相关数据，要到处搜集，收集到的数据还因为各种原因互相冲突。折磨的你快要受不了了。你又找朋友出来，谈你的烦恼。
+”</p>
+
+<p>“接下来根据上面的特性，我们来说说没啥分析型数据要专门的储存方法。”</p>
+
+<p>“这个我知道，<strong>因为使用现有的操作型数据处理方式，数据取不出来也存不下。</strong>”</p>
+
+<p>“说的太对了，但还有其他的问题，那就是刚才提到的特性中有很多对于系统设计是冲突，你要支持A特性，就别想还能满足B特性。如果你感兴趣我再说说针对这两种数据有发展了那些数据库？”</p>
+
+<p>“快说吧！”</p>
+
+<p>“现在你们公司肯定用的是行式储存的数据库。而为了支持分析型数据，现在发展出了很多基于列式的数据库。先说说为啥列式数据更适合于分析型数据。你看以先看看这篇文章哈。”</p>
+
+<p>听完朋友的讲解，你当天就找到DBA去帮你搭建了他推荐的infobright，开始愉快的操作了。但是渐渐的你发现每次手动导入数据，不仅麻烦还存在数据过期的头疼问题。再加上总是缺少大量相关数据，要到处搜集，收集到的数据还因为各种原因互相冲突。折磨的你快要受不了了。你又找朋友出来，谈你的烦恼。
 &ldquo;嗯，这是一个大坑，因为你还要解决数据的问题。其实你需要的是一个数据仓库。&rdquo;</p>
 
 <h1>Olap技术框架概况</h1>

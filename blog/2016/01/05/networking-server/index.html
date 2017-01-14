@@ -9,7 +9,7 @@
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="网络编程中的服务器模型根据接受请求和处理请求的方法来分，大方向分为阻塞模型和非阻塞模型。像redis这种服务使用的是非阻塞模型。而根据服务器对请求派生的进程或者线程方式，模型又分为单进程或线程和多进程或线程。下面依次讲解这几种经典模型： 单进程的阻塞模型 这是服务器模型中最为简单的模型， &hellip;">
+  <meta name="description" content="网络编程中的服务器模型根据接受请求和处理请求的方法来分，大方向分为阻塞模型和非阻塞模型。而根据服务器对请求派生的进程或者线程方式，模型又分为单进程或线程和多进程或线程。下面依次讲解这几种经典模型： 单进程的阻塞模型 这是服务器模型中最为简单的模型，当然处理客户端请有的效率也是最低的。 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -88,7 +88,7 @@
   </header>
 
 
-<div class="entry-content"><p>网络编程中的服务器模型根据接受请求和处理请求的方法来分，大方向分为阻塞模型和非阻塞模型。像redis这种服务使用的是非阻塞模型。而根据服务器对请求派生的进程或者线程方式，模型又分为单进程或线程和多进程或线程。下面依次讲解这几种经典模型：</p>
+<div class="entry-content"><p>网络编程中的服务器模型根据接受请求和处理请求的方法来分，大方向分为阻塞模型和非阻塞模型。而根据服务器对请求派生的进程或者线程方式，模型又分为单进程或线程和多进程或线程。下面依次讲解这几种经典模型：</p>
 
 <h2>单进程的阻塞模型</h2>
 
@@ -224,8 +224,6 @@
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p></p>
-
 <pre><code>下面的模型，变化的只是服务端程序，客户端的程序是不变得。
 </code></pre>
 
@@ -345,7 +343,7 @@
 </span><span class='line'>          <span class="n">printf</span><span class="p">(</span><span class="s">&quot;sleep for 10 seconds...</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
 </span><span class='line'>          <span class="n">sleep</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
 </span><span class='line'>          <span class="n">printf</span><span class="p">(</span><span class="s">&quot;the connect is over.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
-</span><span class='line'>          
+</span><span class='line'>
 </span><span class='line'>          <span class="n">close</span><span class="p">(</span><span class="n">connfd</span><span class="p">);</span>
 </span><span class='line'>          <span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
 </span><span class='line'>      <span class="p">}</span>
@@ -399,23 +397,23 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/11/13/ctr/">Ctr</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/11/06/computational-advertising/">Computational Advertising</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/10/24/the-power-of-infomation-and-time/">The Power of Infomation and Time</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/09/14/learning-how-to-learn/">Learning How to Learn</a>
       </li>
     
       <li class="post">
         <a href="/blog/2016/09/04/data-file-organization/">Data File Organization</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/08/31/introduce-hive/">Introduce Hive</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/08/22/design-pattern/">Design Pattern</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/08/14/how-to-manipulate-binary-stream/">How to Manipulate Binary Stream</a>
       </li>
     
   </ul>
@@ -432,7 +430,7 @@
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2016 - Wood Carver -
+  Copyright &copy; 2017 - Wood Carver -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

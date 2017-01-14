@@ -9,8 +9,7 @@
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="刚接触java的小朋友们是不是都发现jdbc这个东西挺好用？所有的数据引擎都完全一致的采用jdbc来连接，这种一致性简直太爽了。
-">
+  <meta name="description" content="储存系统的目的 其实储存系统的目的估计和文件系统没什么两样，就是存储数据并且取出数据。关键的两个操作还是 write/read。但是说差异巨大也是合理的，因为因为文件系统的是面向文件的，而对数据的结构和信息是隐藏起来，可以说毫不关心数据的特质，全部打包放在一起。而数据储存系统而转换了问题的角度， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -70,6 +69,525 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/07/24/how-to-understand-a-database/">如何理解一个数据存储系统</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-07-24T14:57:42+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>2:57 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>储存系统的目的</h1>
+
+<p>其实储存系统的目的估计和文件系统没什么两样，就是存储数据并且取出数据。关键的两个操作还是 <strong>write/read</strong>。但是说差异巨大也是合理的，因为因为文件系统的是面向<strong>文件</strong>的，而对数据的结构和信息是隐藏起来，可以说毫不关心数据的特质，全部打包放在一起。而数据储存系统而转换了问题的角度，把主角换成了<strong>数据</strong>，提供数据的特定的组织方式，针对不同结果的组织给出方便的获取和写入方式。</p>
+
+<p>说明其不同，让我们看一个例子。拿最常数的用户表说明，如果我们建立的一个网站，提供用户注册留言。
+设想我们没有数据库，只能存储文件，那么我们就会这么存储：</p>
+
+<blockquote><p>user.txt
+|user_id | name | phone|
+|&mdash;&mdash;&ndash;|&mdash;&mdash;|&mdash;&mdash;|
+|001     |Alice |123333|
+|002     |Bob   |166666|
+|&hellip;     |&hellip;   |&hellip;   |</p>
+
+<p>message.txt
+|user_id | message|
+|&mdash;&mdash;&ndash;|&mdash;&mdash;&ndash;|
+|001     |I am Alice|
+|002     |I am Bob|
+|&hellip;     |&hellip;   |</p></blockquote>
+
+<p>这时候一个用户查看自己发送过的所有的留言。首先做的是从uesr.txt中扫描，找出Alice的user_id信息，然后再在message.txt找出所有的留言。这个过程估计需要你不短的一段代码。跟别提还要各种分割字符串，切出各种字段。还有更难控制的字段的类型，比如日期格式等。</p>
+
+<p>而上面的通用常见的问题，通过数据库系统得到了很好的解决。</p>
+
+<h1>模型层次</h1>
+
+<p>既然说了数据库的目的，那么就来看看怎么构建一个数据库。先看下面的图，描述了数据库的使用层次和实际实现层次。使用层次就是面向用户（程序员），说明系统张什么样子的。而实现层次就是为了支持使用层次而设计的实现方法。使用更专业的术语那就是逻辑层次一个是物理层次。</p>
+
+<p><img src="http://woodcarver.oss-cn-shanghai.aliyuncs.com/post/data_system.png" alt="dddd" /></p>
+
+<p>逻辑层次就是开发者看到的、理解的、认为的样子。对于这层来说大部分数据引擎其实都差不多，不是关系型的就是key-value型。当不了解引擎内部的物理实现逻辑的时候，用户肯定会按照自己理所当然的想法去使用这个系统。这个想法无可厚非，能做到让用户安全放心的使用，尽量屏蔽底层实现也是数据管理系统的追求。不过现在看来当你的数据大一点的时候这个想法有点不现实。</p>
+
+<p>所以如果还不关注其内部实现，就会不断出现红框框的问题，知道你放弃这个系统为止。</p>
+
+<p>但是如果你开始理解其物理层次的机制后，会对逻辑层次有更深入的理解，一些问题也能迎刃而解。</p>
+
+<h1>当谈起一个数据库的时候，我们在说什么？</h1>
+
+<p>两个方面，了解其逻辑模型和物理模型。既然逻辑模型都一样或者差不多，为什么还需要不同的物理模型？原因就没有哪种数据库能支持各种操作到极致的，每种数据库都各种操作都有取舍，各有优缺。有些支持快速的响应，例如redis，有些偏向于？？？？？。</p>
+
+<h2>谈逻辑模型——提供什么服务，支持哪些操作</h2>
+
+<p>两大数据模型 —— 关系型数据模型、key-value数据模型
+都支持add、delete、select和update。不过具体支持的方向不同，而不同关键点在<strong>位置</strong>和<strong>范围</strong>的不同。</p>
+
+<ul>
+<li>关系型数据模型：基本模型是一个张二维表。
+
+<ul>
+<li>add：在表的尾部添加即可。</li>
+<li>delete：查找到位置，然后删除。</li>
+<li>select：全表扫描，或者利用索引技术。</li>
+<li>update：查找到位置，然后更新。</li>
+<li>没有递归结构，导致对嵌套数据储存不友好。需要大量的冗余数据。</li>
+</ul>
+</li>
+<li>key-value数据模型
+
+<ul>
+<li>add：利用hash funciton后找到其位置，然后添加。</li>
+<li>delete：查找到位置，然后删除。</li>
+<li>select：利用hash定位。</li>
+<li>update：查找到位置，然后更新。</li>
+<li>天然的递归结构，对嵌套结构支持友好方便。</li>
+</ul>
+</li>
+</ul>
+
+
+<p>因为几乎所有的操作都和查找有关，其中查找的效率能直接决定系统的效率。关系型数据库的查找效率(一条数据)要么是O(n)要么是O(logn)，让然也可以是O(1)，以为可以有hash索引。而key-value的查找效率是O(1)。</p>
+
+<h2>谈物理层次——怎么实现这些操作的？如何组合才能最大的发挥其性能？</h2>
+
+<p>物理层次出了决定操作的性能外，还有一个重大的不同，就是对规模扩展的支持程度有巨大的差别。关系型数据库的一个诟病就是对规模扩展非常差。其优良的操作模型和结构化数据要求进一步对大数据量的日志型提出了挑战。</p>
+
+<h2>一个表现的具体问题，<a href="http://stackoverflow.com/questions/1636379/why-db-indexes-use-balanced-trees-not-hashtables">Why DB indexes use balanced trees, not hashtables?</a></h2>
+
+<h2>Has different Characteristics for data operatings</h2>
+
+<p>B-Tree supports comparisons  =, >, >=, &lt;, &lt;=, BETWEEN operators and like, while HashTable only supports =.
+so the using scope of HashTable is too narrow.</p>
+
+<h2>HashTable is hard to rescale or grow</h2>
+
+<p>The size of hashtable is determined when it is created. If you add more data than it&rsquo;s size, you need to resize it. And it&rsquo;s very ineffcient. althought there are rescale algorithm or other replication policy(like in redis).</p>
+
+<h2>memory usage effiency</h2>
+
+<p>B+ Tree can be load into memory partially, while HashTable can not. ?? really?</p>
+
+<h2>refernece</h2>
+
+<ol>
+<li><a href="https://dev.mysql.com/doc/refman/5.5/en/index-btree-hash.html">Comparison of B-Tree and Hash Indexes</a></li>
+</ol>
+
+
+<h1>reference</h1>
+
+<ul>
+<li><a href="https://www.tutorialcup.com/dbms/data-independence.htm">Data Independence</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/07/20/why-need-runnable-while-we-already-have-thread-in-java/">java里为什么有了Thread还要设置一个Runnable？</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-07-20T21:36:45+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>20</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:36 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>我学习多线程疑惑，为什么会有这种代码出现：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>    <span class="n">Thread</span> <span class="n">t</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">Thread</span><span class="o">(</span><span class="k">new</span> <span class="nf">Runnable</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>            <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>               <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;this is a runnable&quot;</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span>
+</span><span class='line'>        <span class="o">}</span>
+</span><span class='line'>    <span class="o">);</span>
+</span><span class='line'>    <span class="n">t</span><span class="o">.</span><span class="na">start</span><span class="o">();</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>不是有个更简便的方法吗？</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">Thread</span> <span class="n">t</span> <span class="o">=</span> <span class="k">new</span> <span class="nf">Thread</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;this is a thread&quot;</span><span class="o">);</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">};</span>
+</span><span class='line'><span class="n">t</span><span class="o">.</span><span class="na">start</span><span class="o">();</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>虽然很容易知道Runnable是个接口，而Thread是Runnable的一个具体实现。但是既然concurrent包中只有Thread一个类实现，那些Runnable这个接口到底有什么用？
+答案就是用户可能会使用到多类继承，但是这在java中是禁止，只能用interface实现。比如我想设计一个任务队列，然后这个任务可以随时开启一个线程运行。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">class</span> <span class="nc">TaskQueue</span> <span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="kd">extends</span> <span class="n">LinkedList</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">Runnable</span> <span class="o">{</span>
+</span><span class='line'>    <span class="nd">@Override</span>
+</span><span class='line'>    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+</span><span class='line'>        <span class="c1">//...</span>
+</span><span class='line'>    <span class="o">}</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/07/18/the-world-about-oriental-column-database/">数据分析利器 —— 列式储存数据库</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-07-18T11:00:26+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>11:00 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1><a href="https://en.wikipedia.org/wiki/Column-oriented_database">列式数据库</a></h1>
+
+<p>什么是列式数据库？可能大家也才到了，既然有列式数据库，那么肯定就有行式的喽！确实是这样的。也许大多数人并不了解数据库储存模型（storage model 即physical schema）和数据库的数据模型（data model 也叫 logical schema），不过对上层是使用者也没多大关系。不过我们现在讲的列式和行式就是指数据库的storage model，而他们支持同样的data schema，即对data model感知不到storage model的实现区别。
+一个数据库的data model约定可以进行上层数据操作，而storage model决定这些操作的性能。比如，No Sql数据库使用的是data model都是key-value，而储存模型有map结构实现，也可以由tree结构实现。而对于sql数据库，其数据模型是一张二维表，而至于怎么存储这张二维表，很容易就可以想到可以按行存储和按列储存。按行存储就是我们现在常见操作型数据库，而是最大众的数据库，比如MySql、Oracle、……等等你所知道大部分数据库。而按列储存的数据库现在也是很有名，比如Hive、Vertica、Druid、Infobright等。</p>
+
+<h1>为什么要行式数据库又要列式数据库？</h1>
+
+<p>先让让我们想象关于二维表我们有哪些操作？—— select、update、delete和insert。这些操作都会需要找到相应的位置，所以这些操作的基础都是search。
+而基本的算法都是即从时间考虑也是从空间考虑的。我们开始具体举个例子。</p>
+
+<p>在数据库储存作为实际的一堆储存在磁盘上的文件，在设计不得不考虑磁盘的特性。一般的磁盘特性，其实所有的储存都有一个特性就是对于locality良好的存取性能是随机存取的好几倍。我们现在把一块想像成一组固定大小的块，如图： disk logic model 而文件的内容实际会被分开按照磁盘逻辑块来储存，数据库主要任务就是怎么组织这些逻辑块来取得更好的读取性能和便捷性。
+<img src="../images/posts/disk_block.png" alt="" /></p>
+
+<p>在不考虑索引的情况下，所有的磁盘读取都是顺序读取，这意味了要查找一个东西，都需要扫描全表或者部分表。很直观的道理，读取的性能就是取决于扫描的范围。范围越大，速度当然越慢。
+我们先假设我们有一堆如下的数据：</p>
+
+<table>
+<thead>
+<tr>
+<th>RowId</th>
+<th>EmpId  </th>
+<th>Lastname  </th>
+<th>Firstname</th>
+<th> Salary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>001  </td>
+<td>10    </td>
+<td>Smith     </td>
+<td>Joe     </td>
+<td>40000</td>
+</tr>
+<tr>
+<td>002  </td>
+<td>12    </td>
+<td>Jones     </td>
+<td>Mary    </td>
+<td>50000</td>
+</tr>
+<tr>
+<td>003  </td>
+<td>11    </td>
+<td>Johnson   </td>
+<td>Cathy   </td>
+<td>44000</td>
+</tr>
+<tr>
+<td>004  </td>
+<td>22    </td>
+<td>Jones     </td>
+<td>Bob     </td>
+<td>55000</td>
+</tr>
+</tbody>
+</table>
+
+
+<h2>行式储存模型</h2>
+
+<p>好现在我们开始让磁盘里塞，假设我们的磁盘块只能容下5个字段（抽象的，假设我们的这些字段的大小都一样），因为我们是按找行优先的，所以结果就如下：
+<img src="../images/posts/row_oriented.png" alt="row oriented model" /></p>
+
+<p>于是当我们要找Jones的所有信息的工资时候，我们会依次从第一块磁盘块直到扫描到最后（为什么要扫到最后，因为是在找全部叫Jones的信息，所以不扫都最后都不能确定是否会遗漏）。一共需要扫4块，然后取出其第二块和第四块信息，找出其工资的信息。</p>
+
+<p>其实基于行式储存，对于where语句处理都需要处理全表。对于磁盘的不停seek，速度就可想而知。当然一般数据库为了应对这种全数据扫描，找到了建立索引的方法。而索引就是对某个或者某些字段的组合的信息，即取出数据的部分信息，以减少每次扫描从全表到部分信息的扫描的过渡。</p>
+
+<p>这种查询方式很适合于一次取出一个行数据，而对于日常应用系统来说这种方式是非常合适的，因为我们设计应用的时候都是针对一个事务，而我们会把一个事务所有属性存储成一行，使用的时候也是有很大的概率涉及到整行的信息，很利于做缓存。还比如我们经常使用的那些经典sql 语句：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">select</span> <span class="o">*</span> <span class="k">from</span> <span class="k">user</span> <span class="k">where</span> <span class="n">id</span> <span class="o">=</span> <span class="mi">1001</span><span class="p">;</span>
+</span><span class='line'><span class="k">select</span> <span class="n">id</span><span class="p">,</span> <span class="n">user_name</span><span class="p">,</span> <span class="n">email</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">gender</span><span class="p">,</span> <span class="p">...</span> <span class="k">from</span> <span class="k">user</span> <span class="k">where</span> <span class="n">id</span> <span class="o">=</span> <span class="mi">1001</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>！！还敢不敢列出些更多的字段！！</p>
+
+<h2>列式储存模型</h2>
+
+<p>而列储存就是下图这种按列优先储存。为了方便我们每块只储存了一个一列，没有存满。
+<img src="../images/posts/column_oriented.png" alt="row oriented model" />
+这下我们再考虑上面的查找所有Jones的工资，这下我们只扫描第三个磁盘块，找出Jones都再那些行，然后根据查出来的行号，直接去第五块磁盘（这块对应的式salary列）找出第二、四行的数据，然后输出。一共2次seek。大大小于row－oriented的4次。</p>
+
+<p>这种查询方式的前提就是你就需要这列数据就行了，其前提假设就是查询基本不会使用这个行的其他列数据。显然这种假设对于日常操作系统的围绕着一个主题进行的活动是不合适旳。但是却在分析型数据大显身手。</p>
+
+<p>列式的另一大优势是压缩。因为列的天然凝聚性（比如上面的两个Jones就可以压缩成一个）大大强与行，所以列式储存可以有很高的压缩比，这个进一步使使用的磁盘的数量减少，因为使用的磁盘块少，进一步减少了需要扫描的次数。这方面很利于加快查找速度，但是因为解压缩也是耗时耗内存的过程，所以压缩的控制也是需要一个定平衡点。</p>
+
+<h1>优劣总结</h1>
+
+<p>从上面的例子可以明显看出列式数据库在分析需求（获取特点——每次查询几个维度，通常是）时候，不仅<strong>搜索时间效率</strong>占优势，其<strong>空间效率</strong>也是很明显的。特别是针对动辄按T计算的数据量来说，在分布式环境中能进行压缩处理能节省宝贵的内部带宽，从而提高整个计算任务性能。</p>
+
+<p>关于行式和列式的具体优缺点还有具体的使用场景请看wikipedia。</p>
+
+<h1>再来谈谈储存模型</h1>
+
+<p>从上面看，改变物理储存结构对上层操作效率的提高是如此的巨大！所以我们再深入谈谈这个话题。</p>
+
+<p>在数据模型一定的情况下，储存模型也是有多种选择的（想想各种不同数据结构居然提供同样的操作，比如TreeMap和HashMap。数据模型好比Map支持getKey和getValue。而储存模型就是Tree还是HashTable，而getKey和getValue操作虽然对使用者没有区别，但是底层的组织结构则决定了其效率）。而储存模型在数据库这种复杂系统中有分好多层。我们想想先从最底层说起——文件，数据终归都是储存在磁盘上的。而从下面的表格看出，数据要取出必须先进入到内存，那么这个层次的核心就是面对各种查询、写入、更新和删除，怎么快速把数据从磁盘加载到内存中或者反之怎么把数据从内存中快速的写入到磁盘中。</p>
+
+<table>
+<thead>
+<tr>
+<th>用户界面</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>内存    </td>
+</tr>
+<tr>
+<td>磁盘    </td>
+</tr>
+</tbody>
+</table>
+
+
+<p>所以先谈谈文件储存有哪些类型：<a href="https://www.tutorialcup.com/dbms/file-organization.htm">File Organization in DBMS</a> 这篇文章对于文件组织在DBMS中的意义讲的非常清楚。这里引出其中对文件组织的要点：</p>
+
+<blockquote><p>Storing the files in certain order is called file organization. The main objective of file organization is</p>
+
+<ul>
+<li>Optimal selection of records i.e.; records should be accessed as fast as possible. &ndash; 支持快速的获取</li>
+<li>Any insert, update or delete transaction on records should be easy, quick and should not harm other records. &ndash; 支持快读的插入、更新和删除事务</li>
+<li>No duplicate records should be induced as a result of insert, update or delete &ndash; 支持键值不重复？？？</li>
+<li>Records should be stored efficiently so that cost of storage is minimal. &ndash; 储存占用磁盘空间要小</li>
+</ul>
+</blockquote>
+
+<p>从上面的目的看，大多数不能同时满足，这样就出现了各种各样的组合选择，所以出现多种组织方式：</p>
+
+<ul>
+<li>Sequential File Organization</li>
+<li>Heap File Organization</li>
+<li>Hash/Direct File Organization</li>
+<li>Indexed Sequential Access Method</li>
+<li>B+ Tree File Organization</li>
+<li>Cluster File Organization
+Let us see one by one on clicking the above links</li>
+</ul>
+
+
+<p>Difference between Sequential, heap/Direct, Hash, ISAM, B+ Tree, Cluster file organization in database management system (DBMS) as shown below:</p>
+
+<table>
+<thead>
+<tr>
+<th>          </th>
+<th>Sequential</th>
+<th> Heap/Direct</th>
+<th>Hash </th>
+<th>ISAM </th>
+<th>B+ tree</th>
+<th>Cluster</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Method of storing </td>
+<td>Stored as they come or sorted as they come </td>
+<td>Stored at the end of the file. But the address in the memory is random. </td>
+<td>Stored at the hash address generated</td>
+<td>Address index is appended to the record </td>
+<td>Stored in a tree like structure </td>
+<td>Frequently joined tables are clubbed into one file based on cluster key</td>
+</tr>
+<tr>
+<td>疑问</td>
+<td>如何做到删除的？</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Types </td>
+<td>Pile file and sorted file Method </td>
+<td> </td>
+<td>Static and dynamic hashing </td>
+<td> Dense, Sparse, multilevel </td>
+<td>indexing </td>
+<td>Indexed and Hash</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Design</td>
+<td>Simple Design</td>
+<td>Simplest</td>
+<td>Medium</td>
+<td>Complex</td>
+<td>Complex</td>
+<td>Simple</td>
+</tr>
+<tr>
+<td>Storage Cost</td>
+<td>Cheap (magnetic tapes)</td>
+<td>Cheap</td>
+<td>Medium</td>
+<td>Costlier</td>
+<td>Costlier</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Advantage </td>
+<td>Fast and efficient when there is large volumes of data, Report generation, statistical calculations etc</td>
+<td>  Best suited for bulk insertion, and small files/tables</td>
+<td>Faster Access,No Need to Sort,Handles multiple transactions,Suitable for Online transactions</td>
+<td> Searching records is faster.Suitable for large database.Any of the columns can be used as key column.Searching range of data &amp; partial data are efficient.</td>
+<td> Searching range of data &amp; partial data are efficient.No performance degrades when there is insert / delete / update.Grows and shrinks with data.Works well in secondary storage devices and hence reducing disk I/O.Since all datas are at the leaf node, searching is easy.All data at leaf node are sorted sequential linked list.</td>
+<td>Best suited for frequently joined tables.Suitable for 1:M mappings</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Disadvantage </td>
+<td>Sorting of data each time for insert/delete/ update takes time and makes system slow.  </td>
+<td>Records are scattered in the memory and they are inefficiently used. Hence increases the memory size.  Proper memory management is needed.  Not suitable for large tables. </td>
+<td>Accidental Deletion or updation of Data. Use of Memory is inefficient Searching range of data, partial data, non-hash key column, searching single hash column when multiple hash keys present or frequently updated column as hash key are inefficient. </td>
+<td>Extra cost to maintain index. File reconstruction is needed as insert/update/delete.Does not grow with data.  </td>
+<td>Not suitable for static tables  </td>
+<td>Not suitable for large database. Suitable only for the joins on which clustering is done. Less frequently used joins and 1: 1 Mapping are inefficient.</td>
+</tr>
+</tbody>
+</table>
+
+
+<h2>Rcfile</h2>
+
+<p>(1) fast data loading
+(2) fast query processing
+(3) highly efficient storage space utilization
+(4) strong adaptivity to highly dynamic workload patterns</p>
+
+<h2>Orcfile</h2>
+
+<h1>refernce</h1>
+
+<ul>
+<li><a href="https://www.tutorialcup.com/dbms/file-organization.htm">File Organization in DBMS</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Database_storage_structures">Database storage structures</a></li>
+<li><a href="http://blog.csdn.net/cjfeii/article/details/8884658">关系型数据在磁盘上的存储布局</a></li>
+<li><a href="http://blog.csdn.net/v_july_v/article/details/7526689">从LSM-Tree、COLA-Tree谈到StackOverflow、OSQA</a></li>
+<li><a href="http://www.cnblogs.com/siegfang/archive/2013/01/12/lsm-tree.html">日志结构的合并树 The Log-Structured Merge-Tree</a></li>
+<li><a href="http://www.cnblogs.com/yurunmiao/p/4745951.html">Hadoop RCFile存储格式详解（源码分析、代码示例）</a></li>
+<li><a href="http://web.cse.ohio-state.edu/hpcs/WWW/HTML/publications/papers/TR-11-4.pdf">RCFile: A Fast and Space-efficient Data Placement</a></li>
+<li><a href="http://blog.csdn.net/u011955252/article/details/50531178">Rcfile API使用</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -943,140 +1461,6 @@ Inconsistency in state of object (because synchronization won&rsquo;t be possibl
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/04/28/algorithms-summary/">Algorithms Summary</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-04-28T10:53:35+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:53 am</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content">
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/04/24/introduce-mapreduce/">Introduce MapReduce</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-04-24T19:16:20+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>7:16 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h1>mapreduce 的各个阶段解释</h1>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/04/23/how-to-manage-your-work/">How to Manage Your Work</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-04-23T12:06:20+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>23</span><span class='date-suffix'>rd</span>, <span class='date-year'>2016</span></span> <span class='time'>12:06 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h1>如何管理自己的项目</h1>
-
-<p>不管你是Leader or not，都会牵涉到管理自己的项目问题，只是角色不一样而已。我模仿下《布道之道》的结构总结一些模式，然后在分析怎么用这些模式（或者是原则）。如何又快又好的最大化自己的工作成效呢？It&rsquo;s a question.</p>
-
-<h2>关键点</h2>
-
-<ol>
-<li>项目跟踪</li>
-<li>实时有效反馈</li>
-<li>项目预判和重要级划分，时效性估计，特别是针对所谓的紧急任务</li>
-<li>树立合作处理模式和规则，让合作的人可以预测</li>
-<li>项目总结</li>
-</ol>
-
-
-<h1>如何处理一个紧急事务</h1>
-
-<h2>事中处理</h2>
-
-<p>可能作为一线员工，接到紧急任务的最常用方法就是，放下手中的工作然后转向紧急任务处理，因为选择安排任务的空间比较小。
-而我们都知道插入任务，必定会导致已有的任务延迟或者将来规划的任务延期。而延期的多长时间就要依赖于处理插入事务的速度了。而唯一能加快处理速度的方法就是以前积累类似case的处理经验。
-所以就要用到P5，一定要注意总结。</p>
-
-<h2>事前预防</h2>
-
-<p>这个地方可以采取的措施就很多了。
-第一点就是要弄清楚为什么要做这个任务，如果对公司的业务做够熟悉（这个需要公司业务积累），那么很容易判断出来这个任务到底有没有意义或者有更优化的解决方案，或者根本就不用做了。
-第二点是弄清楚自己能不能接，如果不能接（比如自己有更重要的事情要完成），建议交给别人或者让拒绝对方的无理要求。
-第三点是树立自己的处理事务模式(P4)，让需求方提出需求前有个预测他们的任务会不会被自己拒绝。
-第四点就是分析经历过的项目(P5)，找出模式，做好事先准备。
-第五点，如果公司有很好的反馈机制，知道其他和自己相关的项目正在进行，但是还没有进行到自己这里，这里就需要使用P1，预判什么时候到自己这里，可以做事前准备。再着前置任务延迟，提醒他们延迟的后果，再一定程度上提醒前置任务的速度。</p>
-
-<h2>事后总结</h2>
-
-<p>任务完了，还有很多事要做，才能保证将来的工作成效能提升：
-第一点：还是P5， 这里有业务方向和技术方向两大块。业务方向出来事情的意义还有事情产生的时间模式。</p>
-
-<h1>如何判断一个项目，你能不能接</h1>
-
-<p>当一下子来一个大项目，其实一下子估计自己什么时候完成是一个很大的挑战。
-所以采取的方案就是，项目拆分。只有当项目足够小，才能被看清、预估，才能被很好的执行 —— 分冶的思想。</p>
-
-<h1>reference</h1>
-
-<ul>
-<li><a href="https://www.livecoding.tv/udm/videos/xYvyp-1dv600-l03-planning-and-managing-projects">planning and managing pojects</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/3">&larr; Older</a>
@@ -1094,23 +1478,23 @@ Inconsistency in state of object (because synchronization won&rsquo;t be possibl
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/11/13/ctr/">Ctr</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/11/06/computational-advertising/">Computational Advertising</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/10/24/the-power-of-infomation-and-time/">The Power of Infomation and Time</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/09/14/learning-how-to-learn/">Learning How to Learn</a>
       </li>
     
       <li class="post">
         <a href="/blog/2016/09/04/data-file-organization/">Data File Organization</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/08/31/introduce-hive/">Introduce Hive</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/08/22/design-pattern/">Design Pattern</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/08/14/how-to-manipulate-binary-stream/">How to Manipulate Binary Stream</a>
       </li>
     
   </ul>
@@ -1126,7 +1510,7 @@ Inconsistency in state of object (because synchronization won&rsquo;t be possibl
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2016 - Wood Carver -
+  Copyright &copy; 2017 - Wood Carver -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

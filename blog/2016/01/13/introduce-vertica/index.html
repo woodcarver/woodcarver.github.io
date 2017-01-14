@@ -9,10 +9,9 @@
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="最近olap系统开始上线vertica。话说vertica的速度真实不是盖的，太快了，完全盖过infobright的所有风采，完全不留痕迹！ vertica的基本架构介绍 首先定型一下vertica在数据库领域里的分支：
-1. 面向批量分析数据(OLAP)
-2. 关系型数据库(RDBMS)
-3. &hellip;">
+  <meta name="description" content="最近olap系统开始上线vertica。话说vertica的速度真实不是盖的，太快了，完全盖过infobright的所有风采，完全不留痕迹！ vertica的基本架构介绍 首先定型一下vertica在数据库领域里的分支： 面向批量分析数据(OLAP)
+关系型数据库(RDBMS)
+面向列式储存( &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -95,12 +94,17 @@
 
 <h1>vertica的基本架构介绍</h1>
 
-<p>首先定型一下vertica在数据库领域里的分支：
-1. 面向批量分析数据(OLAP)
-2. 关系型数据库(RDBMS)
-3. 面向列式储存(column-store architechture)
-4. 分布式(distributed)
-按照vertica在官方文档中提到自己的特性：4 c's——<a href="https://my.vertica.com/docs/7.0.x/HTML/index.htm#Authoring/ConceptsGuide/Other/TheHPVerticaApproach.htm%3FTocPath%3DConcepts%2520Guide%7C_____1">Column Storage， Compression，Clustering，Continuous Performance</a>
+<p>首先定型一下vertica在数据库领域里的分支：</p>
+
+<ol>
+<li>面向批量分析数据(OLAP)</li>
+<li>关系型数据库(RDBMS)</li>
+<li>面向列式储存(column-store architechture)</li>
+<li>分布式(distributed)</li>
+</ol>
+
+
+<p>按照vertica在官方文档中提到自己的特性：4 c's——<a href="https://my.vertica.com/docs/7.0.x/HTML/index.htm#Authoring/ConceptsGuide/Other/TheHPVerticaApproach.htm%3FTocPath%3DConcepts%2520Guide%7C_____1">Column Storage， Compression，Clustering，Continuous Performance</a>
 其中高压缩比这个特性一般是附属于面向列式储存的特性的，不是一个正交属性。</p>
 
 <p>当然类似于mysql，sql server等面向OLTP的数据库，其主要处理事务型数据。而vertica的设计目的已经进入到了另一个领域OLAP（OLTP和OLAP的对比，<a href="">参看这里</a>）。所以相对于OLTP大多数采用row-store的储存架构，OLAP一般会用column-store架构。<a href="">这里可以思考一下为什么会有这样的不同</a>。
@@ -120,8 +124,27 @@
 
 
 <ul>
-<li>查看projection
-select node_name,wos_row_count,ros_row_count from projection_storage where anchor_table_name=&lsquo;dim_exp&rsquo;;</li>
+<li>查看projection</li>
+</ul>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>\dj</span></code></pre></td></tr></table></div></figure>
+
+
+<p>进入交互界面后，通过这个命令可以查看系统中拥有的projection列表。</p>
+
+<h3>Continuous Performance（平滑性能？）</h3>
+
+<p>在vertica中强调了它拥有的性能平滑过渡的特性。这个其实是在说它的wos和ros的过渡特性。wos就是指Write Optimized Store，而ros则对应的指Read Optimized Store。一般来说大部分的的数据库系统储存都是wos的，而vertica为了追求写入速度，写入数据也使用了wos，但是把wos限制在了内存中，这样对于读取也没有过大的影响。当内存溢出或者用户直接指定采用ros写入方式的时候，vertica会把wos的数据从内存中转化成ros储存到磁盘上。通过这种方式来保证历史数据的读取性能。</p>
+
+<p>查看一个表的存储方式是wos还是row，可以通过下面sql：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>select node_name,wos_row_count,ros_row_count from projection_storage where anchor_table_name='dim_exp';</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
 <li>wos vs ros
 <a href="http://vertica-forums.com/viewtopic.php?t=126">http://vertica-forums.com/viewtopic.php?t=126</a></li>
 </ul>
@@ -134,7 +157,11 @@ select node_name,wos_row_count,ros_row_count from projection_storage where ancho
 <h3>删除数据——分区的最大用处</h3>
 
 <p>到底使用分区比较好呢？还是用purage_table比较好呢？
-果断构建partition好，因为如果用purage对于已经转移好的ros数据块（到底会怎么样？解释不清楚了吧！）速度会很慢。<a href="https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/PURGE_TABLE.htm">https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/PURGE_TABLE.htm</a></p>
+果断构建partition好，因为如果用purage对于已经转移好的ros数据块（到底会怎么样？）速度会很慢。<a href="https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/PURGE_TABLE.htm">https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/PURGE_TABLE.htm</a></p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>select drop_partition('"${summary_table}"',${dt_14_ago}${hr})</span></code></pre></td></tr></table></div></figure>
+
 
 <h3>如何查看当前liencese的使用情况</h3>
 
@@ -147,11 +174,15 @@ SELECT SUM(used_bytes) FROM   V_MONITOR.projection_storage</p>
 
 <h3>表满了之后怎么办？</h3>
 
+<p>总的原则就是删除数据，然后重新获取license。</p>
+
 <p><a href="http://vertica.tips/2014/01/25/table-size/">http://vertica.tips/2014/01/25/table-size/</a>
 This post will show how to get the compressed size of Vertica tables from column_storage and projection_storage system tables in the v_monitor schema. To get an estimated raw or uncompressed data size, see my earlier post on License Utilization.</p>
 
 <p>column_storage
 The following query aggregates the column_storage data to the table level. You can add column_name for more granularity. Note that empty tables will not appear in this table.</p>
+
+<p>查看每个表的占据的容量：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -172,6 +203,8 @@ The following query aggregates the column_storage data to the table level. You c
 
 <p>projection_storage
 The following query is almost identical to the one above, except for the table name. The lowest level in this system table is the table name. Any empty tables will appear in your result.</p>
+
+<p>每个project占据的容量：</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -196,14 +229,23 @@ The following query is almost identical to the one above, except for the table n
 
 <h3>查看执行的任务，类似于mysql的show processlist</h3>
 
-<p>SELECT session_id,statement_start,current_statement FROM SESSIONS
-<a href="https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/CLOSE_SESSION.htm">https://my.vertica.com/docs/7.1.x/HTML/Content/Authoring/SQLReferenceManual/Functions/VerticaFunctions/CLOSE_SESSION.htm</a>
-SELECT * FROM SESSIONS;</p>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="n">session_id</span><span class="p">,</span><span class="n">statement_start</span><span class="p">,</span><span class="n">current_statement</span> <span class="k">FROM</span> <span class="n">SESSIONS</span>
+</span><span class='line'><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">my</span><span class="p">.</span><span class="n">vertica</span><span class="p">.</span><span class="n">com</span><span class="o">/</span><span class="n">docs</span><span class="o">/</span><span class="mi">7</span><span class="p">.</span><span class="mi">1</span><span class="p">.</span><span class="n">x</span><span class="o">/</span><span class="n">HTML</span><span class="o">/</span><span class="n">Content</span><span class="o">/</span><span class="n">Authoring</span><span class="o">/</span><span class="n">SQLReferenceManual</span><span class="o">/</span><span class="n">Functions</span><span class="o">/</span><span class="n">VerticaFunctions</span><span class="o">/</span><span class="n">CLOSE_SESSION</span><span class="p">.</span><span class="n">htm</span>
+</span><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">SESSIONS</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
 
 <h3>杀死执行的任务，类似于mysql的kill</h3>
 
-<p>SELECT CLOSE_SESSION(&lsquo;stress05-27944:0xc1a&rsquo;);
-SELECT CLOSE_ALL_SESSIONS();</p>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="n">CLOSE_SESSION</span><span class="p">(</span><span class="s1">&#39;stress05-27944:0xc1a&#39;</span><span class="p">);</span>
+</span><span class='line'><span class="k">SELECT</span> <span class="n">CLOSE_ALL_SESSIONS</span><span class="p">();</span>
+</span></code></pre></td></tr></table></div></figure>
+
 
 <h3>数据类型</h3>
 
@@ -386,23 +428,23 @@ WARNING 4468:  Projection &lt;public.test> is not available for query processing
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/11/13/ctr/">Ctr</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/11/06/computational-advertising/">Computational Advertising</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2016/10/24/the-power-of-infomation-and-time/">The Power of Infomation and Time</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/09/14/learning-how-to-learn/">Learning How to Learn</a>
       </li>
     
       <li class="post">
         <a href="/blog/2016/09/04/data-file-organization/">Data File Organization</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/08/31/introduce-hive/">Introduce Hive</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/08/22/design-pattern/">Design Pattern</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/08/14/how-to-manipulate-binary-stream/">How to Manipulate Binary Stream</a>
       </li>
     
   </ul>
@@ -419,7 +461,7 @@ WARNING 4468:  Projection &lt;public.test> is not available for query processing
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2016 - Wood Carver -
+  Copyright &copy; 2017 - Wood Carver -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

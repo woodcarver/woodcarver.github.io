@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://woodcarver.github.io/blog/2016/11/13/ctr/</loc>
+    <lastmod>2016-11-13T19:49:52+08:00</lastmod>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/2016/11/06/computational-advertising/</loc>
+    <lastmod>2016-11-06T00:00:00+08:00</lastmod>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/2016/10/24/the-power-of-infomation-and-time/</loc>
+    <lastmod>2016-10-24T13:32:56+08:00</lastmod>
+  </url>
+  <url>
     <loc>http://woodcarver.github.io/blog/2016/09/14/learning-how-to-learn/</loc>
     <lastmod>2016-09-14T16:40:30+08:00</lastmod>
   </url>
@@ -251,6 +263,15 @@
     <loc>http://woodcarver.github.io/blog/categories/nginx/</loc>
   </url>
   <url>
+    <loc>http://woodcarver.github.io/blog/categories/linux/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/operating-system/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/networking/</loc>
+  </url>
+  <url>
     <loc>http://woodcarver.github.io/blog/categories/society/</loc>
   </url>
   <url>
@@ -276,9 +297,6 @@
   </url>
   <url>
     <loc>http://woodcarver.github.io/blog/categories/web-service/</loc>
-  </url>
-  <url>
-    <loc>http://woodcarver.github.io/blog/categories/linux/</loc>
   </url>
   <url>
     <loc>http://woodcarver.github.io/blog/categories/system-command/</loc>
@@ -327,5 +345,8 @@
   </url>
   <url>
     <loc>http://woodcarver.github.io/blog/categories/study-method/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/economics/</loc>
   </url>
 </urlset>
