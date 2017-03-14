@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://woodcarver.github.io/blog/2017/02/24/data-visualization-d3js/</loc>
+    <lastmod>2017-02-24T23:54:12+08:00</lastmod>
+  </url>
+  <url>
     <loc>http://woodcarver.github.io/blog/2016/11/13/ctr/</loc>
     <lastmod>2016-11-13T19:49:52+08:00</lastmod>
   </url>
   <url>
     <loc>http://woodcarver.github.io/blog/2016/11/06/computational-advertising/</loc>
-    <lastmod>2016-11-06T00:00:00+08:00</lastmod>
+    <lastmod>2016-11-06T21:43:30+08:00</lastmod>
   </url>
   <url>
     <loc>http://woodcarver.github.io/blog/2016/10/24/the-power-of-infomation-and-time/</loc>
@@ -348,5 +352,14 @@
   </url>
   <url>
     <loc>http://woodcarver.github.io/blog/categories/economics/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/computational-advertising-skill/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/js/</loc>
+  </url>
+  <url>
+    <loc>http://woodcarver.github.io/blog/categories/data-visualization/</loc>
   </url>
 </urlset>

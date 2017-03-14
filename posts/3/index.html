@@ -9,8 +9,9 @@
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="
-">
+  <meta name="description" content="各种储存设备的速度量级 时间单位是cpu cycles。
+| 储存类型 | 缓存的内容 | 储存的媒介| 处理速度| 被谁管理
+|&mdash;&mdash;&mdash;&mdash;-|&mdash;&mdash;&mdash;&mdash;|&mdash;&mdash;&mdash;& &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -70,6 +71,65 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/05/14/important-number-in-software-system-designing/">操作系统中的各种尝试参数</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-05-14T17:48:06+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>14</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>5:48 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>各种储存设备的速度量级</h1>
+
+<p>时间单位是cpu cycles。
+| 储存类型    | 缓存的内容 | 储存的媒介| 处理速度| 被谁管理
+|&mdash;&mdash;&mdash;&mdash;-|&mdash;&mdash;&mdash;&mdash;|&mdash;&mdash;&mdash;&ndash;|&mdash;&mdash;&mdash;|&mdash;&mdash;&mdash;
+|cpu register| 4~8 byte word | 寄存器| 0| 编译器
+|TLB | Address translations| On-chip TLB| 0| Hardware MMU
+|L1 cache | 64-byte block| On-chip L1 cache| 1| Hardware
+|L2 cache | 64-byte block| On-chip L2 cache| 10| Hardware
+|L3 cache | 64-byte block| On-chip L3 cache| 30| Hardware
+|Virtual memory| 4-KB page| main memory| 100| Hardware + OS
+|Buffer cache| Parts of files| main memory| 100| OS
+|Disk cache| Disk sectors| Disk controller| 100,00| Controller firmware
+|Network cache| Parts of files| Local disk| 10,000,000| AFS/NFS client
+|Browser cache| Web pages| Local disk| 10,000,000| Web browser
+|Web cache    | Web pages| Remote server disks| 1,000,000,000| Web proxy server</p>
+
+<p>从上面看到，内存的访问速度是磁盘的1万倍（不过也要看是什么磁盘，比如固态磁盘访问速度是）
+固态磁盘(ssd)的读写速度：
+读            |写
+&mdash;&mdash;&mdash;&mdash;&ndash;|&mdash;-
+顺序：250MB/s |顺序：170MB/s
+随机：140MB/s |顺序：14MB/s
+固态磁盘(ssd)的读写速度大概是普通磁盘的10倍。</p>
+
+<h1>reference</h1>
+
+<ul>
+<li><a href="http://www.directionsmag.com/entry/ram-is-100-thousand-times-faster-than-disk-for-database-access/123964">ram-is-100-thousand-times-faster disk</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -828,125 +888,6 @@ Thread和Runnable的区别和联系、多次start一个线程会怎么样、线�
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/02/17/deep-insight-of-linux-system-status-description-commands/">Linux系统状态命令详解</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-02-17T21:58:48+08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>17</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:58 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h1>知识地图</h1>
-
-<p>这篇文章整理的是对关于诊断linux系统状况的相关指标和命令。涉及到：</p>
-
-<ol>
-<li>I/O负载状况</li>
-<li>进程控制</li>
-<li>cpu负载状况</li>
-<li>memory占用情况</li>
-<li>网络状况</li>
-<li>disk使用情况</li>
-</ol>
-
-
-<p>其中统计值会把I/O的时候见包含进cpu时间中，所以从上面的分类来看一个运行的进程的指标——cpu就是衡量任务的占时状况，而内存就是占用空间情况。</p>
-
-<h1>Commands about I/O</h1>
-
-<ul>
-<li>什么是I/O</li>
-</ul>
-
-
-<p>再让我们看一眼csapp的那幅经典图
-<img src="http://woodcarver.oss-cn-shanghai.aliyuncs.com/post/computer_organization.png" alt="computer organization" />
-看到所有的设备都是通过I/O bridge把数据移动到Main memory上，然后再主存再和CPU交互进行计算。当CPU有输出时，也是先输出到主存上，然后再输入到设备上。而再计算机中I/O设备就只除去CPU和主存的设备，也成外围设备。
-介绍完I/O设备，那什么是I/O呢？按照《Unix系统内幕》的定义：</p>
-
-<blockquote><p>The I/O subsystem haldes the movement of data between memory and peripheral devices such as disks, printers, and terminals.
-所以I/O就是指I/O设备和memory之间数据移动。</p></blockquote>
-
-<p>怎么才算是一次I/O，大概是指移动次数但是这个不重要，重要的是对于I/O的衡量却不是根据其移动次数，而是根据其占用一个运行任务的时间比例衡量的。所以如果运行的进程中你看到真正使用CPU时间的比例很少，“大部分”是在等待I/O。那么就是说I/O不行，跟不上CPU的节奏。</p>
-
-<p>那当发现I/O占时过大的时候怎么办？目标就是减少I/O！这个目标说起来容易，做起来也确实有几个常规方法。一种是数据库系统经常用到了。例如mysql的索引技术就是排除不相关数据，只传当前相关的数据。还有些对磁盘的数据进行压缩，这个传输到内存上的容量就少了，I/O自然降了。
-还有就是换设备，换硬盘、换网卡<code>^_^</code>。</p>
-
-<h2>iostat</h2>
-
-<h2>top</h2>
-
-<p>top对I/O的描述是用I/O wait这个指标，例如下图：
-<img src="http://woodcarver.oss-cn-shanghai.aliyuncs.com/post/top_command_short.png" alt="top command" />
-其中I/O wait 的定义是：</p>
-
-<blockquote><p>I/O wait is the percentage of time your processors are waiting on the disk.
-I/O wait就是CPU在整个任务处理中等待闲置的时间，举个例子：一个任务一共使用了1s，但是其中从从磁盘中取数据花了700ms，而在磁盘读取数据时CPU是闲置的，所以CPU的等待I/O的时间占了70%，即I/O wait 是70%。
-当然有人指出对多核cpu通过iowait来统计io的负载情况并不准确，<a href="http://veithen.github.io/2013/11/18/iowait-linux.html">详见</a></p></blockquote>
-
-<p><code>threshold：当I/O wait &gt; 1/CPU_cores 可以判断明显出现了I/O瓶颈(why?)。</code></p>
-
-<h2>sar</h2>
-
-<p>同样使用I/O wait这个指标，每10mini(默认时间间隔，可以调节)纪录一次系统状态值,保留一段时间的历史数据。</p>
-
-<h2>dstat</h2>
-
-<p>发现这个命令组合很有意思
-dstat -tdD total,sda,sdb,sdc,md1 60</p>
-
-<h1>command about CPU</h1>
-
-<h2>top</h2>
-
-<p>top对cpu的描述有下面几个值：
-user &ndash; 表示用户太消耗的cpu时间
-sys &ndash; 表示内核态消耗的cpu时间
-real &ndash; 表示操作从开始到结束所经过的墙钟时间（Wall Clock Time）
-cpu时间和墙钟时间的区别是，墙钟时间包括各种非运算的等待时间，例如等待磁盘I/O，等待线程阻塞，而cpu时间不包括这些耗时。但是当系统有多个cpu或者多核的时候，多线程操作会叠加这些cpu时间，所以如果看到user+sys > real 是正常的。</p>
-
-<h2>Reference</h2>
-
-<ul>
-<li>[深入理解计算机系统（第二版）]</li>
-<li>[Unix系统内幕]</li>
-<li><a href="http://blog.scoutapp.com/articles/2011/02/10/understanding-disk-i-o-when-should-you-be-worried">understanding disk i/o - when should you be worried?</a></li>
-<li><a href="http://veithen.github.io/2013/11/18/iowait-linux.html">The precise meaning of I/O wait time in Linux</a></li>
-</ul>
-
-
-<h1>进程控制</h1>
-
-<ul>
-<li>exec</li>
-<li>source</li>
-<li>kill</li>
-<li>bg,fg,jobs</li>
-<li>nice</li>
-</ul>
-
-
-<h1>网络状况</h1>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/4">&larr; Older</a>
@@ -964,6 +905,10 @@ cpu时间和墙钟时间的区别是，墙钟时间包括各种非运算的等�
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2017/02/24/data-visualization-d3js/">Data Visualization - D3js</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2016/11/13/ctr/">Ctr</a>
       </li>
     
@@ -977,10 +922,6 @@ cpu时间和墙钟时间的区别是，墙钟时间包括各种非运算的等�
     
       <li class="post">
         <a href="/blog/2016/09/14/learning-how-to-learn/">Learning How to Learn</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/09/04/data-file-organization/">Data File Organization</a>
       </li>
     
   </ul>

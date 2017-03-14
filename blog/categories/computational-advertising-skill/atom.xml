@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Computational_advertising Skill | Wood Carver]]></title>
+  <link href="http://woodcarver.github.io/blog/categories/computational-advertising-skill/atom.xml" rel="self"/>
+  <link href="http://woodcarver.github.io/"/>
+  <updated>2017-03-15T00:54:24+08:00</updated>
+  <id>http://woodcarver.github.io/</id>
+  <author>
+    <name><![CDATA[Wood Carver]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Computational Advertising]]></title>
+    <link href="http://woodcarver.github.io/blog/2016/11/06/computational-advertising/"/>
+    <updated>2016-11-06T21:43:30+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2016/11/06/computational-advertising</id>
+    <content type="html"><![CDATA[<p>刘鹏表示，不了解计算广告，就不可能深入地了解互联网，也不太容易真正理解大数据。技术从业者需要从行业、宏观的角度认识这个领域，进而掌握相应的思考方法和技术，包括<strong>商业产品的思路和工作方法，信息检索、机器学习、最优化、博弈论等基础数学工具，以及Hadoop、Spark和其他开源工具为核心的大数据基础设施</strong>等。</p>
+]]></content>
+  </entry>
+  
+</feed>

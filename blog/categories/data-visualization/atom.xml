@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Data-visualization | Wood Carver]]></title>
+  <link href="http://woodcarver.github.io/blog/categories/data-visualization/atom.xml" rel="self"/>
+  <link href="http://woodcarver.github.io/"/>
+  <updated>2017-03-15T00:54:24+08:00</updated>
+  <id>http://woodcarver.github.io/</id>
+  <author>
+    <name><![CDATA[Wood Carver]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Data Visualization - D3js]]></title>
+    <link href="http://woodcarver.github.io/blog/2017/02/24/data-visualization-d3js/"/>
+    <updated>2017-02-24T23:54:12+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2017/02/24/data-visualization-d3js</id>
+    <content type="html"><![CDATA[<h1>d3js的设计之美</h1>
+
+<p>世界上有许多美丽的软件，而d3js是最美之一，在我心中在前端技术中是最美的。</p>
+
+<p>不用多说，d3js是一款构建数据可视化的框架，其中最主要的编程思想就是数据驱动，但是这个框架为什么这么美，让我慢慢道来，当然还需要分好几个步骤道来。
+首先我们定义下美的标准是什么。我会认为俄罗斯方块是美的，数独是美的，特别是二进制是极美的……他们的共同特点是什么呢？
+1. 其实状态非常少
+2. 规则非常简单，且直白明了
+3. 通过搭配简单基础的规则，衍生出极其丰富的上层建筑
+4. 其中充满了各种“巧合”和令人惊讶的“复杂”，看起来浅显易懂，但是又出人所料！</p>
+
+<p>d3js规定的比较少的接口，并且分好了类，非常直观的同时又非常便于查询和联想，一个好的框架或者系统能在你使用它的一部分后，剩余的部分通过前面的使用经验能很容易的猜想出来。而大部分框架提供的繁杂的使用，则是关系甚少，需要不断耗费精力去穷尽其文档。当然最糟糕的是连文档都不全，只能趴源码看！</p>
+
+<p>所以好的框架是一定想清楚了使用的日常使用方式，然后设计出来的一套极简规则。</p>
+
+<p>先让我们看看d3js的接口吧！d3js接口大致分7类：</p>
+
+<ol>
+<li>核心 - 包括选择器，过渡，数据处理，本地化，颜色等。</li>
+<li>地理 - 球面坐标，经纬度运算。</li>
+<li>几何 - 提供绘制2D几何图形的实用工具。</li>
+<li>布局 - 推导定位元素的辅助数据。</li>
+<li>比例尺 - 数据编码和视觉编码之间转换。</li>
+<li>可缩放矢量图形 - 提供用于创建可伸缩矢量图形的实用工具。</li>
+<li>时间 - 解析或格式化时间，计算日历的时间间隔等。</li>
+<li>行为 - 可重用交互行为</li>
+</ol>
+
+
+<p>所以d3js的开发步骤，仅仅是抓住下面几个关键步骤：
+1. 构建想要图的所要的坐标和数据。比如你要构建一个二叉树，那么你根据输入，把坐标数据先计算好。
+  根据输入信息得出坐标信息，复杂常用的算法都已经在d3中实现，包涵在d3.layout包下面。比如：<a href="https://github.com/d3/d3/wiki/%E6%A0%91%E5%B8%83%E5%B1%80">Tree</a>输出整齐地排列树节点，<a href="https://github.com/d3/d3/wiki/%E5%88%86%E5%8C%BA%E5%B8%83%E5%B1%80">Partition</a> 输出递归地将节点树分割为旭日状或者冰柱状。
+  其余的layout文档，请点击<a href="https://github.com/d3/d3/wiki/%E5%B8%83%E5%B1%80">这里</a> 
+2. 根据上一步计算结果，画出你想要的。这一步需要借助d3的核心API来操作DOM，可以是HTML、SVG、CSS等。特别说明一点是d3封装了很多常见基础的SVG组件，你不必什么时候都操作裸SVG节点。既然是dsjs，那么封装的也是非常优美，有章可循的：</p>
+
+<ol>
+<li>添加响应交互事件。比如点击、hover等js标准事件。</li>
+</ol>
+
+
+<p>上面的1，2步骤</p>
+
+<h1>Reference</h1>
+
+<ul>
+<li><a href="https://github.com/d3/d3/wiki/Tutorials">dsjs Tutorials</a></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+</feed>
