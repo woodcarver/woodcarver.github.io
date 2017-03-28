@@ -9,12 +9,8 @@
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="知识地图 这篇文章整理的是对关于诊断linux系统状况的相关指标和命令。涉及到： I/O负载状况
-进程控制
-cpu负载状况
-memory占用情况
-网络状况
-disk使用情况 其中统计值会把I/O的时候见包含进cpu时间中，所以从上面的分类来看一个运行的进程的指标——cpu就是衡量任务的占时状况， &hellip;">
+  <meta name="description" content="阅读 MapReduce: A major step backwards 这个是2014年图灵奖获得者Michael Stonebraker和David J. DeWitt。两位都是数据库界的领军人物。
+下面主要介绍下文章对mapreduce提出的质疑和观点 mapreduce的理念设计方面 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -74,6 +70,174 @@ disk使用情况 其中统计值会把I/O的时候见包含进cpu时间中，所
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/02/22/notes-for-hadoop-the-defintive-guid/">Hadoop权威指南笔记</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-02-22T15:13:26+08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>3:13 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>阅读 <a href="http://blog.nosqlfan.com/html/744.html">MapReduce: A major step backwards</a></h1>
+
+<p>这个是2014年图灵奖获得者Michael Stonebraker和David J. DeWitt。两位都是数据库界的领军人物。
+下面主要介绍下文章对mapreduce提出的质疑和观点</p>
+
+<h2>mapreduce的理念设计方面</h2>
+
+<ul>
+<li>在数据库Schema(结构和数据的关系)方面，破坏了40年的数据实践条律：
+
+<ul>
+<li>Schemas是有益的——没有schema的存在，数据可以被任意填充，所以会有很多的垃圾数据出现</li>
+<li>将schema和程序分开处理是有益的——指mapreduce把数据结构都埋藏在代码中，非常不便与重复提出和维护</li>
+<li>High-level存取语言是有益的——关系型数据库使用一种声明式存取方法，而不展现出存取的具体算法。而mapreduce直接把整个存取算法过程仍给使用者
+这里主要是说mapreduce中的两个步骤都和应用紧密结合，可以填充任意操作</li>
+</ul>
+</li>
+</ul>
+
+
+<h2>mapreduce的实现方面</h2>
+
+<ul>
+<li>没有索引，所以所有搜索都是暴力的顺序搜索。</li>
+<li>mapreduce的并行特性，早在19世界80年代就有成熟的商业产品，例如Teradata，Gamma等，和这些软件比起来mapreduce并没有特别突出的地方。</li>
+<li>mapreduce的map阶段有数据倾斜的分线（skew，类似于一个二叉树中的非平衡情况，如果特别不平衡直接会使搜索退化成了顺序的）会直接降低并行的计算能力</li>
+<li>mapreduce中的reduce获取map的结果方式使用的是pull（map的结果一般存放在map的本地机器上）,这是一个巨大的性能瓶颈。原文提出使用push paradigm代替pull paradigm，这个具体不太明白？</li>
+</ul>
+
+
+<h2>mapreduce概念一点都不新鲜</h2>
+
+<h2>mapreduce缺乏现有数据库的关键特性,对终端使用者造成了很大困扰</h2>
+
+<ul>
+<li>Bulk loader — to transform input data in files into a desired format and load it into a DBMS</li>
+<li>Indexing — as noted above</li>
+<li>Updates — to change the data in the data base</li>
+<li>Transactions — to support parallel update and recovery from failures during update</li>
+<li>Integrity constraints — to help keep garbage out of the data base</li>
+<li>Referential integrity — again, to help keep garbage out of the data base</li>
+<li>Views — so the schema can change without having to rewrite the application program</li>
+</ul>
+
+
+<h2>mapreduce不兼容现有的DBMS工具</h2>
+
+<ul>
+<li>Report writers (e.g., Crystal reports) to prepare reports for human visualization</li>
+<li>Business intelligence tools (e.g., Business Objects or Cognos) to enable ad-hoc querying of large data warehouses</li>
+<li>Data mining tools (e.g., Oracle Data Mining or IBM DB2 Intelligent Miner) to allow a user to discover structure in large data sets</li>
+<li>Replication tools (e.g., Golden Gate) to allow a user to replicate data from on DBMS to another</li>
+<li>Database design tools (e.g., Embarcadero) to assist the user in constructing a data base.</li>
+</ul>
+
+
+<p>文章最后呼吁mapreduce的开发这了解最近25年内并行数据库文献，放下自以为是的态度，汲取40年的数据库发展经历和各方观点解决上面提出的问题。</p>
+
+<p>这篇文章写的年代比较早，现在已经有了很多基于mapreduce的工具。比如hive，实现了很多现代数据库的很多特性。比如，物理数据结构和logical schame分离；提供方便的查询语言（一种类似SQL语言）；提供了Bulk loader工具。
+当然hive只是在hadoop上建设了一层中间转层，提供了数据的逻辑结构，但是仍然不提供修改数据等功能等。这个和mysql等现有的关系性数据库从数据入库开始就做强约束的策略是不一样的。所以hive在写入文件是没有强约束的，而约束是只发生在读取数据时候。</p>
+
+<h1>阅读 <a href="http://scienceblogs.com/goodmath/2008/01/22/databases-are-hammers-mapreduc/">Databases are hammers; MapReduce is a screwdriver</a></h1>
+
+<p>文章上来就指出关系数据库的拥护者过于痴迷于这种完美的工具，以至于本末倒置的宁愿把螺丝当钉子使用，就因为有这么完美的锤子（指关系型数据库）在手。
+接下来开始列车作者的观点：
+- 关系型数据库不能很好并行运行
+- 不能很好的处理非结构化数据
+- 在处理内嵌结构数据上也背负恶名
+<strong> MapReduce的目的不是用来取代Relation Ddatabase，而是祢补其缺点的，提供一种轻量级并行编程，解决另外一族计算问题。 </strong></p>
+
+<p>这篇文章是回应上面那篇文章的，并一一针对上面的各种观点提出了自己的看法。
+- 没有索引，所以所有搜索都是暴力的顺序搜索 —— 回应是：大多数大规模数据计算是使用不了关系数据模型在单机上进行的，且索引这种中心式结构很容易成为性能瓶颈，还有当计算是密集型的时候，索引是没有用的
+- mapreduce缺乏现有数据库的关键特性 —— 回应是：难道不是关系型就是不好的吗？（两篇文章感觉火药味十足啊！）
+- mapreduce不兼容现有的DBMS工具 —— 回应是：如果继续兼容现有DBMS，就想上面提到的为了使用锤子，而错把螺丝钉当钉子使用</p>
+
+<h1>说了那么多，我们谈谈mapreduce是个什么东西</h1>
+
+<p>mapreduce是一个分布式批量计算框架。想必听到这句话的时候大家应该和我一样会问计算框架是个什么东西，也有可能就是吓的不敢问了？
+最粗的方式：
+- map
+- reduce</p>
+
+<p>其次粒度，6个阶段：
+- input ： 这个阶段注意输入格式
+- split ：这个阶段注意split的性能
+- map
+- shuffle
+- reduce ： 注意数据倾斜
+- output ：注意输出格式</p>
+
+<p>最细粒度：
+- input
+- split
+- mapper
+- combiner
+- partitioner
+到这里都是本地机器内操作
+- shuffle
+- reduce
+- output</p>
+
+<h2>一个mapreduce job的启动过程</h2>
+
+<p>话说说完了计算框架的逻辑，那么要运行一个计算任务该怎么做？发现又是另一套东西，怎么都是感觉表面一套背地里一套！</p>
+
+<h2>第一版的过程</h2>
+
+<h2>为什么需要yarn？</h2>
+
+<p>如果不是在大量环境中运行一段时候后，意识到了大量的问题后，估计每个人都会觉得上面的方案已经很完美了。所以这里先提出mapreduce框架的缺陷：
+1. 我们都知道，只要是master结构的架构，随着需求的不断扩大瓶颈一般都会出在master身上，而JobTracker这个这个master。因为JobTracker的限制，所有的资源分配任务和监视任务都集中在Jobtracker上面。所有当集群特别大的时候，内存，cup等肯定会出现问题。
+2. master结构还有一个问题，就是单点问题，加入master一挂，那么整个系统就挂了，这和分布式系统倡导高可用、容错特性背向而驰。而当集群越来越大，job越来愈多，都靠Jobtracker调度，那么其挂的可能性有增大的很多。
+3. 不完美的不仅是Jobtracker，还有TaskTracker。问题就在于TaskTracker把资源强制划分为 map task slot 和 reduce task slot, 如果当系统中只有 map task 或者只有 reduce task 的时候，会造成资源的浪费，也就是前面提过的集群资源利用的问题。这样就会经常出现一个job的map任务都做完了，但是reduce阶段却获得不了资源而终止，很是浪费。
+4. TaskTracker对任务的大小也没做考虑，有些任务大，有些任务小。假如两个都很占用内存的任务遇到一起，就会导致OOM，Task失败。</p>
+
+<h2>编写mapreduce</h2>
+
+<h3>万恶的数据倾斜</h3>
+
+<ol>
+<li>为什么会发生数据倾斜
+根据上面mapreduce逻辑过程我们发现，数据倾斜不可能发生在map过程，都是发生在reduce过程。为什么呢？因为shuffle过程有个规则就是同样的key会发往同一个reduce上，所以到出现key1的记录条数是10亿，而key2的记录条数是10个，那么接到key1的reduce可就要倒霉了，同时其他的reduce也要陪着慢慢的等。</li>
+</ol>
+
+
+<p>怎么解决呢？（难道mapreduce自己没有解决机制吗？）</p>
+
+<ul>
+<li>既然出现大key的时候会出现倾斜，那么直接的解决方法就是把大key给拆了，可以通过加后缀的方式改变key值。</li>
+</ul>
+
+
+<h1>hadoop的另一大旗舰产品——HDFS</h1>
+
+<h2>reference</h2>
+
+<ul>
+<li><a href="https://www.ibm.com/developerworks/cn/opensource/os-cn-hadoop-yarn/">Hadoop 新 MapReduce 框架 Yarn 详解</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1694,86 +1858,6 @@ server</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/01/04/introduce-storm/">Introduce Storm</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-01-04T23:47:03+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>11:47 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>刚开始学习storm，首先打开storm的官方文档，那叫一个大写的“烂”。比起hadoop和kafka的quick start，能快速上手，搭建单机版，并开始写程序。storm上来就是不知所云的一些概念介绍，敢问一个新手面对这些概念有啥用？新手的关键是实践啊！
-然后开始找到了<a href="http://ifeve.com/getting-started-with-stom-index/">一本书</a>，但是这本书一开就是说storm啥xxx特性，这个倒还可以。然后直接来说storm有两种模式，但是没有说怎么搭建这些模式，而是直接给出一个例子，但是连怎么运行storm程序都不知道（难道不需要安装个zookeeper？）怎么上手！！！！为什么我想普通程勋运行storm程序得到的结果是连接不上zookeeper？这也跳跃的太快了吧，简直无语了。</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>41388 [Thread-6-SendThread(localhost:2000)] INFO  org.apache.storm.zookeeper.ClientCnxn - Opening socket connection to server localhost/0:0:0:0:0:0:0:1:2000. Will not attempt to authenticate using SASL (unknown error)
-</span><span class='line'>41389 [Thread-6-SendThread(localhost:2000)] WARN  org.apache.storm.zookeeper.ClientCnxn - Session 0x0 for server null, unexpected error, closing socket connection and attempting reconnect
-</span><span class='line'>java.net.ConnectException: Connection refused
-</span><span class='line'>  at sun.nio.ch.SocketChannelImpl.checkConnect(Native Method) ~[na:1.7.0_67]
-</span><span class='line'>  at sun.nio.ch.SocketChannelImpl.finishConnect(SocketChannelImpl.java:739) ~[na:1.7.0_67]
-</span><span class='line'>  at org.apache.storm.zookeeper.ClientCnxnSocketNIO.doTransport(ClientCnxnSocketNIO.java:361) ~[storm-core-0.9.4.jar:0.9.4]
-</span><span class='line'>  at org.apache.storm.zookeeper.ClientCnxn$SendThread.run(ClientCnxn.java:1081) ~[storm-core-0.9.4.jar:0.9.4]</span></code></pre></td></tr></table></div></figure>
-
-
-<p>原因是本地模式也需要搭建zookeeper（果然）！而且我不知道知道在哪里配置storm连接zookeeper的地址和端口。</p>
-
-<p>然后发现了一个<a href="http://www.dahouduan.com/2015/11/10/storm-tutorial/">blog</a>，貌似看起来和不错，也解释了很多模糊的概念。但是——仍然没有给足运行的环境前提。</p>
-
-<p>所以我在这里给出一个完整的新手例子（单机版）。至少我是通过这个步骤一步步搭建起来的。
-基础：
-1. java知识
-2. maven使用知识</p>
-
-<p>第一步：搭建zookeeper
-第二步：写pom.xml
-第三步：写程序
-第四步：运行</p>
-
-<h1>storm的事务——如何保证storm的消息不丢失？</h1>
-
-<p>又见事务，话说事务到底是什么？google了一下，发现在不同的而场景有不同的定义，但是貌似都有共同的特征，下面给出<a href="https://en.wikipedia.org/wiki/Transaction_processing">wikipedia的定义</a>：
-In computer science, transaction processing is information processing that is divided into <strong>individual, indivisible</strong> operations called transactions. Each transaction must succeed or fail as a complete unit; it can never be only partially complete.
-也许这个定义给出了事务的原子性，要么做完要么完全不做。但是还有两位一个问题，就是能不能重复做？根据事务的rollback原则，回答肯定是否定的。但是根根我的另一篇文章看，消息发送系统要达到exactly-once是一件非常难的事情。其中要求服务处理拥有幂等性，想想都头痛。所以storm给出的答案直接是：
-Storm guarantees data processing by providing an at least once processing guarantee。—— 只支持至少一次，失败就给你重发。那么自然就引出一个大大的问题，怎么解决重发的问题？不过要吐个槽，刚被推荐看storm的<a href="http://storm.apache.org/releases/current/Transactional-topologies.html">transaction</a>，发现这个模块就被置为Deprecated状态。不过还是看看他是怎么设计的吧！</p>
-
-<p>First, you need to tell Storm whenever you&rsquo;re creating a new link in the tree of tuples.
-Second, you need to tell Storm when you have finished processing an individual tuple.</p>
-
-<h2>怎么写出一个消息可靠的storm程序</h2>
-
-<p>按照这篇文章：<a href="http://storm.apache.org/releases/0.9.6/Guaranteeing-message-processing.html">http://storm.apache.org/releases/0.9.6/Guaranteeing-message-processing.html</a>
-难道如果不想建立可靠消息，直接使用<em>collector.emit(new Values(word))而不是</em>collector.emit(tuple, new Values(word))就行了？
-难道重试机制不是在spout的fail函数写好的？</p>
-
-<h2>作业启动流程</h2>
-
-<h2>其中并行度如何控制？</h2>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/5">&larr; Older</a>
@@ -1791,6 +1875,10 @@ Second, you need to tell Storm when you have finished processing an individual t
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2017/03/27/statistics-summary/">Statistics Summary</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2017/02/24/data-visualization-d3js/">Data Visualization - D3js</a>
       </li>
     
@@ -1804,10 +1892,6 @@ Second, you need to tell Storm when you have finished processing an individual t
     
       <li class="post">
         <a href="/blog/2016/10/24/the-power-of-infomation-and-time/">The Power of Infomation and Time</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/09/14/learning-how-to-learn/">Learning How to Learn</a>
       </li>
     
   </ul>

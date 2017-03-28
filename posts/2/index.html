@@ -9,8 +9,20 @@
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="这篇博文主要是对《CAP理论十二年回顾："规则"变了》的读后感。 CAP到底讲什么，为什么不能同时满足？ 首先明确一点，CAP是一个分布式系统的特性，如果你没有多个服务节点，就不可能发生分区。先解释下概念：
-- C —— 执行的结果能同时反映到所有节点上。等同于所有节点访问同一份最新的数据副本。 &hellip;">
+  <meta name="description" content="jmock官网 测试框架 1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+public void testSomeAction() { ... set up ... context.checking(new Expectations() ... expectations go here &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -70,6 +82,162 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/08/14/how-to-use-jmock/">How to Use Jmock</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-08-14T14:35:32+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>14</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>2:35 pm</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="http://www.jmock.org/expectations.html">jmock官网</a></p>
+
+<h1>测试框架</h1>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>public void testSomeAction() {
+</span><span class='line'>    ... set up ...
+</span><span class='line'>
+</span><span class='line'>    context.checking(new Expectations()
+</span><span class='line'>        ... expectations go here ...
+</span><span class='line'>    );
+</span><span class='line'>
+</span><span class='line'>    ... code being tested ...
+</span><span class='line'>
+</span><span class='line'>    context.assertIsSatisfied();
+</span><span class='line'>
+</span><span class='line'>    ... other assertions ...
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其中最重要的一个步骤就是context.checking。这个方法中定义的expectation就是需要关注的。也就是你要模拟的方法的输入和输出。
+其他格式是这样的：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>invocation-count (mock-object).method(argument-constraints);
+</span><span class='line'>    inSequence(sequence-name);
+</span><span class='line'>    when(state-machine.is(state-name));
+</span><span class='line'>    will(action);
+</span><span class='line'>    then(state-machine.is(new-state-name));</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其每个短语的具体意思如下：</p>
+
+<table>
+<thead>
+<tr>
+<th>one    </th>
+<th>The invocation is expected once and once only.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>exactly(n).of</td>
+<td> The invocation is expected exactly n times. Note: one is a convenient shorthand for exactly(1).</td>
+</tr>
+<tr>
+<td>atLeast(n).of </td>
+<td>The invocation is expected at least n times.</td>
+</tr>
+<tr>
+<td>atMost(n).of   </td>
+<td>The invocation is expected at most n times.</td>
+</tr>
+<tr>
+<td>between(min, max).of   </td>
+<td>The invocation is expected at least min times and at most max times.</td>
+</tr>
+<tr>
+<td>allowing   </td>
+<td>The invocation is allowed any number of times but does not have to happen.</td>
+</tr>
+<tr>
+<td>ignoring   </td>
+<td>The same as allowing. Allowing or ignoring should be chosen to make the test code clearly express intent.</td>
+</tr>
+<tr>
+<td>never  </td>
+<td>The invocation is not expected at all. This is used to make tests more explicit and so easier to understand.</td>
+</tr>
+</tbody>
+</table>
+
+
+<p>所有的函数都是可以选的，例如你可以如下组合你的exception。</p>
+
+<h1>例子</h1>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>public void testReturnsCachedObjectWithinTimeout() {
+</span><span class='line'>    context.checking(new Expectations()
+</span><span class='line'>        oneOf (clock).time(); will(returnValue(loadTime));
+</span><span class='line'>        oneOf (clock).time(); will(returnValue(fetchTime));
+</span><span class='line'>
+</span><span class='line'>        allowing (reloadPolicy).shouldReload(loadTime, fetchTime); will(returnValue(false));
+</span><span class='line'>
+</span><span class='line'>        oneOf (loader).load(KEY); will(returnValue(VALUE));
+</span><span class='line'>    );
+</span><span class='line'>
+</span><span class='line'>    Object actualValueFromFirstLookup = cache.lookup(KEY);
+</span><span class='line'>    Object actualValueFromSecondLookup = cache.lookup(KEY);
+</span><span class='line'>
+</span><span class='line'>    context.assertIsSatisfied();
+</span><span class='line'>    assertSame("should be loaded object", VALUE, actualValueFromFirstLookup);
+</span><span class='line'>    assertSame("should be cached object", VALUE, actualValueFromSecondLookup);
+</span><span class='line'>}</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1468,40 +1636,6 @@ Inconsistency in state of object (because synchronization won&rsquo;t be possibl
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/05/30/why-connection-need-3-way-handshake-while-disconnection-need-4-way-in-tcp/">Why Connection Need 3-way Handshake While Disconnection Need 4-way in Tcp?</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-05-30T11:30:53+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>30</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>11:30 am</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h1>reference</h1>
-
-<ul>
-<li><a href="http://baike.baidu.com/link?url=8_DsYi4pjWpNRFrSX10jiGxe0PLruypbRhv4o56eXOi07tQPokeFgnt1_leXVDy7ELc-uR4_E1cr1NfV3lJUYK">http://baike.baidu.com/link?url=8_DsYi4pjWpNRFrSX10jiGxe0PLruypbRhv4o56eXOi07tQPokeFgnt1_leXVDy7ELc-uR4_E1cr1NfV3lJUYK</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/3">&larr; Older</a>
@@ -1519,6 +1653,10 @@ Inconsistency in state of object (because synchronization won&rsquo;t be possibl
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2017/03/27/statistics-summary/">Statistics Summary</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2017/02/24/data-visualization-d3js/">Data Visualization - D3js</a>
       </li>
     
@@ -1532,10 +1670,6 @@ Inconsistency in state of object (because synchronization won&rsquo;t be possibl
     
       <li class="post">
         <a href="/blog/2016/10/24/the-power-of-infomation-and-time/">The Power of Infomation and Time</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/09/14/learning-how-to-learn/">Learning How to Learn</a>
       </li>
     
   </ul>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Statistics | Wood Carver]]></title>
+  <link href="http://woodcarver.github.io/blog/categories/statistics/atom.xml" rel="self"/>
+  <link href="http://woodcarver.github.io/"/>
+  <updated>2017-03-29T00:00:42+08:00</updated>
+  <id>http://woodcarver.github.io/</id>
+  <author>
+    <name><![CDATA[Wood Carver]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Statistics Summary]]></title>
+    <link href="http://woodcarver.github.io/blog/2017/03/27/statistics-summary/"/>
+    <updated>2017-03-27T23:31:38+08:00</updated>
+    <id>http://woodcarver.github.io/blog/2017/03/27/statistics-summary</id>
+    <content type="html"><![CDATA[<p>前两天读了下一本书<a href="https://book.douban.com/subject/1588297/">《统计学》</a> ， 感觉这本书写的非常通俗易懂，时时刻刻都有顿悟，不仅仅知道了统计。统计学里面的量都讲的非常清楚。我这边做个小笔记把前几章的涉及到的概念都串一遍。</p>
+
+<h1>开篇 - 平均数</h1>
+
+<p>假如我们有一堆数，怎么才能概括呢？
+<code>
+100,120,300,500,700,123,45,6,6,7,7 ...
+</code>
+这堆数这么多，到底想说什么？能不能只给我一个指标，让我来判断？
+然后，不到经过了什么，<strong>平均数</strong> 就诞生了。</p>
+
+<pre><code>100,120,300,500,700,123,45,6,6,7,7 ...
+你多了给我匀点，你少了给你添点，然后直到大家都一样了， 平均数就是那个均衡点。
+结果
+</code></pre>
+
+<p><img src="http://woodcarver.oss-cn-shanghai.aliyuncs.com/post/absolute-mean.png" alt="mean" /></p>
+
+<p>为什么这个值能作为衡量全局的一个指标？我想到的点如下：
+1. 这是一个公平的算法，每一项都是均等的，不带任何前提假设。
+2. 这是一个全局的算法，每一项都参与，不会漏掉任何一项。
+3. 结果数值是可比较的，而且平均数的可比较性非常完美，直接可以和参与项做对比。</p>
+
+<p>缺点： 就出在可比性上了，当集合是9个1和1个991， 平均数是100。这个大部分是1的情况偏差太大，已经达到不可衡量的地步。所以直接可以看出平均数是一个很容易被个项影响的指标。这也就是为什么中位数会被发明出来！当然还有衍生的4分位数。</p>
+
+<h1>进阶 - r.m.s</h1>
+
+<p>再谈谈平均数的问题，上面已经指出了一点，但是当数据中是有负数的时候，直接使用平均数简直就变成了灾难！比如下面是一个实验每次测量的误差数值。</p>
+
+<p>结果是0，难道真的没有误差吗？显然不是。所以我们还需要想别的办法解决这个问题。如果消除掉负数的影响？在数学中我们都知识有两种方法——1. 绝对值， 2. 平方。所以在原先的方法上加入取负数影响的环节（发现统计学的设计思路和软件工程的设计思路有异曲同工之妙，都是先设计出来一个方案，遇到问题都先尝试加入层次修正，而不是直接推翻重新设计一套）</p>
+
+<p><img src="http://woodcarver.oss-cn-shanghai.aliyuncs.com/post/absolute-mean.png" alt="absolute-mean" />
+<img src="http://woodcarver.oss-cn-shanghai.aliyuncs.com/post/square-mean.png" alt="square-mean" /></p>
+
+<p>不知道你在统计学中发现没有，很少用绝对值算子，其实如果你想想编程就会很清楚为什么会这样。原因很简单就是绝对值操作起来比平方要麻烦。看下面两端代码：</p>
+
+<pre><code class="python"># absolute value
+if num &gt;= 0:
+  num = num
+else:
+  num = -num
+</code></pre>
+
+<pre><code class="python"># square
+num = num * num
+</code></pre>
+
+<p>但是如果用square又有一个问题，那就是可比较性差了，结果值比原来的数据项都要平方了，有点失真，不完美！
+所以人们又要在原来的解决方案上加上一个开方，让差距拉回来。</p>
+
+<p><img src="http://woodcarver.oss-cn-shanghai.aliyuncs.com/post/absolute-mean-root.png" alt="absolute-mean-root" /></p>
+
+<p>而且还为了这种组合方案打了个包，形成了固定说法r.m.s (square mean root)。
+<img src="http://woodcarver.oss-cn-shanghai.aliyuncs.com/post/rms.png" alt="rms" /></p>
+]]></content>
+  </entry>
+  
+</feed>

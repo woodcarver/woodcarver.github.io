@@ -9,9 +9,7 @@
   <meta name="author" content="Wood Carver">
 
   
-  <meta name="description" content="各种储存设备的速度量级 时间单位是cpu cycles。
-| 储存类型 | 缓存的内容 | 储存的媒介| 处理速度| 被谁管理
-|&mdash;&mdash;&mdash;&mdash;-|&mdash;&mdash;&mdash;&mdash;|&mdash;&mdash;&mdash;& &hellip;">
+  <meta name="description" content="reference http://baike.baidu.com/link?url=8_DsYi4pjWpNRFrSX10jiGxe0PLruypbRhv4o56eXOi07tQPokeFgnt1_leXVDy7ELc-uR4_E1cr1NfV3lJUYK ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -71,6 +69,40 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/05/30/why-connection-need-3-way-handshake-while-disconnection-need-4-way-in-tcp/">Why Connection Need 3-way Handshake While Disconnection Need 4-way in Tcp?</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-05-30T11:30:53+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>30</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>11:30 am</span></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>reference</h1>
+
+<ul>
+<li><a href="http://baike.baidu.com/link?url=8_DsYi4pjWpNRFrSX10jiGxe0PLruypbRhv4o56eXOi07tQPokeFgnt1_leXVDy7ELc-uR4_E1cr1NfV3lJUYK">http://baike.baidu.com/link?url=8_DsYi4pjWpNRFrSX10jiGxe0PLruypbRhv4o56eXOi07tQPokeFgnt1_leXVDy7ELc-uR4_E1cr1NfV3lJUYK</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -720,174 +752,6 @@ Thread和Runnable的区别和联系、多次start一个线程会怎么样、线�
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/02/22/notes-for-hadoop-the-defintive-guid/">Hadoop权威指南笔记</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-02-22T15:13:26+08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>22</span><span class='date-suffix'>nd</span>, <span class='date-year'>2016</span></span> <span class='time'>3:13 pm</span></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h1>阅读 <a href="http://blog.nosqlfan.com/html/744.html">MapReduce: A major step backwards</a></h1>
-
-<p>这个是2014年图灵奖获得者Michael Stonebraker和David J. DeWitt。两位都是数据库界的领军人物。
-下面主要介绍下文章对mapreduce提出的质疑和观点</p>
-
-<h2>mapreduce的理念设计方面</h2>
-
-<ul>
-<li>在数据库Schema(结构和数据的关系)方面，破坏了40年的数据实践条律：
-
-<ul>
-<li>Schemas是有益的——没有schema的存在，数据可以被任意填充，所以会有很多的垃圾数据出现</li>
-<li>将schema和程序分开处理是有益的——指mapreduce把数据结构都埋藏在代码中，非常不便与重复提出和维护</li>
-<li>High-level存取语言是有益的——关系型数据库使用一种声明式存取方法，而不展现出存取的具体算法。而mapreduce直接把整个存取算法过程仍给使用者
-这里主要是说mapreduce中的两个步骤都和应用紧密结合，可以填充任意操作</li>
-</ul>
-</li>
-</ul>
-
-
-<h2>mapreduce的实现方面</h2>
-
-<ul>
-<li>没有索引，所以所有搜索都是暴力的顺序搜索。</li>
-<li>mapreduce的并行特性，早在19世界80年代就有成熟的商业产品，例如Teradata，Gamma等，和这些软件比起来mapreduce并没有特别突出的地方。</li>
-<li>mapreduce的map阶段有数据倾斜的分线（skew，类似于一个二叉树中的非平衡情况，如果特别不平衡直接会使搜索退化成了顺序的）会直接降低并行的计算能力</li>
-<li>mapreduce中的reduce获取map的结果方式使用的是pull（map的结果一般存放在map的本地机器上）,这是一个巨大的性能瓶颈。原文提出使用push paradigm代替pull paradigm，这个具体不太明白？</li>
-</ul>
-
-
-<h2>mapreduce概念一点都不新鲜</h2>
-
-<h2>mapreduce缺乏现有数据库的关键特性,对终端使用者造成了很大困扰</h2>
-
-<ul>
-<li>Bulk loader — to transform input data in files into a desired format and load it into a DBMS</li>
-<li>Indexing — as noted above</li>
-<li>Updates — to change the data in the data base</li>
-<li>Transactions — to support parallel update and recovery from failures during update</li>
-<li>Integrity constraints — to help keep garbage out of the data base</li>
-<li>Referential integrity — again, to help keep garbage out of the data base</li>
-<li>Views — so the schema can change without having to rewrite the application program</li>
-</ul>
-
-
-<h2>mapreduce不兼容现有的DBMS工具</h2>
-
-<ul>
-<li>Report writers (e.g., Crystal reports) to prepare reports for human visualization</li>
-<li>Business intelligence tools (e.g., Business Objects or Cognos) to enable ad-hoc querying of large data warehouses</li>
-<li>Data mining tools (e.g., Oracle Data Mining or IBM DB2 Intelligent Miner) to allow a user to discover structure in large data sets</li>
-<li>Replication tools (e.g., Golden Gate) to allow a user to replicate data from on DBMS to another</li>
-<li>Database design tools (e.g., Embarcadero) to assist the user in constructing a data base.</li>
-</ul>
-
-
-<p>文章最后呼吁mapreduce的开发这了解最近25年内并行数据库文献，放下自以为是的态度，汲取40年的数据库发展经历和各方观点解决上面提出的问题。</p>
-
-<p>这篇文章写的年代比较早，现在已经有了很多基于mapreduce的工具。比如hive，实现了很多现代数据库的很多特性。比如，物理数据结构和logical schame分离；提供方便的查询语言（一种类似SQL语言）；提供了Bulk loader工具。
-当然hive只是在hadoop上建设了一层中间转层，提供了数据的逻辑结构，但是仍然不提供修改数据等功能等。这个和mysql等现有的关系性数据库从数据入库开始就做强约束的策略是不一样的。所以hive在写入文件是没有强约束的，而约束是只发生在读取数据时候。</p>
-
-<h1>阅读 <a href="http://scienceblogs.com/goodmath/2008/01/22/databases-are-hammers-mapreduc/">Databases are hammers; MapReduce is a screwdriver</a></h1>
-
-<p>文章上来就指出关系数据库的拥护者过于痴迷于这种完美的工具，以至于本末倒置的宁愿把螺丝当钉子使用，就因为有这么完美的锤子（指关系型数据库）在手。
-接下来开始列车作者的观点：
-- 关系型数据库不能很好并行运行
-- 不能很好的处理非结构化数据
-- 在处理内嵌结构数据上也背负恶名
-<strong> MapReduce的目的不是用来取代Relation Ddatabase，而是祢补其缺点的，提供一种轻量级并行编程，解决另外一族计算问题。 </strong></p>
-
-<p>这篇文章是回应上面那篇文章的，并一一针对上面的各种观点提出了自己的看法。
-- 没有索引，所以所有搜索都是暴力的顺序搜索 —— 回应是：大多数大规模数据计算是使用不了关系数据模型在单机上进行的，且索引这种中心式结构很容易成为性能瓶颈，还有当计算是密集型的时候，索引是没有用的
-- mapreduce缺乏现有数据库的关键特性 —— 回应是：难道不是关系型就是不好的吗？（两篇文章感觉火药味十足啊！）
-- mapreduce不兼容现有的DBMS工具 —— 回应是：如果继续兼容现有DBMS，就想上面提到的为了使用锤子，而错把螺丝钉当钉子使用</p>
-
-<h1>说了那么多，我们谈谈mapreduce是个什么东西</h1>
-
-<p>mapreduce是一个分布式批量计算框架。想必听到这句话的时候大家应该和我一样会问计算框架是个什么东西，也有可能就是吓的不敢问了？
-最粗的方式：
-- map
-- reduce</p>
-
-<p>其次粒度，6个阶段：
-- input ： 这个阶段注意输入格式
-- split ：这个阶段注意split的性能
-- map
-- shuffle
-- reduce ： 注意数据倾斜
-- output ：注意输出格式</p>
-
-<p>最细粒度：
-- input
-- split
-- mapper
-- combiner
-- partitioner
-到这里都是本地机器内操作
-- shuffle
-- reduce
-- output</p>
-
-<h2>一个mapreduce job的启动过程</h2>
-
-<p>话说说完了计算框架的逻辑，那么要运行一个计算任务该怎么做？发现又是另一套东西，怎么都是感觉表面一套背地里一套！</p>
-
-<h2>第一版的过程</h2>
-
-<h2>为什么需要yarn？</h2>
-
-<p>如果不是在大量环境中运行一段时候后，意识到了大量的问题后，估计每个人都会觉得上面的方案已经很完美了。所以这里先提出mapreduce框架的缺陷：
-1. 我们都知道，只要是master结构的架构，随着需求的不断扩大瓶颈一般都会出在master身上，而JobTracker这个这个master。因为JobTracker的限制，所有的资源分配任务和监视任务都集中在Jobtracker上面。所有当集群特别大的时候，内存，cup等肯定会出现问题。
-2. master结构还有一个问题，就是单点问题，加入master一挂，那么整个系统就挂了，这和分布式系统倡导高可用、容错特性背向而驰。而当集群越来越大，job越来愈多，都靠Jobtracker调度，那么其挂的可能性有增大的很多。
-3. 不完美的不仅是Jobtracker，还有TaskTracker。问题就在于TaskTracker把资源强制划分为 map task slot 和 reduce task slot, 如果当系统中只有 map task 或者只有 reduce task 的时候，会造成资源的浪费，也就是前面提过的集群资源利用的问题。这样就会经常出现一个job的map任务都做完了，但是reduce阶段却获得不了资源而终止，很是浪费。
-4. TaskTracker对任务的大小也没做考虑，有些任务大，有些任务小。假如两个都很占用内存的任务遇到一起，就会导致OOM，Task失败。</p>
-
-<h2>编写mapreduce</h2>
-
-<h3>万恶的数据倾斜</h3>
-
-<ol>
-<li>为什么会发生数据倾斜
-根据上面mapreduce逻辑过程我们发现，数据倾斜不可能发生在map过程，都是发生在reduce过程。为什么呢？因为shuffle过程有个规则就是同样的key会发往同一个reduce上，所以到出现key1的记录条数是10亿，而key2的记录条数是10个，那么接到key1的reduce可就要倒霉了，同时其他的reduce也要陪着慢慢的等。</li>
-</ol>
-
-
-<p>怎么解决呢？（难道mapreduce自己没有解决机制吗？）</p>
-
-<ul>
-<li>既然出现大key的时候会出现倾斜，那么直接的解决方法就是把大key给拆了，可以通过加后缀的方式改变key值。</li>
-</ul>
-
-
-<h1>hadoop的另一大旗舰产品——HDFS</h1>
-
-<h2>reference</h2>
-
-<ul>
-<li><a href="https://www.ibm.com/developerworks/cn/opensource/os-cn-hadoop-yarn/">Hadoop 新 MapReduce 框架 Yarn 详解</a></li>
-</ul>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/4">&larr; Older</a>
@@ -905,6 +769,10 @@ Thread和Runnable的区别和联系、多次start一个线程会怎么样、线�
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2017/03/27/statistics-summary/">Statistics Summary</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2017/02/24/data-visualization-d3js/">Data Visualization - D3js</a>
       </li>
     
@@ -918,10 +786,6 @@ Thread和Runnable的区别和联系、多次start一个线程会怎么样、线�
     
       <li class="post">
         <a href="/blog/2016/10/24/the-power-of-infomation-and-time/">The Power of Infomation and Time</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2016/09/14/learning-how-to-learn/">Learning How to Learn</a>
       </li>
     
   </ul>

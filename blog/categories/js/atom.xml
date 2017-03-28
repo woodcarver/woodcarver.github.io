@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Js | Wood Carver]]></title>
   <link href="http://woodcarver.github.io/blog/categories/js/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2017-03-15T00:54:24+08:00</updated>
+  <updated>2017-03-29T00:00:42+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -47,18 +47,89 @@
 </ol>
 
 
-<p>所以d3js的开发步骤，仅仅是抓住下面几个关键步骤：
-1. 构建想要图的所要的坐标和数据。比如你要构建一个二叉树，那么你根据输入，把坐标数据先计算好。
-  根据输入信息得出坐标信息，复杂常用的算法都已经在d3中实现，包涵在d3.layout包下面。比如：<a href="https://github.com/d3/d3/wiki/%E6%A0%91%E5%B8%83%E5%B1%80">Tree</a>输出整齐地排列树节点，<a href="https://github.com/d3/d3/wiki/%E5%88%86%E5%8C%BA%E5%B8%83%E5%B1%80">Partition</a> 输出递归地将节点树分割为旭日状或者冰柱状。
-  其余的layout文档，请点击<a href="https://github.com/d3/d3/wiki/%E5%B8%83%E5%B1%80">这里</a> 
-2. 根据上一步计算结果，画出你想要的。这一步需要借助d3的核心API来操作DOM，可以是HTML、SVG、CSS等。特别说明一点是d3封装了很多常见基础的SVG组件，你不必什么时候都操作裸SVG节点。既然是dsjs，那么封装的也是非常优美，有章可循的：</p>
+<p>所以d3js的开发步骤，仅仅是抓住下面几个关键步骤：</p>
 
 <ol>
-<li>添加响应交互事件。比如点击、hover等js标准事件。</li>
+<li>构建想要图的所要的坐标和数据。比如你要构建一个二叉树，那么你根据输入，把坐标数据先计算好。
+根据输入信息得出坐标信息，复杂常用的算法都已经在d3中实现，包涵在d3.layout包下面。比如：<a href="https://github.com/d3/d3/wiki/%E6%A0%91%E5%B8%83%E5%B1%80">Tree</a>输出整齐地排列树节点，<a href="https://github.com/d3/d3/wiki/%E5%88%86%E5%8C%BA%E5%B8%83%E5%B1%80">Partition</a> 输出递归地将节点树分割为旭日状或者冰柱状。
+其余的layout文档，请点击<a href="https://github.com/d3/d3/wiki/%E5%B8%83%E5%B1%80">这里</a> </li>
+<li><p>根据上一步计算结果，画出你想要的。这一步需要借助d3的核心API来操作DOM，可以是HTML、SVG、CSS等。特别说明一点是d3封装了很多常见基础的SVG组件，你不必什么时候都操作裸SVG节点。既然是dsjs，那么封装的也是非常优美，有章可循的：</p></li>
+<li><p>添加响应交互事件。比如点击、hover等js标准事件。</p></li>
 </ol>
 
 
 <p>上面的1，2步骤</p>
+
+<h2>谈谈数据驱动编程</h2>
+
+<p>什么是数据驱动？stackoverflow上的答案一个回答：</p>
+
+<blockquote><p>Data driven progamming is a programming model where the data itself controls the flow of the program and not the program logic. It is a model where you control the flow by offering different data sets to the program where the program logic is some generic form of flow or of state-changes.</p></blockquote>
+
+<p>数据驱动编程的对立面是什么？ —— 我给的答案是规则编程。</p>
+
+<p>数据驱动有什么好处？数据驱动的思想的基础：</p>
+
+<ol>
+<li>输入是不确定性，所以结果也是千变万化的。</li>
+<li>为了适应输入的不确定，规则需要由数据制定。相反的首先制定规则，即规则驱动编程。其思想是假定规则是确定的，输入也是不多变的，所以先制定几个规则，让数据灌进来即可。这种编程的弊端就是，程序比较僵硬，当数据表现的不符合先前的假设，那么程序将出现异常。扩展性也很差，因为需要给每种异常来扩展相应的规则。到最后就形成了一堆堆砌的丑陋的if或者switch条件了。</li>
+</ol>
+
+
+<p>说的这么多，先举个例子。看看怎么把代码逻辑转移到数据中。
+比如消息发送程序，如果是规则编程可能是这样的：</p>
+
+<pre><code class="javascript">var count = 0;
+function msgProc(type) {
+    if ("num1" == type) {
+        count++;
+        console.log("type1");
+    } else if ("num2" == type) {
+        console.log("type2");
+    } else if ("num3" == type) {
+      console.log(type + " = type3");
+    } else if ("num4" == type) {
+      console.log("type4");
+    } else {
+        console.log("other");
+    }
+};
+</code></pre>
+
+<p>上面的代码是纯粹的规则编码，当遇到更多的规则的时候就不断增加if的个数。根本没办法做到扩展优先，修改原有代码第二的原则。这样每次修改代码都需要全部回归测试，原来的系统面临的风险也很大。特别是当这个函数是第三方代码或者别人的代码库，想要加规则更加困难。但是如果变成数据驱动，代码会如下：</p>
+
+<pre><code class="javascript">var count = 0;
+// data here
+msgProcData = [
+  ["num1", function(type) { count++; console.log(count + " = type1"); }],
+  ["num2", function(type) { console.log("type2"); }],
+  ["num3", function(type) { console.log(type + " = type3"); }],
+  ["num4", function(type) { console.log("type4"); }]
+];
+
+function msgProc(type, msgProcData) {
+  for (var i = 0, len= msgProcData.length; i &lt; len; i++) {
+    if (msgProcData[i][0] ==  type) {
+      msgProcData[i][1](type);
+      return;
+    }
+  }
+  console.log("other");
+}
+</code></pre>
+
+<p>隐含在背后的思想：</p>
+
+<ol>
+<li>更容易修改，要增加新的消息，只要修改数据即可，不需要修改流程。</li>
+<li>隔离变化。像上面的例子，每个消息处理的逻辑是不变的，但是消息可能是变化的，那就把容易变化的消息和不容易变化的逻辑分离。</li>
+<li>控制复杂度。通过把程序逻辑的复杂度转移到人类更容易处理的数据中来，从而达到控制复杂度的目标。</li>
+</ol>
+
+
+<p>另一个更加有趣的例子，状态机的编写：[todo]</p>
+
+<p>推荐两本说明数据驱动编程的书，一本是《Unix编程艺术》，其中提到各种编程思想的，是程序员必读书本之一，且是需要反复研读。第二本是吴军的新书《智能时代》，其中的第三章，思维的革命中的提到的机械思维到数据驱动转变。编程设计思维也是一样的。我们大多数编程的时候其实应用的都是机械思维。总认为输入是情况就那么几种，且也是静态的，从而忽视和扩展性的重要。而当使用数据驱动编程的时候，我们就会先想整个骨骼框架是什么，然后在想每种数据下，具体的逻辑该是什么。这样就延迟了数据处理的逻辑，并且达到了一种可变部分的隔离效果。</p>
 
 <h1>Reference</h1>
 
