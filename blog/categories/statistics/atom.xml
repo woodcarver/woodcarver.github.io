@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Statistics | Wood Carver]]></title>
   <link href="http://woodcarver.github.io/blog/categories/statistics/atom.xml" rel="self"/>
   <link href="http://woodcarver.github.io/"/>
-  <updated>2017-03-29T00:00:42+08:00</updated>
+  <updated>2017-03-29T00:07:08+08:00</updated>
   <id>http://woodcarver.github.io/</id>
   <author>
     <name><![CDATA[Wood Carver]]></name>
@@ -45,7 +45,8 @@
 
 <h1>进阶 - r.m.s</h1>
 
-<p>再谈谈平均数的问题，上面已经指出了一点，但是当数据中是有负数的时候，直接使用平均数简直就变成了灾难！比如下面是一个实验每次测量的误差数值。</p>
+<p>再谈谈平均数的问题，上面已经指出了一点，但是当数据中是有负数的时候，直接使用平均数简直就变成了灾难！比如下面是一个实验每次测量的误差数值。
+<img src="http://woodcarver.oss-cn-shanghai.aliyuncs.com/post/mean-negative.png" alt="mean" /></p>
 
 <p>结果是0，难道真的没有误差吗？显然不是。所以我们还需要想别的办法解决这个问题。如果消除掉负数的影响？在数学中我们都知识有两种方法——1. 绝对值， 2. 平方。所以在原先的方法上加入取负数影响的环节（发现统计学的设计思路和软件工程的设计思路有异曲同工之妙，都是先设计出来一个方案，遇到问题都先尝试加入层次修正，而不是直接推翻重新设计一套）</p>
 
@@ -68,7 +69,7 @@ num = num * num
 <p>但是如果用square又有一个问题，那就是可比较性差了，结果值比原来的数据项都要平方了，有点失真，不完美！
 所以人们又要在原来的解决方案上加上一个开方，让差距拉回来。</p>
 
-<p><img src="http://woodcarver.oss-cn-shanghai.aliyuncs.com/post/absolute-mean-root.png" alt="absolute-mean-root" /></p>
+<p><img src="http://woodcarver.oss-cn-shanghai.aliyuncs.com/post/square-mean-root.png" alt="absolute-mean-root" /></p>
 
 <p>而且还为了这种组合方案打了个包，形成了固定说法r.m.s (square mean root)。
 <img src="http://woodcarver.oss-cn-shanghai.aliyuncs.com/post/rms.png" alt="rms" /></p>
